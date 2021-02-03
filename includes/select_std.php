@@ -20,6 +20,7 @@
                 }
             }
         }else if($_GET['list_frais']){
+            // print_r($_GET);
             $id_section = $_GET['a'];
             $id_departement = $_GET['b'];
             $id_option = $_GET['c'];
@@ -39,12 +40,12 @@
             $req->execute($p);
             if($req->rowCount() > 0){
                 while($data = $req->fetch()){
-                    ?>
-                        <option value="<?=$data['id_frais']?>"><?=$data['type_frais']?></option>
-                    <?php
+                    echo '
+                        <option value="'.$data['id_frais'].'">'.$data['type_frais'].'</option>';
                 }
             }else{
-                die("Aucun frais affecter a l'étudiant(e)");
+                print_r($_GET);
+                die("");
             }
         }
     }
