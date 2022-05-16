@@ -1,0 +1,407 @@
+@media only screen and (min-width: 992px) and (max-width: 5000px) {
+
+	
+}
+
+@media only screen and (min-width: 992px) and (max-width: 1199px) {
+.slider-wrapper {
+	width: 100%;
+}
+.main-menu ul li a {
+padding: 40px 8px;
+}
+.applay-button a {
+	padding: 10px 12px;
+}
+.info-intro {
+	padding-left: 4px;
+	padding-right: 4px;
+}
+.single-post-text h2 a {
+font-size: 20px;
+}
+.services-i-right h2 {
+font-size: 20px;
+}
+
+
+}
+
+
+
+@media only screen and (min-width: 768px) and (max-width: 991px) {
+body {
+font-size: 15px;
+line-height: 24px;
+}	
+h1 {
+font-size: 22px;
+}
+h2 {
+font-size: 18px;
+}
+h3 {
+font-size: 16px;
+}	
+.pt-100{padding-top:80px}
+.pb-100{padding-bottom:80px}
+.pb-80{padding-bottom:50px}
+.pb-70{padding-bottom:40px}
+
+.main-menu ul li a {
+padding: 40px 8px;
+}
+.applay-button-area {
+	display: none;
+}
+.header-left li {
+	margin-top: 10px;
+}
+.slider-wrapper,
+.slider-text {
+	width: 100%;
+}
+.slider-text h1 {
+font-size: 60px;
+}
+.feature-item  .media-body, .media-left, .media-right {
+	display: inline-block;
+	width: 100%;
+}
+.feature-item .feature-inner-meta h2 {
+	line-height: 1.5;
+}
+.faq-thumb img {
+	width: 100%;
+}
+.testimonial-sec .sec-title {
+	margin: 0 0px 50px 0px;
+}
+.single-post-text h2 a {
+	line-height: 1.5;
+}
+.footer-widget {
+	margin: 20px 0;
+}
+.footer-sec {
+	padding-top: 70px;
+	padding-bottom: 30px;
+}
+.info-intro {
+	padding-left: 6px;
+	padding-right: 8px;
+}
+.home-v2 .office-number {
+	display: none;
+}
+.vedio-inner {
+	margin-top: 40px;
+}
+.about-us-sec {
+background-image:none;
+}
+.message-desc {
+	margin: 0px;
+}
+.feature-v3-service-icon {
+	display: none;
+}
+.home-v3 .all-slide .owl-item {
+  height: 750px;
+}
+.service-v3-img img {
+	width: 100%;
+}
+.pagehding-sec {
+	padding-bottom: 80px;
+	padding-top: 80px;
+}
+.page-heading h1 {
+	font-size: 48px;
+}
+.breadcrumb-list li::before {
+	line-height: 24px;
+}
+.sidebar {
+	margin-top: 60px;
+}
+.commenter-author-img {
+	margin-bottom: 20px;
+}
+.code-text {
+	line-height: 1.7;
+}
+.contact-info-inner {
+	margin: 10px 0;
+}
+.page-details-col {
+	margin-bottom: 30px;
+}
+.team-details-thumb {
+	margin-bottom: 40px;
+}
+.team-details-info h1 {
+	font-size: 48px;
+}
+.not-found h1 {
+	font-size: 130px;
+	line-height: 1.4;
+}
+
+}
+
+
+@media only screen and (min-width: 0px) and (max-width: 767px) {
+body {
+font-size: 14px;
+line-height: 24px;
+}	
+h1 {
+font-size: 22px;
+}
+h2 {
+font-size: 18px;
+}
+h3 {
+font-size: 16px;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+line-height: 1.5;
+}
+.pt-100{padding-top:80px}
+.pb-100{padding-bottom:80px}
+.pb-80{padding-bottom:50px}
+.pb-70{padding-bottom:40px}
+.applay-button-area {
+	display: none;
+}
+.header-left li {
+	margin-top: 10px;
+}
+.slider-wrapper,
+.slider-text {
+	width: 100%;
+}
+.sec-title h1 {
+	font-size: 36px;
+}
+.slider-text h1 {
+font-size: 28px;
+}
+.feature-item .feature-inner-meta h2 {
+	line-height: 1.5;
+}
+.faq-thumb img {
+	width: 100%;
+}
+.testimonial-sec .sec-title {
+	margin: 0 0px 50px 0px;
+}
+.single-post-text h2 a {
+	line-height: 1.5;
+}
+.footer-widget {
+	margin: 20px 0;
+	display: inline-block;
+	width: 100%;
+}
+.search-bar-icon {
+	padding:7px 0px;
+	right: 100px;
+}
+.logo {
+	top: 12px;
+	padding-top:0px;
+	padding-bottom: 30px;
+	position: relative;
+}
+.header-left {
+	text-align: center;
+}
+.header-right-div {
+	text-align: center;
+}
+.header-top {
+	padding-bottom: 15px;
+}
+.footer-sec {
+	padding-top: 70px;
+	padding-bottom: 30px;
+}
+.info-intro {
+	padding-left: 6px;
+	padding-right: 8px;
+	border-right:0px;
+}
+.home-v2 .office-number {
+	display: none;
+}
+.vedio-inner {
+	margin-top: 40px;
+}
+.about-us-sec {
+background-image:none;
+}
+.message-desc {
+	margin: 0px;
+}
+.message-title {
+font-size: 32px;
+}
+.message-subtitle{
+	margin-left:0px;
+	margin-right:0px;
+}
+.why-choose-thumb > img {
+	width: 100%;
+}
+.about-us-short h1 {
+font-size: 34px;
+}
+.counting_sl h2 {
+font-size: 38px;
+}
+.counting_sl h4 {
+font-size: 16px;
+}
+.home-v3 .all-slide .owl-item {
+  height: 550px;
+}
+.service-v3-img img {
+	width: 100%;
+}
+.feature-v3-service-thumb > img {
+	width: 100%;
+}
+.home-v2 .about-desc, .home-v3 .about-desc {
+	padding: 80px 0px 50px 0px;
+}
+.pagehding-sec {
+	padding-bottom: 80px;
+	padding-top: 80px;
+}
+.page-heading h1 {
+	font-size: 48px;
+}
+.call-to-action-text2 {
+	text-align: center;
+}
+.call-to-action-text2 a.btn {
+float: inherit;
+}
+.breadcrumb-list li::before {
+	line-height: 24px;
+}
+.sidebar {
+	margin-top: 40px;
+}
+.commenter-author-img {
+	margin-bottom: 20px;
+}
+.post-share-link {
+	text-align: left;
+	margin-top: 20px;
+}
+.code-text {
+	font-size: 22px;
+	line-height: 1.7;
+}
+.contact-info-inner {
+	margin: 10px 0;
+}
+.page-details-col {
+	margin-bottom: 30px;
+}
+.page-details-desc h1 {
+	font-size: 28px;
+}
+.page-details-desc h2 {
+	font-size: 22px;
+}
+.team-details-thumb {
+	margin-bottom: 30px;
+}
+.team-details-info h1 {
+	font-size: 38px;
+}
+.team-details-desc h2 {
+	font-size: 22px;
+}
+.not-found h1 {
+	font-size: 80px;
+	line-height: 1.6;
+}
+.error-subtitle {
+	font-size: 28px;;
+}
+
+}
+@media only screen and (min-width: 0px) and (max-width: 560px) {
+.project-list-box {
+	width: 50%;
+	float: left;
+	margin-bottom: 30px;
+	padding-right:0px;
+}
+.project-list-box::before {
+	display: none;
+}
+
+}
+
+@media only screen and (min-width: 0px) and (max-width: 492px) {
+.slider-text h1 {
+	font-size: 28px;
+	line-height: 40px;
+}
+.slider-text ul{margin-top:40px;}
+.commentar-sec img {
+	float: inherit;
+	margin-bottom: 20px;
+}
+.post-commenter-author .media-left {
+	display: inherit;
+	width: 100%;
+	float: inherit;
+}
+
+}
+
+@media only screen and (min-width: 0px) and (max-width: 420px) {
+.counting_sl h4 {
+	font-size: 13px;
+}
+.counting_sl h2 {
+	font-size: 26px;
+}
+
+}
+
+@media only screen and (min-width: 0px) and (max-width: 550px) {
+
+
+}
+
+@media only screen and (min-width: 0px) and (max-width: 500px) {
+
+
+}
+
+@media only screen and (min-width: 0px) and (max-width: 390px) {
+.sec-title h1 {
+  font-size:28px;
+}
+.feature-item  .media-body, .media-left, .media-right {
+	display: inline-block;
+	width: 100%;
+}
+
+}
+@media only screen and (min-width: 0px) and (max-width: 359px) {
+
+}
