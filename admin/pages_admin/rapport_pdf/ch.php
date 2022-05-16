@@ -20,12 +20,11 @@
     $pdf->cell(197,6, decode_fr("ISPT-KIN"),0,1,'C');
     $pdf->cell(197,6, decode_fr("E-mail : info@isptkin.ac.cd"),0,1,'C');
     $pdf->cell(197,6, decode_fr("site web : www.isptkin.ac.cd"),0,1,'C', false, 'www.isptkin.ac.cd');
-
     $pdf->Ln(5);
     // logo de la faculte
-    $pdf->Image("../../../images/ispt_kin.png", 15,25,25, 25);
+    $pdf->Image("../../../images/ispt_kin.png", 10,15,25, 25);
     $pdf->Ln(2);
-    $pdf->cell(190,1 ,"",1,1,'C', true);
+    $pdf->cell(197,1 ,"",1,1,'C', true);
 
     $pdf->Ln(1);
     $pdf->SetFont('Arial','BU',12);

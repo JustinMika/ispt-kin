@@ -15,7 +15,6 @@
     $pdf->cell(197,6, decode_fr("ISPT-KIN"),0,1,'C');
     $pdf->cell(197,6, decode_fr("E-mail : info@isptkin.ac.cd"),0,1,'C');
     $pdf->cell(197,6, decode_fr("site web : www.isptkin.ac.cd"),0,1,'C', false, 'www.isptkin.ac.cd');
-
     $pdf->Ln(5);
     // logo de la faculte
     $pdf->Image("../../../images/ispt_kin.png", 10,15,25, 25);
