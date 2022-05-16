@@ -262,12 +262,12 @@
         </a>
     </li>
 
-    <li class="nav-item"  style="<?=rrrr()?>">
+    <!-- <li class="nav-item"  style="<?=rrrr()?>">
         <a class="nav-link" href="./ec/">
         <i class="fa fa-calculator" aria-hidden="true"></i>
         <span>Ecritures Comptable </span>
         </a>
-    </li>
+    </li> -->
 
     <hr class="sidebar-divider m-0">
 
@@ -285,7 +285,7 @@
         </a>
     </li>
    
-    <hr class="sidebar-divider d-none d-md-block m-0 p-0">
+    <hr class="sidebar-divider d-none d-md-block mt-2 p-0">
 
     <div class="text-center d-none d-md-inline">
         <button class="rounded-circle border-0" id="sidebarToggle"></button>
