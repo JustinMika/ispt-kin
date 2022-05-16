@@ -262,13 +262,6 @@
         </a>
     </li>
 
-    <!-- <li class="nav-item"  style="<?=rrrr()?>">
-        <a class="nav-link" href="./ec/">
-        <i class="fa fa-calculator" aria-hidden="true"></i>
-        <span>Ecritures Comptable </span>
-        </a>
-    </li> -->
-
     <hr class="sidebar-divider m-0">
 
     <li class="nav-item">
