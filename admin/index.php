@@ -6,7 +6,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="shortcut icon" href="../images/UNIGOM_W260px.jpg">
+        <link rel="shortcut icon" href="../images/ispt_kin.png">
 
         <title>Admin Login</title>
 
