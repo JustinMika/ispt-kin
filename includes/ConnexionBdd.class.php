@@ -5,11 +5,8 @@
     class ConnexionBdd{
         private static $host = "localhost";
 		private static $db_name = "projet_gestion_fin_unigom";
-		// private static $db_name = "c1832965c_budget";
 		private static $user = "root";
-		// private static $user = "c1832965c";
 		private static $pwd_user = "";
-		// private static $pwd_user = "t6NA7V5NASdKwjX";
 		private static $pdo = null;
         private static $pdo_o = null;
 
@@ -63,7 +60,6 @@
 	}
 	
 	function montant_restant_pourcent($var1, $var_2){
-		// return intval((($var1 * 100) /  $var_2));
 		if($var_2 >= 1){
 			$v = floatval(($var1 * 100) /  $var_2);
 			$str = strtolower($v);
