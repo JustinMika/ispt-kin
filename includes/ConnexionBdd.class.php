@@ -4,8 +4,8 @@
      */
     class ConnexionBdd{
         private static $host = "localhost";
-		private static $db_name = "isptkin";
-		private static $user = "isptkin";
+		private static $db_name = "isptkinc_ispt";
+		private static $user = "isptkinc_ispt";
 		private static $pwd_user = "El@23071990";
 		private static $pdo = null;
         private static $pdo_o = null;
