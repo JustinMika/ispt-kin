@@ -31,7 +31,7 @@
 		rel="stylesheet">
 		<script src="js/Chart.min.js"></script>
 	<link href="css/sb-admin-2.min.css" rel="stylesheet">
-	<link rel="shortcut icon" href="../../images/UNIGOM_W260px.jpg" type="image/x-icon">
+	<link rel="shortcut icon" href="../../images/ispt_kin.png" type="image/x-icon">
 </head>
 
 <body id="page-top">
