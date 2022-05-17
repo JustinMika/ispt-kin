@@ -14,7 +14,7 @@
 
         $pdf->cell(150,10,'',0,1,'C');
         $pdf->cell(197,6, decode_fr(strtoupper("institut superieur pedagogique et technique de kinshasa")),0,1,'C');
-        $pdf->SetFont('Arial','',11); //Mail : info@isptkin.ac.cd
+        $pdf->SetFont('Arial','',11); 
         $pdf->cell(197,6, decode_fr("ISPT-KIN"),0,1,'C');
         $pdf->cell(197,6, decode_fr("E-mail : info@isptkin.ac.cd"),0,1,'C');
         $pdf->cell(197,6, decode_fr("site web : www.isptkin.ac.cd"),0,1,'C', false, 'www.isptkin.ac.cd');
