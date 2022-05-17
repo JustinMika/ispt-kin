@@ -111,17 +111,4 @@
             header("Location:../index.php", true, 301);
         }
     }
-
-	// regler les soucis d'encodage de caracters
-	function encode($v){
-		$t1 = array("é", "è", "ç", "â", "î", "à","ù");
-		$t2 = array("&Atilde;&copy;",
-		"&Atilde;&uml;",
-		"&Atilde;&sect;",
-		"&Atilde;&cent;",
-		"&Atilde;&reg;",
-		"&Atilde;&nbsp;",
-		"&Atilde;&sup1;);");
-	}
-	function decode($v){}
 ?>
