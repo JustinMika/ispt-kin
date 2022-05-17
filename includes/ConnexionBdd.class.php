@@ -4,9 +4,9 @@
      */
     class ConnexionBdd{
         private static $host = "localhost";
-		private static $db_name = "projet_gestion_fin_unigom";
-		private static $user = "root";
-		private static $pwd_user = "";
+		private static $db_name = "isptkin";
+		private static $user = "isptkin";
+		private static $pwd_user = "El@23071990";
 		private static $pdo = null;
         private static $pdo_o = null;
 
