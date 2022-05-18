@@ -8,11 +8,11 @@
         if(isset($_POST['id']) && !empty($_POST['id']) && !empty($_POST['name_poste_d'])){
             if(isset($_POST['montant']) && !empty($_POST['montant'])){
                 // update le montant du poste
-                $update = ConnexionBdd::Connecter()->prepare("UPDATE poste_depense SET montant = ?,poste = ? WHERE id = ?");
+                $update = ConnexionBdd::Connecter()->prepare("UPDATE poste_depense SET montant = ?, poste = ? WHERE id_poste = ?");
                 $ok = $update->execute(array($_POST['montant'], $_POST['name_poste_d'], $_POST['id']));
                 if($ok){
                     echo 'ok';
-                    LogUser::addlog(VerificationUser::verif($_SESSION['data']['noms']), "a mofier le montant du poste de depense :)");
+                    LogUser::addlog(VerificationUser::verif($_SESSION['data']['id_user']), "a mofier le montant du poste de depense :)");
                 }else{
                     echo 'la mise a jour du montant n a pas reussi.';
                 }
@@ -74,20 +74,19 @@
 
         }
     }else if(isset($_POST['del_trans']) && !empty($_POST['del_trans']) && $_POST['del_trans'] == "del_trans"){
-        if(isset($_POST['id_trans_mod_delete']) && !empty($_POST['id_trans_mod_delete'])){
+        if(isset($_POST['id_trans_mod_delete']) && !empty($_POST['id_trans_mod_delete']) && !empty($_POST['trans_id_post'])){
             if(isset($_POST['trans_post_d_delete']) && !empty($_POST['trans_post_d_delete'])){
                 if(isset($_POST['trans_post_montant_delete']) && !empty($_POST['trans_post_montant_delete'])){
                     // on recuoere le dernier annee acad
-                    $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_academique GROUP BY annee_acad ORDER BY id DESC LIMIT 1");
-                    if($an->rowCount() > 0){
-                            $an_r = $an->fetch();
-                        }else{
-                            $an_r['annee_acad'] = '';
-                        }
+                    // $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_academique GROUP BY annee_acad ORDER BY id DESC LIMIT 1");
+                    // if($an->rowCount() > 0){
+                    //         $an_r = $an->fetch();
+                    //     }else{
+                    //         $an_r['annee_acad'] = '';
+                    //     }
                     // on selectionne le poste de depense en question pour recuperer le montant
-                    $sel_pd = ConnexionBdd::Connecter()->prepare("SELECT depense FROM poste_depense WHERE poste = ? AND annee_acad = ?");
-                    $sel_pd->execute(array($_POST['trans_post_d_delete'], $an_r['annee_acad']));
-                    // print_r(utf8_encode($_POST['trans_post_d_delete']));
+                    $sel_pd = ConnexionBdd::Connecter()->prepare("SELECT depense FROM poste_depense WHERE id_poste = ?");
+                    $sel_pd->execute(array($_POST['trans_id_post']));
 
                     if($sel_pd->rowCount() >= 1){
                         $sel_pd = $sel_pd->fetch();
@@ -96,16 +95,16 @@
 
                         $n_montant  = $mont_existant - $_POST['trans_post_montant_delete'];
 
-                        $update_trans = ConnexionBdd::Connecter()->prepare("DELETE FROM transaction_depense WHERE id = ?");
+                        $update_trans = ConnexionBdd::Connecter()->prepare("DELETE FROM transaction_depense WHERE id_transaction = ?");
                         $ok = $update_trans->execute(array($_POST['id_trans_mod_delete']));
                         if($ok){
                             // update le montant du poste
-                            $update_pd = ConnexionBdd::Connecter()->prepare("UPDATE poste_depense SET depense = ? WHERE annee_acad = ? AND poste = ?");
-                            $ok = $update_pd->execute(array($n_montant, $an_r['annee_acad'], $_POST['trans_post_d_delete']));
+                            $update_pd = ConnexionBdd::Connecter()->prepare("UPDATE poste_depense SET depense = ? WHERE id_poste = ?");
+                            $ok = $update_pd->execute(array($n_montant, $_POST['trans_id_post']));
                             if($ok){
                                 echo 'ok';
                             }else{
-                                echo 'mise a jour de la transactionn n a pas reussi ...';
+                                echo 'mise a jour de la transaction n\'a pas reussi ...';
                             }
                         }else{
                             echo 'Suppression de la transaction n a pas reussi.';
@@ -125,8 +124,8 @@
     }else if(isset($_POST['update_trans_mod']) && !empty($_POST['update_trans_mod']) 
     && $_POST['update_trans_mod'] == "update_trans_mod"){
         if(!empty($_POST['id_trans_mod']) && !empty($_POST['trans_motif']) && !empty($_POST['num_op']) && !empty($_POST['post_trans_upp'])){
-            $b = ConnexionBdd::Connecter()->prepare("UPDATE transaction_depense SET motif = ?, num_op = ?, poste = ? WHERE id  = ?");
-            $ok = $b->execute(array($_POST['trans_motif'], $_POST['num_op'], $_POST['post_trans_upp'], $_POST['id_trans_mod']));
+            $b = ConnexionBdd::Connecter()->prepare("UPDATE transaction_depense SET motif = ?, num_op = ? WHERE id_transaction  = ?");
+            $ok = $b->execute(array($_POST['trans_motif'], $_POST['num_op'] , $_POST['id_trans_mod']));
             if($ok){
                 echo 'ok';
             }else{

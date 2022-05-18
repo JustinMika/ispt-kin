@@ -92,6 +92,7 @@ $(document).ready(function() {
     $("#form_transaction").submit(function(e) {
         e.preventDefault();
         // alert($("#num_op_num").val());
+        var id_poste = $("#id_poste");
         var date_r = $("#date_r");
         var motif = $("#motif");
         var update_montant_ = $("#update_montant_");
@@ -101,12 +102,13 @@ $(document).ready(function() {
         // alert($(date_r).val() + " -" + $(motif).val() + " -" + $(num_op).val() + " -" + $(update_montant_).val())
 
         if ($(date_r).val() != "" && $(motif).val() != "" && $(num_op).val() != "" && $(update_montant_).val() != "" &&
-            $(dep_post_).val() != "" && tot_m != "") {
+            $(dep_post_).val() != "" && tot_m != "" && $(id_poste).val() !="") {
             // traitement ajax
             $.ajax({
                 url: '../../includes/update_depense.php',
                 method: 'POST',
                 data: {
+                    id_poste:$(id_poste).val(),
                     date_r: $(date_r).val(),
                     motif: $(motif).val(),
                     motif: $(motif).val(),

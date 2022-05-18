@@ -16,7 +16,7 @@
             echo "une erreur est survenue lors de la suppression...";
         }
     }else if(isset($_POST['id_poste_dep']) && !empty($_POST['id_poste_dep'])){
-            $d = ConnexionBdd::Connecter()->prepare("DELETE FROM poste_depense WHERE id = ?");
+            $d = ConnexionBdd::Connecter()->prepare("DELETE FROM poste_depense WHERE id_poste = ?");
             $ok = $d->execute(array($_POST['id_poste_dep']));
 
             if($ok){

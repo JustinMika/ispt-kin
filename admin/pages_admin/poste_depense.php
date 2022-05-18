@@ -108,26 +108,28 @@
                                                 <td> # </td>
                                             </tr>
                                         </thead>
-                                        <tbody class="text-secondary" id="tbody_transaction">
+                                        <tbody class="text-secondary" id="tbody_transaction_">
                                             <?php
-                                                $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_academique GROUP BY annee_acad ORDER BY id DESC LIMIT 1");
+                                                $an =  ConnexionBdd::Connecter()->query("SELECT id_annee FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1");
                                                 if($an->rowCount() > 0){
                                                     $an_r = $an->fetch();
+                                                    
                                                 }else{
-                                                    $an_r['annee_acad'] = '';
+                                                    $an_r['id_annee'] = '';
                                                     die("Veuillez AJouter l annee academique");
                                                 }
 
-                                                $pd = ConnexionBdd::Connecter()->prepare("SELECT * FROM transaction_depense WHERE annee_acad = ? ORDER BY date_t ASC");
-                                                $pd->execute(array($an_r['annee_acad']));
+                                                $pd = ConnexionBdd::Connecter()->prepare("SELECT transaction_depense.id_transaction, transaction_depense.montant, transaction_depense.num_op, transaction_depense.date_motif, transaction_depense.motif, poste_depense.id_poste, poste_depense.poste FROM transaction_depense LEFT JOIN poste_depense on transaction_depense.id_poste=poste_depense.id_poste WHERE transaction_depense.id_annee =  ? ORDER BY transaction_depense.date_motif DESC");
+                                                $pd->execute(array($an_r['id_annee']));
                                                         
                                                 while($data = $pd->fetch()){
                                                     ?>
                                                         <tr>
-                                                            <td id="trans_id"><?=$data['id']?></td>
+                                                            <td id="trans_id"><?=$data['id_transaction']?></td>
                                                             <td id="num_op"><?php if(!empty($data['num_op'])){echo $data['num_op'];}else{echo '-';}?></td>
+                                                            <td id="trans_poste_id" style="display:none"><?=$data['id_poste']?></td>
                                                             <td id="trans_poste"><?=$data['poste']?></td>
-                                                            <td id="trans_date_t"><?=$data['date_t']?></td>
+                                                            <td id="trans_date_t"><?=$data['date_motif']?></td>
                                                             <td id="trans_montant"><?=$data['montant'].'$'?></td>
                                                             <td id="trans_motif"><?=$data['motif']?></td>
                                                             <td>
@@ -180,10 +182,10 @@
                             <label for="">Annee Academique</label>
                             <select name="annee_acad" id="annee_acad" class="form-control">
                                 <?php
-                                    $list = ConnexionBdd::Connecter()->query("SELECT * FROM `annee_academique` ORDER BY id DESC");
+                                    $list = ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad ORDER BY id_annee DESC");
                                     while($data = $list->fetch()){
                                         ?>
-                                            <option value="<?=$data['annee_acad']?>"><?=$data['annee_acad']?></option>
+                                            <option value="<?=$data['id_annee']?>"><?=$data['annee_acad']?></option>
                                         <?php
                                     }
                                 ?>
@@ -250,6 +252,8 @@
                         <div class="form-group">
                             <!-- <label for="">date</label> -->
                             <input type="date" class="form-control" name="date_r" id="date_r" aria-describedby="helpId" placeholder="Date" require>
+
+                            <input type="hidden" class="form-control" name="id_poste" id="id_poste" aria-describedby="helpId" placeholder="Date" require>
                         </div>
 
                         <div class="form-group">
@@ -336,10 +340,10 @@
                                 <optgroup></optgroup>
                                 <hr>
                                 <?php
-                                    $lpd = ConnexionBdd::Connecter()->query("SELECT * FROM poste_depense GROUP BY annee_acad DESC");
+                                    $lpd = ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY id_annee DESC");
                                     while($data = $lpd->fetch()){
                                         ?>
-                                            <option value="<?=$data['annee_acad']?>"><?=$data['annee_acad']?></option>
+                                            <option value="<?=$data['id_annee']?>"><?=$data['annee_acad']?></option>
                                         <?php
                                     }
                                 ?>
@@ -385,7 +389,7 @@
                                     $lpd = ConnexionBdd::Connecter()->query("SELECT * FROM poste_depense");
                                     while($data = $lpd->fetch()){
                                         ?>
-                                            <option value="<?=$data['poste']?>"><?=$data['poste']?></option>
+                                            <option value="<?=$data['id_poste']?>"><?=$data['poste']?></option>
                                         <?php
                                     }
                                 ?>
@@ -403,10 +407,10 @@
                                 <optgroup></optgroup>
                                 <hr>
                                 <?php
-                                    $lpd = ConnexionBdd::Connecter()->query("SELECT * FROM poste_depense GROUP BY annee_acad DESC");
+                                    $lpd = ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY id_annee DESC");
                                     while($data = $lpd->fetch()){
                                         ?>
-                                            <option value="<?=$data['annee_acad']?>"><?=$data['annee_acad']?></option>
+                                            <option value="<?=$data['id_annee']?>"><?=$data['annee_acad']?></option>
                                         <?php
                                     }
                                 ?>
@@ -492,6 +496,7 @@
                         <p class="text-warning">Voulez-vous vraiment supprimer cette transaction ?</span></p>
                         <div class="form-group">
                             <input type="text" class="form-control" name="trans_post_d_delete" id="trans_post_d_delete" aria-describedby="helpId" placeholder="poste de depense" disabled>
+                            <input type="hidden" class="form-control" name="trans_post_d_delete_id" id="trans_post_d_delete_id" aria-describedby="helpId" placeholder="poste de depense" disabled>
                         </div>
 
                         <div class="form-group">
@@ -610,7 +615,7 @@
                             <input type="text" name="num_op_" id="num_op_" placeholder="numero op." class="form-control mb-1">
 
                             <label for="">poste de dépense</label>
-                            <input type="text" name="post_trans_up" id="post_trans_up" placeholder="poste de depense" class="form-control mb-1">
+                            <input type="text" name="post_trans_up" id="post_trans_up" placeholder="poste de depense" class="form-control mb-1" disabled>
 
                             <label for="">Motif</label>
                             <textarea rows="3" cols="" id="form_edit_text" class="form-control"></textarea>
@@ -747,9 +752,14 @@
             poste = mm.find("#post");
             montant = mm.find("#montant");
             montant_restant = mm.find("#m_restant");
+            id_poste_dep = mm.find("#id_poste_dep");
 
             m_depense = mm.find("#m_depense");
+            $("#id_poste").val(id_poste_dep.text());
             $("#tot_m").val(parseInt(m_depense.text()), 10);
+
+            // alert($("#id_poste").val());
+
 
             $("#dep_post_").val(poste.text());
             $("#update_montant_").attr('min', '0');
@@ -1061,10 +1071,13 @@
             mm = $(m).parent();
             
             trans_id = mm.find("#trans_id");
+            trans_id_post = mm.find("#trans_poste_id");
             trans_poste = mm.find("#trans_poste");
             trans_date_t = mm.find("#trans_date_t");
             trans_montant = mm.find("#trans_montant");
             trans_motif = mm.find("#trans_motif");
+
+            // alert(trans_id_post.text());
 
             $("#id_trans_mod_delete").val(trans_id.text());
             $("#trans_post_d_delete").val(trans_poste.text());
@@ -1079,9 +1092,10 @@
         // on soummet le form
         $("#delete_transaction_pd").submit(function (e) { 
             e.preventDefault();
-            if($("#id_trans_mod_delete").val() !="" && $("#trans_post_d_delete").val() !="" && $("#trans_post_montant_delete").val() !=""){
+            if($("#id_trans_mod_delete").val() !="" && $("#trans_post_d_delete").val() !="" && $("#trans_post_montant_delete").val() !="" && trans_id_post.text() !=""){
                 const data = {
                     del_trans : "del_trans",
+                    trans_id_post:trans_id_post.text(),
                     id_trans_mod_delete : $("#id_trans_mod_delete").val() ,
                     trans_post_d_delete : $("#trans_post_d_delete").val() ,
                     trans_post_montant_delete : $("#trans_post_montant_delete").val()

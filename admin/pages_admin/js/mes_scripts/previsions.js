@@ -154,7 +154,6 @@ $(document).ready(function() {
     // update poste de rectte universitaire
     $("#id_update_poste").submit(function(e) {
         e.preventDefault();
-        // alert($("#id_id_id").val());
         const data = {
             id_id_id: $("#id_id_id").val(),
             montant_ru: $("#montant_ru").val()
@@ -167,7 +166,6 @@ $(document).ready(function() {
                 $("#Erreor_sss").css({ color: 'green' }).text("Un instant ...");
             },
             success: function(response) {
-                // $("#Erreor_sss").css({ color: 'green' }).text("mise à jour réussie..." + response);
                 if (response != "" && response == "ok") {
                     $("#Erreor_sss").css({ color: 'green' }).text("mise à jour réussie...");
                     window.location.reload();
