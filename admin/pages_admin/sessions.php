@@ -25,5 +25,6 @@
 
     if(empty($m['noms'])){
         header('location:dec.php', true, 301);
+        // die("E3");
     }
 ?>

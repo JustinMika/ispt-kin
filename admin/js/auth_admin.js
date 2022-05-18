@@ -27,16 +27,16 @@ $(document).ready(function() {
                     $("#error").html("Un instant ...");
                 }
             }).done(function(data) {
-                // if (data != "<b>l'adresee email et/ou le mot de passe est incorect</b>") {
-                //     $("#btn-submit").html('<img src="../img_loader/Ripple-1s-90px.gif" width="35" height="35"> Veuillez patienter ...').addClass('btn-primary btn-sm');
-                // const obj_data = JSON.parse(data);
-                // alert(data);
+                if (data != "<b>l'adresee email et/ou le mot de passe est incorect</b>") {
+                    $("#btn-submit").html('<img src="../img_loader/Ripple-1s-90px.gif" width="35" height="35"> Veuillez patienter ...').addClass('btn-primary btn-sm');
+                    const obj_data = JSON.parse(data);
+                    // alert(data);
 
-                // window.location.href = "pages_admin/index.php?Ff=" + obj_data.fonction + "&i=" + obj_data.id;
-                // } else {
-                //     $("#error").addClass('text-warning text-center');
-                //     $("#error").html(data);
-                // }
+                    window.location.href = "pages_admin/index.php?Ff=" + obj_data.fonction + "&i=" + obj_data.id;
+                } else {
+                    $("#error").addClass('text-warning text-center');
+                    $("#error").html(data);
+                }
             }).fail(function(data) {
                 $("#error").addClass('text-warning text-center');
                 $("#error").html("Veuillez verifier votre connexion svp ...");

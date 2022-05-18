@@ -21,11 +21,12 @@
                 self::$fonction = self::$fonction_1;
             }else{
                 header('location:../index.php');
+                // die("E2");
             }
         }
 
         public static function session_id_verf(){
-            $data = ConnexionBdd::Connecter()->prepare("SELECT * FROM utilisateurs WHERE noms = ? AND fonction = ? AND access = ? AND id = ?");
+            $data = ConnexionBdd::Connecter()->prepare("SELECT * FROM utilisateurs WHERE noms = ? AND fonction = ? AND access = ? AND id_user = ?");
 
             $data->execute(array(
                 self::$nom,
@@ -50,6 +51,7 @@
                 return $var;
             }else{
                 header('location:../index.php', true, 301);
+                // die("e1");
             }
         }
     }

@@ -1,8 +1,8 @@
 <?php
     $lf = array();
-    $fac = connexionBdd::Connecter()->query("SELECT DISTINCT * FROM faculte GROUP BY fac");
+    $fac = connexionBdd::Connecter()->query("SELECT DISTINCT * FROM sections GROUP BY section");
     while($l = $fac->fetch()){
-        $lf[] =  $l['fac'];  
+        $lf[] =  $l['section'];  
     }
 
     // pour restreidre droit chez de faculte

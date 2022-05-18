@@ -14,7 +14,7 @@
         <link href="css/elegant-icons-style.css" rel="stylesheet" />
         <link href="css/style.css" rel="stylesheet">
         <link href="pages_admin/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-        <link href="css/style-responsive.css" rel="stylesheet" />
+        <!-- <link href="css/style-responsive.css" rel="stylesheet" /> -->
 
         <style>
             .btn-primary {

@@ -16,12 +16,12 @@
                 $req = $connexion->fetch();
                 $nmbre = $connexion->rowcount();
                 if($nmbre >= 1){
-                    $_SESSION['identifiant'] = $req['id'];
+                    $_SESSION['identifiant'] = $req['id_user'];
                     $_SESSION['nom'] = $req['noms'];
                     $_SESSION['fonction_agent'] = $req['fonction'];
                     
                     // log de l'utilisateur
-                    LogUser::addlog($req['noms'], "s'est connecté(e) Connexion au system.");
+                    LogUser::addlog($req['id_user'], "s'est connecté(e) Connexion au system.");
                     $data = array(
                         "id"        => md5(sha1($req['id_user'])), 
                         "fonction"  => $req['fonction'],
