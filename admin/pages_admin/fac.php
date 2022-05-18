@@ -379,6 +379,20 @@
             }
         })
     </script>
+
+    <!-- afficher les options d'un departement -->
+    <script type="text/javascript">
+        $("table").on('click', '#list_option_option', function() {
+            b = $(this);
+            m = $(this).parent();
+            mm = $(m).parent();
+
+            id_departement_ = mm.find("#id_departement");
+            id_section_ = mm.find("#id_section");
+            departement = mm.find("#departement");
+        });
+    </script>
+
     <!-- //add_option_option -->
     <script type="text/javascript">
         $("table").on('click', '#add_option_option', function() {
