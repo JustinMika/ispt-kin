@@ -77,7 +77,7 @@
                                                             while($data = $list_user->fetch()){
                                                                 ?>
                                                                     <tr>
-                                                                        <td id="id_user"><?=$data['id']?></td>
+                                                                        <td id="id_user"><?=$data['id_user']?></td>
                                                                         <td>
                                                                             <img src="<?=$data['profil']?>" class="img-fluid rounded-top,rounded-right,rounded-bottom,rounded-left,rounded-circle" alt="" width="50">
                                                                         </td>
@@ -86,12 +86,12 @@
                                                                         <td id="fonction_user"><?=$data['fonction']?></td>
                                                                         <td id="user"><?=$data['access']?></td>
                                                                         <td class="d-flex">
-                                                                            <div class="dropdown open"  style="<?php if($_SESSION['data']['id_user'] == $data['id'] || $_SESSION['data']['fonction'] == "Admin"){echo'';}else{echo'display:none';}?>">
+                                                                            <div class="dropdown open"  style="<?php if($_SESSION['data']['id_user'] == $data['id_user'] || $_SESSION['data']['fonction'] == "Admin"){echo'';}else{echo'display:none';}?>">
                                                                                 <button class="btn btn-sm btn-primary dropdown-toggle" type="button" id="triggerId" data-toggle="dropdown" aria-haspopup="true"
                                                                                         aria-expanded="false">Update</button>
                                                                                 <div class="dropdown-menu" aria-labelledby="triggerId" style="<?php //restruct_user()?>">
-                                                                                    <button class="dropdown-item btn-sm" href="#" data-toggle="modal" data-target="#update_identifiant" id="update_identifiant_btn" style="<?php if($_SESSION['data']['id_user'] == $data['id'] || $_SESSION['data']['fonction'] == "Admin"){echo'';}else{echo'display:none';}?>">Profil</button>
-                                                                                    <button class="dropdown-item btn-sm" data-toggle="modal" data-target="#update_modal"id="update_id_" style="<?php if($_SESSION['data']['id_user'] == $data['id'] || $_SESSION['data']['fonction'] == "Admin"){echo'';}else{echo'display:none';}?>">Identifiants</button>
+                                                                                    <button class="dropdown-item btn-sm" href="#" data-toggle="modal" data-target="#update_identifiant" id="update_identifiant_btn" style="<?php if($_SESSION['data']['id_user'] == $data['id_user'] || $_SESSION['data']['fonction'] == "Admin"){echo'';}else{echo'display:none';}?>">Profil</button>
+                                                                                    <button class="dropdown-item btn-sm" data-toggle="modal" data-target="#update_modal"id="update_id_" style="<?php if($_SESSION['data']['id_user'] == $data['id_user'] || $_SESSION['data']['fonction'] == "Admin"){echo'';}else{echo'display:none';}?>">Identifiants</button>
                                                                                 </div>
                                                                             </div>
                                                                         </td>
@@ -140,7 +140,7 @@
                                                         while($data = $list_user->fetch()){
                                                             ?>
                                                                 <tr>
-                                                                    <td class="m-3" id="id"><?=$data['id']?></td>
+                                                                    <td class="m-3" id="id"><?=$data['id_user']?></td>
                                                                     <td class="m-3" id="noms"><?=$data['noms']?></td>
                                                                     <td>
                                                                         <img src="<?=$data['profil']?>" class="img-fluid rounded-top,rounded-right,rounded-bottom,rounded-left,rounded-circle" alt="" width="50">
@@ -174,7 +174,7 @@
                                                 </thead>
                                                 <tbody>
                                                     <?php
-                                                        $list_user = ConnexionBdd::Connecter()->query("SELECT * FROM log_admin_user ORDER BY date_action, id, noms ASC");
+                                                        $list_user = ConnexionBdd::Connecter()->query("SELECT utilisateurs.noms, log_user.log_action as actions, log_user.date_action, log_user.id_log as id FROM log_user LEFT JOIN utilisateurs ON utilisateurs.id_user = log_user.id_user ORDER BY log_user.date_action DESC LIMIT 11");
                                                         while($data = $list_user->fetch()){
                                                             ?>
                                                                 <tr>
@@ -418,10 +418,10 @@
                                     <option> ---------- </option>
                                     <!-- on charge les differenrs faculte se trouvabnt dans la base de donnees -->
                                     <?php
-                                        $fac = ConnexionBdd::Connecter()->query("SELECT DISTINCT fac FROM faculte");
+                                        $fac = ConnexionBdd::Connecter()->query("SELECT DISTINCT id_section,section FROM sections");
                                         while($d = $fac->fetch()){
                                             echo '
-                                                <option value="'.$d['fac'].'">'.$d['fac'].'</option>';
+                                                <option value="'.$d['id_section'].'">'.$d['section'].'</option>';
                                         } 
                                     ?>
                                 </select>
@@ -469,6 +469,7 @@
             </div>
         </div>
     </div>
+    <?php include_once("modal_decon.php");?>
     <script src="js/mes_scripts/admin_script.js"></script>
     <script src="js/sb-admin-2.min.js"></script>
     <script type="text/javascript">
@@ -563,7 +564,6 @@
     <script type="text/javascript">
         $('#log_user').DataTable();
     </script>
-    <?php include_once("modal_decon.php");?>
     <script src="./js/mes_scripts/jquery.simple.timer.js"></script>
 </body>
 
