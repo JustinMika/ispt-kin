@@ -93,7 +93,7 @@ $(document).ready(function() {
 
     });
 
-    setInterval(() => {
-        afficher_annee_acad();
-    }, 3000);
+    // setInterval(() => {
+    //     afficher_annee_acad();
+    // }, 3000);
 });

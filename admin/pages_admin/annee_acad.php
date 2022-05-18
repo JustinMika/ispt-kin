@@ -46,7 +46,7 @@
                             <div class="row">
                                 <div class="col-xs-12 col-sm-12 col-md-4 col-lg-3">
                                     <section class="panel border-left-dark p-2 bg-dark">
-                                        <div class="panel-heading">Annee Academique </div>
+                                        <div class="panel-heading">Annee Académique </div>
                                         <div class="panel-body">
                                             <form class="form-signin  text-white text-center m-2" action="" method="post" id="f0rm">
                                                 <input type="text" name="annee_acad" placeholder="2020-2021" class="form-control" id="annee_0_acad">

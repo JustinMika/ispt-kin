@@ -8,7 +8,7 @@
     
     $annee_acad = $_POST['annee_acad'];
     if(isset($annee_acad) && !empty($annee_acad)){
-        $verif = ConnexionBdd::Connecter()->prepare("SELECT * FROM annee_academique WHERE annee_acad = ?");
+        $verif = ConnexionBdd::Connecter()->prepare("SELECT * FROM annee_acad WHERE annee_acad = ?");
         $verif->execute(array($annee_acad));
 
         $n = $verif->rowCount();
@@ -16,11 +16,11 @@
         if($n < 1){
             try {
                 $annee_acad =  htmlentities(htmlspecialchars($annee_acad));
-                $del  = ConnexionBdd::Connecter()->prepare("INSERT INTO annee_academique(annee_acad) VALUES(?)");
+                $del  = ConnexionBdd::Connecter()->prepare("INSERT INTO annee_acad(annee_acad) VALUES(?)");
                 $ok = $del->execute(array($annee_acad));
                 if($ok){
                     echo "ok";
-                    LogUser::addlog(VerificationUser::verif($_SESSION['data']['noms']), "ajout de l'année academique.");
+                    LogUser::addlog(VerificationUser::verif($_SESSION['data']['id_user']), "ajout de l'année academique.");
                 }else{
                     echo("l'annee academique n'est pas enregistrée.");
                 }
