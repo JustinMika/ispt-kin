@@ -17,6 +17,8 @@
             <td id="fac_list">'.$data['section'].'</td>
             <td>
                 <button href="#" data-toggle="modal" data-target="#Modify_fac" class="btn btn-primary btn-sm" id="modif_fac_l">Modifier</button>
+
+                <button href="#" data-toggle="" data-target="#Modify_fac_" class="btn btn-danger btn-sm" id="modif_fac_l" titile="supprimer la section">Supprimer</button>
             </td>
         </tr>';
     }

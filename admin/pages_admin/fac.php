@@ -94,11 +94,21 @@
                                                     while($data = $verif->fetch()){
                                                         ?>
                                                         <tr>
-                                                            <td id="id_fac_list"><?=$data['id_departement']?></td>
-                                                            <td id="fac_list"><?=$data['departement']?></td>
+                                                            <td id="id_departement"><?=$data['id_departement']?></td>
+                                                            <td id="id_section" style="display:none"><?=$data['id_section']?></td>
+                                                            <td id="departement"><?=$data['departement']?></td>
                                                             <td>
-                                                                <button href="#" data-toggle="modal" data-target="#Modify_fac" class="btn btn-primary btn-sm" id="modif_fac_l">Modifier</button>
-                                                                <button href="#" data-toggle="modal" data-target="#add_option" class="btn btn-primary btn-sm" id="modif_fac_l">Ajouter une option</button>
+                                                                <button href="#" data-toggle="modal" data-target="#update_depart_" class="btn btn-primary btn-sm" id="modif_depart">
+                                                                    <i class="fa fa-edit" aria-hidden="true"></i>
+                                                                </button>
+
+                                                                <button href="#" data-toggle="modal" data-target="#add_option" class="btn btn-primary btn-sm" id="modif_fac_l" title="Ajouter une option">
+                                                                    <i class="fa fa-plus-circle" aria-hidden="true"></i>
+                                                                </button>
+
+                                                                <button href="#" data-toggle="modal" data-target="#list_options" class="btn btn-info btn-sm" id="modif_fac_l" title="Ajouter une option">
+                                                                    <i class="fa fa-list" aria-hidden="true"></i>
+                                                                </button>
                                                             </td>
                                                         </tr>
                                                         <?php
@@ -122,6 +132,70 @@
     <a class="scroll-to-top rounded" href="#page-top">
         <i class="fas fa-angle-up"></i>
     </a>
+    <!-- update departement -->
+    <div class="modal fade" id="update_depart_" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">mettre ajour un departement</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                </div>
+                <form action="" method="post" id="update_departement">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="">departement</label>
+                            <input type="text" name="_update_depart" id="_update_depart" class="form-control" placeholder="" aria-describedby="helpId">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Update</button>
+                    </div>
+                    <small id="response"></small>
+                </form>
+            </div>
+        </div>
+    </div>                                                
+
+    <!-- Button trigger modal -->
+    <div class="modal fade" id="list_options" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Liste des options</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-striped table-inverse">
+                        <thead class="thead-inverse">
+                            <tr>
+                                <th>ID</th>
+                                <th>Option</th>
+                                <th>Promotion</th>
+                                <th>Code</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td scope="row"></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>                                               
+
     <!-- ajout option -->
     <div class="modal fade" id="add_option" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -303,6 +377,43 @@
                 $("#id_fac_a_modifier").val(id_fac.html())
             }
         })
+    </script>
+
+    <script type="text/javascript">
+        $("table").on('click', '#modif_depart', function() {
+            b = $(this);
+            m = $(this).parent();
+            mm = $(m).parent();
+
+            id_departement = mm.find("#id_departement");
+            id_section = mm.find("#id_section");
+            departement = mm.find("#departement");
+
+            $("#_update_depart").val(departement.text());
+
+            $("#update_departement").submit(function (e) { 
+                e.preventDefault();
+                const data = {
+                    departement:$("#_update_depart").val(),
+                    id_departement:id_departement.text()
+                };
+
+                $.ajax({
+                    type: "POST",
+                    url: "../../includes/update_departement.php",
+                    data: data,
+                    success: function (response) {
+                        if(response !="" && response == "ok"){
+                            window.location.reload();
+                        }else{
+                            $("#response").html(response);
+                        }
+                    },error:function(e){
+                        $("#response").html("Erreur de connexion.");
+                    }
+                });
+            });
+        });
     </script>
 
     <!-- ajout d un departement -->
