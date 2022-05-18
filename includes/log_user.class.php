@@ -10,10 +10,10 @@
         /** 
          * @return : null
         */
-        public static function addlog($username, $action){
-            if(!empty($username) && !empty($action)){
-                $insert = ConnexionBdd::Connecter()->prepare("INSERT INTO log_admin_user(noms, date_action, actions) VALUES(?, NOW(), ?)");
-                $ok = $insert->execute(array($username, $action));
+        public static function addlog($id_user, $action){
+            if(!empty($id_user) && !empty($action)){
+                $insert = ConnexionBdd::Connecter()->prepare("INSERT INTO log_user(log_action, date_action, id_user) VALUES(?, NOW(), ?)");
+                $ok = $insert->execute(array($action, $id_user));
                 if(!$ok){
                     die("Log no saved !!!");
                 }

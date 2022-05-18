@@ -23,11 +23,11 @@
                     // log de l'utilisateur
                     LogUser::addlog($req['noms'], "s'est connecté(e) Connexion au system.");
                     $data = array(
-                        "id"        => md5(sha1($req['id'])), 
+                        "id"        => md5(sha1($req['id_user'])), 
                         "fonction"  => $req['fonction'],
                         "noms"      => $req['noms'],
                         "profil"    => $req['profil'],
-                        "id_user"   => $req['id'],
+                        "id_user"   => $req['id_user'],
                         "access"    => $req['access']
                     );
                     
