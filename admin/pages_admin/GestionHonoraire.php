@@ -1324,7 +1324,7 @@
                         <div class="card-header d-flex flex-row justify-content-between">
                             <div class="text-primary text-uppercase font-weight-bold">
                                 <?php
-                                    $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_academique GROUP BY annee_acad ORDER BY id DESC LIMIT 1 ");
+                                    $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1 ");
                                     $an_r = $an->fetch();
                                     if(!empty($an_r)){
                                        echo $p.' pour l\'annee acadmeique '.$an_r['annee_acad']; 
@@ -1352,7 +1352,7 @@
                                         <th>Noms enseignants</th>
                                         <th>Grade</th>
                                         <th>Cours</th>
-                                        <th>Faculte</th>
+                                        <th>Section</th>
                                         <th>Volume Horaire</th>
                                         <th>Prestation</th>
                                         <th>Type Enseign.</th>
@@ -1380,7 +1380,7 @@
                                                         <td id="noms_prof"><?=$data['noms_ens']?></td>
                                                         <td id="grade_ense"><?=$data['grade_ens']?></td>
                                                         <td id="cours"><?=$data['cours']?></td>
-                                                        <td id="faculte"><?=$data['faculte']?></td>
+                                                        <td id="faculte"><?=$data['id_section']?></td>
                                                         <td id="vol_horaire_" style="display: none;"><?=$data['heure_pr']+$data['heure_th']?></td>
                                                         <td><?=$data['heure_pr']+$data['heure_th'].' Heures'?></td>
                                                         <td id="prestation"><?=$data['prestation']?></td>
@@ -1428,10 +1428,10 @@
                             <label for="">Annee Académique</label>
                             <select name="annee_acad" id="annee_acad" class="form-control">
                                 <?php
-                                    $a = ConnexionBdd::Connecter()->query("SELECT annee_acad FROM annee_academique");
+                                    $a = ConnexionBdd::Connecter()->query("SELECT id_annee, annee_acad FROM annee_acad");
                                     while($data = $a->fetch()){
                                         ?>
-                                        <option value="<?=$data['annee_acad']?>"><?=$data['annee_acad']?></option>
+                                        <option value="<?=$data['id_annee']?>"><?=$data['annee_acad']?></option>
                                     <?php }
                                 ?>
                             </select>
@@ -1442,10 +1442,10 @@
                             <select name="faculte" id="faculte" class="form-control">
                                 <option value="Tous">Tous</option>
                                 <?php
-                                    $a = ConnexionBdd::Connecter()->query("SELECT DISTINCT fac FROM faculte");
+                                    $a = ConnexionBdd::Connecter()->query("SELECT DISTINCT id_section, section FROM sections");
                                     while($data = $a->fetch()){
                                         ?>
-                                        <option value="<?=$data['fac']?>"><?=$data['fac']?></option>
+                                        <option value="<?=$data['id_section']?>"><?=$data['section']?></option>
                                     <?php }
                                 ?>
                             </select>
@@ -1528,9 +1528,9 @@
                                 <select type="text" class="form-control" name="faculte_gh" id="faculte_gh" aria-describedby="helpId" placeholder="Faculte" required>
                                     <option>-Faculte-</option>
                                     <?php
-                                        $f = ConnexionBdd::Connecter()->query("SELECT DISTINCT * FROM faculte");
+                                        $f = ConnexionBdd::Connecter()->query("SELECT DISTINCT * FROM sections");
                                         while($data = $f->fetch()){?>
-                                            <option value="<?=$data['fac']?>"><?=$data['fac']?></option>
+                                            <option value="<?=$data['id_section']?>"><?=$data['section']?></option>
                                             <?php
                                         }
                                     ?>
@@ -1713,9 +1713,9 @@
                                 <select type="text" class="form-control" name="faculte_gh" id="_faculte_gh" aria-describedby="helpId" placeholder="Faculte" required>
                                     <option>-Faculte-</option>
                                     <?php
-                                        $f = ConnexionBdd::Connecter()->query("SELECT DISTINCT * FROM faculte");
+                                        $f = ConnexionBdd::Connecter()->query("SELECT DISTINCT * FROM sections");
                                         while($data = $f->fetch()){?>
-                                            <option value="<?=$data['fac']?>"><?=$data['fac']?></option>
+                                            <option value="<?=$data['id_section']?>"><?=$data['section']?></option>
                                             <?php
                                         }
                                     ?>

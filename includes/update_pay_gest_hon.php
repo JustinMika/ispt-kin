@@ -12,7 +12,7 @@
             $ok = $update->execute(array($_POST['montant'], $_POST['id']));
             if($ok){
                 echo 'ok';
-                LogUser::addlog(VerificationUser::verif($_SESSION['data']['noms']), "a il(elle) éffectué(e) sur le honohaire des enseignants");
+                LogUser::addlog(VerificationUser::verif($_SESSION['data']['id_user']), "a il(elle) éffectué(e) sur le honohaire des enseignants");
             }else{
                 echo 'mise a jour du montant echouer';
             }

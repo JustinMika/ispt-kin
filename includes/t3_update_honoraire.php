@@ -28,16 +28,17 @@
                             $total_gen = htmlspecialchars(trim($_POST['total_gen']));
                             
                             // mise a jour
+                            // print_r($_POST);
                             $v = ConnexionBdd::Connecter()->prepare("UPDATE gest_honoraire SET noms_ens = ?, grade_ens = ?, cours = ?, 
-                            faculte = ?, heure_th = ?, montant_ht = ?, heure_pr = ?, montant_hp = ?, taux = ?, total = ?, type_enseig = ?, prestation = ? WHERE id = ?");
+                            id_section = ?, heure_th = ?, montant_ht = ?, heure_pr = ?, montant_hp = ?, taux = ?, total = ?, type_enseig = ?, prestation = ? WHERE id = ?");
                             $true  = $v->execute(array($noms_enseign_, $grade_enseign_, $cours_enseign_, $faculte_gh, $heure_t, 
                             $montant_ht, $heure_pr, $montant_pr, $taux, $total_gen, $type_enseignant, $type_prestation, $_POST['id_update']));
 
                             if($true){
                                 echo 'ok';
-                                LogUser::addlog(VerificationUser::verif($_SESSION['data']['noms']), "il(elle) a update les informations de l' enseignants '{$noms_enseign_}'.");
+                                LogUser::addlog(VerificationUser::verif($_SESSION['data']['id_user']), "il(elle) a update les informations de l' enseignants '{$noms_enseign_}'.");
                             }else{
-                                echo "Une erreur inconue est survenue, les donnees ne sont enresitre dans la base deonnees,";
+                                echo "Une erreur inconue est survenue, les donnees ne sont pas mise a jour";
                             }
                         }else{
                             echo 'Veuillez renseigner le total gen';
