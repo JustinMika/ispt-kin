@@ -78,7 +78,33 @@
                                                         <th>Actions</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody id="f_table"></tbody>
+                                                <tbody id="f_table_depart">
+                                                <?php
+                                                    // require_once './ConnexionBdd.class.php';
+                                                    $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1");
+                                                    if($an->rowCount() > 0){
+                                                        $an_r = $an->fetch();
+                                                    }else{
+                                                        $an_r['annee_acad'] = '';
+                                                        die("Veuillez AJouter l annee académique");
+                                                    }
+
+                                                    $verif = ConnexionBdd::Connecter()->prepare("SELECT * FROM departement WHERE id_annee = ? ORDER BY departement ASC");
+                                                    $verif->execute(array($an_r['id_annee']));
+                                                    while($data = $verif->fetch()){
+                                                        ?>
+                                                        <tr>
+                                                            <td id="id_fac_list"><?=$data['id_departement']?></td>
+                                                            <td id="fac_list"><?=$data['departement']?></td>
+                                                            <td>
+                                                                <button href="#" data-toggle="modal" data-target="#Modify_fac" class="btn btn-primary btn-sm" id="modif_fac_l">Modifier</button>
+                                                                <button href="#" data-toggle="modal" data-target="#add_option" class="btn btn-primary btn-sm" id="modif_fac_l">Ajouter une option</button>
+                                                            </td>
+                                                        </tr>
+                                                        <?php
+                                                    }
+                                                ?>
+                                                </tbody>
                                             </table>
                                         </div>
                                     </section>
@@ -96,6 +122,43 @@
     <a class="scroll-to-top rounded" href="#page-top">
         <i class="fas fa-angle-up"></i>
     </a>
+    <!-- ajout option -->
+    <div class="modal fade" id="add_option" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Ajouter une option</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                </div>
+                <form action="" method="post" id="add_option_s">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="">Option</label>
+                            <input type="text" name="Option_Option" id="Option_Option" class="form-control" placeholder="Option" aria-describedby="helpId">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="">Promotion</label>
+                            <input type="text" name="Option_promotion" id="Option_promotion" class="form-control" placeholder="Promotion" aria-describedby="helpId">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="">code </label>
+                            <input type="text" name="Option_code" id="Option_code" class="form-control" placeholder="code" aria-describedby="helpId">
+                        </div>
+                        <small id="error_option"></small>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal -->
     <div class="modal fade" id="add_section" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -145,24 +208,19 @@
                             <label for="">Section</label>
                             <select class="form-control" id="section_id">
                                 <?php
-                                    $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_academique GROUP BY annee_acad ORDER BY id DESC LIMIT 1 ");
-                                    // try {
-                                    //     $an_r = $an->fetch();
-                                    // } catch (Exception $e) {
-                                    //     die($e->getMessage());
-                                    // }
-                                    if(!empty($an_r = $an->fetch())){
+                                    $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1");
+                                    if($an->rowCount() > 0){
                                         $an_r = $an->fetch();
                                     }else{
-                                        $an_r['annee_acad'] = '';
+                                        $an_r['id_annee'] = '';
+                                        // die("Veuillez AJouter l annee académique");
                                     }
-                                    echo($an_r['annee_acad']);
-                                    $s = ConnexionBdd::Connecter()->prepare("SELECT * FROM faculte");
-                                    $s->execute(array($an_r['annee_acad']));
+                                    $s = ConnexionBdd::Connecter()->prepare("SELECT * FROM sections WHERE id_annee = ?");
+                                    $s->execute(array($an_r['id_annee']));
                                     
                                     while($data = $s->fetch()){
                                         ?>
-                                            <option value="<?=$data['id']?>"><?=$data['fac']?></option>
+                                            <option value="<?=$data['id_section']?>"><?=$data['section']?></option>
                                         <?php
                                     }
                                 ?>
@@ -231,12 +289,6 @@
     <?php include_once './modal_decon.php';?>
     <!-- other js -->
     <script src="js/mes_scripts/l_fac.js"></script>
-    <!-- <script src="../../js/jquery-3.6.0.min.js"></script> -->
-    <script type="text/javascript">
-        $(document).ready(function () { 
-            $("#f_table").slideDown(30000);
-         });
-    </script>
 
     <script type="text/javascript">
         $("table").on('click', '#modif_fac_l', function() {
@@ -253,6 +305,7 @@
         })
     </script>
 
+    <!-- ajout d un departement -->
     <script>
         $("#add_depart").submit(function (e) { 
             e.preventDefault();
@@ -267,18 +320,39 @@
                     url: "../../includes/depart.php",
                     data: data,
                     success: function (response) {
-                        
+                        if(response == "ok"){
+                            $("#erreur_dep").html(response);
+                            window.location.reload();
+                        }else{
+                            $("#erreur_dep").html(response);
+                        }
                     },
                     error:function(e){
-
+                        $("#erreur_dep").html("Erreur du reseau.");
                     }
                 });
             }else{
                 $("#erreur_dep").html("Veuillez completer tous les champs svp.");
             }
         });
+    </script>
 
+    <!-- ajouter une option -->
+    <script>
+        $("#add_option_s").submit(function (e) { 
+            e.preventDefault();
+            const data  = {
+                Option_Option:$("#Option_Option").val(),
+                Option_promotion:$("#Option_promotion").val(),
+                Option_code:$("#Option_code").val()
+            };
 
+            if($("#Option_Option").val() !="" && $("#Option_Option").val() !="" && $("#Option_Option").val() !=""){
+
+            }else{
+                $("#error_option").html("Veuillez completer tous les champs.").addClass('text-danger');
+            }
+        });
     </script>
 </body>
 

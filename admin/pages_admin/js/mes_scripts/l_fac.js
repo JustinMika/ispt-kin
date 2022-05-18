@@ -1,5 +1,6 @@
 $(document).ready(function() {
     afficher_facul();
+    afficher_depart();
     $("#f0rm-fac").submit((e) => {
         e.preventDefault();
         var fac = $("#fac");
@@ -60,6 +61,22 @@ $(document).ready(function() {
             } else {
                 $($("#f_table")).empty();
                 $("#f_table").parent().append("<caption>Pas de donnees pour l'instant.</caption>");
+            }
+        }).fail(function(data) {});
+    }
+
+    function afficher_depart() {
+        $.ajax({
+            type: "GET",
+            url: "../../includes/list_depart.php",
+        }).done(function(data) {
+            alert("Hello!");
+            if (data != "") {
+                $($("#f_table_depart")).empty();
+                $("#f_table_depart").append(data);
+            } else {
+                $($("#f_table_depart")).empty();
+                $("#f_table_depart").parent().append("<caption>Pas de donnees pour l'instant.</caption>");
             }
         }).fail(function(data) {});
     }
