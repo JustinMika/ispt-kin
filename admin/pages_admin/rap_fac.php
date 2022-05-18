@@ -300,11 +300,11 @@
                                                 <div class="col-sm-12 col-md-9 col-lg-7">
                                                     <select class="form-control" name="fac_etudiant" id="fac_etudiant">
                                                         <?php
-                                                            $sql = "SELECT DISTINCT fac FROM faculte ORDER BY fac";
+                                                            $sql = "SELECT DISTINCT id_section, section as fac FROM sections ORDER BY fac";
                                                             $state = ConnexionBdd::Connecter()->query($sql);
                                                             while($d = $state->fetch()){
                                                                 echo' 
-                                                                    <option value="'.$d['fac'].'">'.$d['fac'].'</option>';
+                                                                    <option value="'.$d['id_section'].'">'.$d['fac'].'</option>';
                                                             }
                                                         ?>
                                                     </select>
@@ -318,11 +318,11 @@
                                                 <div class="col-sm-12 col-md-9 col-lg-7">
                                                     <select class="form-control" name="annee_acad_deb" id="annee_acad_deb">
                                                         <?php
-                                                            $sql = "SELECT * FROM annee_academique ORDER BY annee_acad DESC";
+                                                            $sql = "SELECT * FROM annee_acad ORDER BY annee_acad DESC";
                                                             $state = ConnexionBdd::Connecter()->query($sql);
                                                             while($d = $state->fetch()){
                                                                 echo' 
-                                                                    <option value="'.$d['annee_acad'].'">'.$d['annee_acad'].'</option>';
+                                                                    <option value="'.$d['id_annee'].'">'.$d['annee_acad'].'</option>';
                                                             }
                                                         ?>
                                                     </select>
