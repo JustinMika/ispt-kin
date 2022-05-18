@@ -51,8 +51,13 @@
 						echo 'display:none';}?>">
 						<!-- nombre total d etudiants -->
 						<?php 
-							$an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_academique GROUP BY annee_acad ORDER BY id DESC LIMIT 1 ");
-							$an_r = $an->fetch();
+							$an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1 ");
+							if(!empty($an->fetch())){
+								$an_r = $an->fetch();
+							}else{
+								$an_r['annee_acad'] = '';
+							}
+							
 							$nb_fac = ConnexionBdd::Connecter()->prepare("SELECT * FROM etudiants_inscrits WHERE annee_academique = ? AND fac  = ?");
 							$nb_fac->execute(array($an_r['annee_acad'], $_SESSION['data']['access']));
 							$n = $nb_fac->rowCount();
@@ -80,7 +85,7 @@
 					<!-- faculte -> nombres etudiants -->
 					<div class="row" style="<?=r5()?>">
 						<?php
-							$sel_etudiants = ConnexionBdd::Connecter()->query("SELECT * FROM etudiants_inscrits GROUP BY fac");
+							$sel_etudiants = ConnexionBdd::Connecter()->query("SELECT * FROM etudiants_inscrits GROUP BY id_section");
 							$nbre = $sel_etudiants->rowCount();
 							$tableau_fac = array();
 							// die($nbre);
@@ -120,7 +125,7 @@
 						?>	
 						<!-- nombre total d etudiants -->
 						<?php 
-							$an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_academique GROUP BY annee_acad ORDER BY id DESC LIMIT 1 ");
+							$an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1 ");
 							try {
 								$an_r = $an->fetch();
 							} catch (Exception $e) {
@@ -179,7 +184,7 @@
 											$data2 = "";
 
 											// on recuoere le dernier annee acad
-											$an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_academique GROUP BY annee_acad ORDER BY id DESC LIMIT 0,1");
+											$an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 0,1");
 											if($an->rowCount() > 0){
 												$an_r = $an->fetch();
 											}else{
@@ -341,7 +346,7 @@
 										$data__promotion = "";
 
 										// on recuoere le dernier annee acad
-										$an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_academique GROUP BY annee_acad ORDER BY id DESC LIMIT 1 ");
+										$an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1 ");
 										if($an->rowCount() > 0){
 											$an_r = $an->fetch();
 										}else{
@@ -414,20 +419,20 @@
 									$npost_recette = "";
 									$mposte_recette = '';
 									// on recuoere le dernier annee acad
-									$an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_academique GROUP BY annee_acad ORDER BY id DESC LIMIT 1");
+									$an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1");
 									if($an->rowCount() > 0){
 											$an_r = $an->fetch();
 										}else{
-											$an_r['annee_acad'] = '';
+											$an_r['id_annee'] = '';
 										}
 
-									$pfrais = ConnexionBdd::Connecter()->query("SELECT * FROM previson_frais_univ WHERE annee_acad = '".$an_r['annee_acad']."'");
+									$pfrais = ConnexionBdd::Connecter()->query("SELECT * FROM poste_recette WHERE id_annee = '".$an_r['annee_acad']."'");
 									while($data = $pfrais->fetch()){
-										$npost_recette = $npost_recette.'"'. $data['poste'].'",';
+										$npost_recette = $npost_recette.'"'. $data['poste_rec'].'",';
 										$mposte_recette = $mposte_recette.''. $data['montant'].', ';
 									}
 
-									$pfrais = ConnexionBdd::Connecter()->query("SELECT type_frais, annee_acad, SUM(montant) AS montant FROM prevision_frais WHERE annee_acad = '".$an_r['annee_acad']."' GROUP BY type_frais DESC");
+									$pfrais = ConnexionBdd::Connecter()->query("SELECT type_frais, id_annee, SUM(montant) AS montant FROM prevision_frais WHERE id_annee = '".$an_r['annee_acad']."' GROUP BY type_frais DESC");
 									while($data = $pfrais->fetch()){
 										$npost_recette = $npost_recette.'"'. $data['type_frais'].'",';
 										$mposte_recette = $mposte_recette.''. $data['montant'].', ';
@@ -582,13 +587,13 @@
 											$npost = "";
 											$mposte = "";
 											// on recuoere le dernier annee acad
-											$an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_academique GROUP BY annee_acad ORDER BY id DESC LIMIT 1 ");
+											$an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1 ");
 											if($an->rowCount() > 0){
 												$an_r = $an->fetch();
 											}else{
-												$an_r['annee_acad'] = '';
+												$an_r['id_annee'] = '';
 											}
-											$pd = ConnexionBdd::Connecter()->query("SELECT * FROM poste_depense WHERE annee_acad = '".$an_r['annee_acad']."'");
+											$pd = ConnexionBdd::Connecter()->query("SELECT * FROM poste_depense WHERE id_annee = '".$an_r['annee_acad']."'");
 											while($data = $pd->fetch()){
 												$npost = $npost.'"'. $data['poste'].'",';
 												$mposte = $mposte.''. montant_restant_pourcent(montant_restant($data['montant'], $data['depense']), $data['montant']).',';
@@ -739,7 +744,7 @@
 												while($data = $list_user->fetch()){
 													?>
 														<tr>
-																<td class="m-3"><?=$data['id']?></td>
+																<td class="m-3"><?=$data['id_user']?></td>
 																<td>
 																	<img src="<?=$data['profil']?>" class="img-fluid rounded-top,rounded-right,rounded-bottom,rounded-left,rounded-circle" alt="" width="50">
 																</td>
@@ -771,7 +776,7 @@
 									</thead>
 									<tbody>
 										<?php
-											$list_user = ConnexionBdd::Connecter()->query("SELECT * FROM log_admin_user ORDER BY date_action DESC LIMIT 11");
+											$list_user = ConnexionBdd::Connecter()->query("SELECT utilisateurs.noms, log_user.log_action as actions, log_user.date_action FROM log_user LEFT JOIN utilisateurs ON utilisateurs.id_user = log_user.id_user ORDER BY log_user.date_action DESC LIMIT 11");
 											while($data = $list_user->fetch()){
 												?>
 													<tr>
