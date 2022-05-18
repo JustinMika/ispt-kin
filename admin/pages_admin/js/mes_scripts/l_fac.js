@@ -70,7 +70,6 @@ $(document).ready(function() {
             type: "GET",
             url: "../../includes/list_depart.php",
         }).done(function(data) {
-            alert("Hello!");
             if (data != "") {
                 $($("#f_table_depart")).empty();
                 $("#f_table_depart").append(data);

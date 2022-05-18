@@ -13,10 +13,21 @@
     while($data = $verif->fetch()){
         echo '
         <tr>
-            <td id="id_fac_list">'.$data['id_departement'].'</td>
-            <td id="fac_list">'.$data['departement'].'</td>
+            <td id="id_departement">'.$data['id_departement'].'</td>
+            <td id="id_section" style="display:none">'.$data['id_section'].'</td>
+            <td id="departement">'.$data['departement'].'</td>
             <td>
-                <button href="#" data-toggle="modal" data-target="#Modify_fac" class="btn btn-primary btn-sm" id="modif_fac_l">Modifier</button>
+                <button href="#" data-toggle="modal" data-target="#update_depart_" class="btn btn-primary btn-sm" id="modif_depart">
+                    <i class="fa fa-edit" aria-hidden="true"></i>
+                </button>
+
+                <button href="#" data-toggle="modal" data-target="#add_option" class="btn btn-primary btn-sm" id="add_option_option" title="Ajouter une option">
+                    <i class="fa fa-plus-circle" aria-hidden="true"></i>
+                </button>
+
+                <button href="#" data-toggle="modal" data-target="#list_options" class="btn btn-info btn-sm" id="modif_fac_l" title="Ajouter une option">
+                    <i class="fa fa-list" aria-hidden="true"></i>
+                </button>
             </td>
         </tr>';
     }

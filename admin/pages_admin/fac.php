@@ -102,7 +102,7 @@
                                                                     <i class="fa fa-edit" aria-hidden="true"></i>
                                                                 </button>
 
-                                                                <button href="#" data-toggle="modal" data-target="#add_option" class="btn btn-primary btn-sm" id="modif_fac_l" title="Ajouter une option">
+                                                                <button href="#" data-toggle="modal" data-target="#add_option" class="btn btn-primary btn-sm" id="add_option_option" title="Ajouter une option">
                                                                     <i class="fa fa-plus-circle" aria-hidden="true"></i>
                                                                 </button>
 
@@ -208,6 +208,7 @@
                 </div>
                 <form action="" method="post" id="add_option_s">
                     <div class="modal-body">
+                        <span>Ajouter une option dans le departement de <span id="d"></span></span>
                         <div class="form-group">
                             <label for="">Option</label>
                             <input type="text" name="Option_Option" id="Option_Option" class="form-control" placeholder="Option" aria-describedby="helpId">
@@ -378,7 +379,53 @@
             }
         })
     </script>
+    <!-- //add_option_option -->
+    <script type="text/javascript">
+        $("table").on('click', '#add_option_option', function() {
+            b = $(this);
+            m = $(this).parent();
+            mm = $(m).parent();
 
+            id_departement_ = mm.find("#id_departement");
+            id_section_ = mm.find("#id_section");
+            departement = mm.find("#departement");
+            $("#d").html(departement.text()).addClass('text-primary');
+            // alert(id_departement_.text() +" - "+id_section_.text());
+
+            $("#add_option_s").submit(function (e) { 
+                e.preventDefault();
+                const data  = {
+                    section_id:id_section_.text(),
+                    id_departement_:id_departement_.text(),
+                    Option_Option:$("#Option_Option").val(),
+                    Option_promotion:$("#Option_promotion").val(),
+                    Option_code:$("#Option_code").val()
+                };
+
+                if($("#Option_Option").val() !="" && $("#Option_promotion").val() !="" && $("#Option_code").val() !="" && id_departement_.text() !="" && id_section_.text() !=""){
+                    $.ajax({
+                        type: "POST",
+                        url: "../../includes/add_option.php",
+                        data: data,
+                        success: function (response) {
+                            if(response !="" && response == "ok"){
+                                $("#error_option").html("ok").removeClass('text-danger').addClass('text-success');
+                                window.location.reload();
+                            }else{
+                                $("#error_option").html("Erreur : "+response).addClass('text-danger');
+                            }
+                        },error: function(e){
+                            $("#error_option").html("Erreur de connexion, try later,...").addClass('text-danger');
+                        }
+                    });
+                }else{
+                    $("#error_option").html("Veuillez completer tous les champs.").addClass('text-danger');
+                }
+            });
+        });
+    </script>
+
+    <!-- mettre a jour un departement -->
     <script type="text/javascript">
         $("table").on('click', '#modif_depart', function() {
             b = $(this);
@@ -444,24 +491,6 @@
                 });
             }else{
                 $("#erreur_dep").html("Veuillez completer tous les champs svp.");
-            }
-        });
-    </script>
-
-    <!-- ajouter une option -->
-    <script>
-        $("#add_option_s").submit(function (e) { 
-            e.preventDefault();
-            const data  = {
-                Option_Option:$("#Option_Option").val(),
-                Option_promotion:$("#Option_promotion").val(),
-                Option_code:$("#Option_code").val()
-            };
-
-            if($("#Option_Option").val() !="" && $("#Option_Option").val() !="" && $("#Option_Option").val() !=""){
-
-            }else{
-                $("#error_option").html("Veuillez completer tous les champs.").addClass('text-danger');
             }
         });
     </script>
