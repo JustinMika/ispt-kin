@@ -25,7 +25,7 @@
                     <i class="fa fa-plus-circle" aria-hidden="true"></i>
                 </button>
 
-                <button href="#" data-toggle="modal" data-target="#list_options" class="btn btn-info btn-sm" id="list_option_option" title="Ajouter une option">
+                <button href="#" class="btn btn-info btn-sm" id="list_option_option" title="Ajouter une option">
                     <i class="fa fa-list" aria-hidden="true"></i>
                 </button>
             </td>
