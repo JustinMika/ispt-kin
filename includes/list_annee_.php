@@ -1,15 +1,6 @@
 <?php
     require_once './ConnexionBdd.class.php';
 
-    function verif_annee($v){
-        $verif = ConnexionBdd::Connecter()->prepare("SELECT DISTINCT annee_academique FROM etudiants_inscrits WHERE annee_academique = ?");
-        $verif->execute(array($v));
-        if($verif->rowcount() >= 1){
-            return 'disabled';
-        }else{
-            return $verif->rowcount();
-        }
-    }
     $verif = ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad");
     while($data = $verif->fetch()){
         echo '
