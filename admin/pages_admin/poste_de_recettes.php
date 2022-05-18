@@ -73,15 +73,15 @@
                                             <!-- affichage -->
                                             <?php
                                                 // on recupere le dernier annee academique
-                                                $a = ConnexionBdd::Connecter()->query("SELECT annee_acad FROM annee_academique ORDER BY id DESC LIMIT 0,1");
+                                                $a = ConnexionBdd::Connecter()->query("SELECT id_annee, annee_acad FROM annee_acad ORDER BY id_annee DESC LIMIT 0,1");
                                                 if($a->rowCount() > 0){
                                                     $d = $a->fetch();
                                                 }else{
-                                                    $d['annee_acad'] = '';
+                                                    $d['id_annee'] = '';
                                                 }
 
-                                                $pfrais = ConnexionBdd::Connecter()->prepare("SELECT * FROM previson_frais_univ  WHERE annee_acad = ? ORDER BY id DESC ");
-                                                $pfrais->execute(array($d['annee_acad']));
+                                                $pfrais = ConnexionBdd::Connecter()->prepare("SELECT poste_recette.id_post_rec as id, poste_recette.poste_rec as poste, poste_recette.montant, annee_acad.annee_acad, annee_acad.id_annee FROM poste_recette LEFT JOIN annee_acad on poste_recette.id_annee=annee_acad.id_annee WHERE poste_recette.id_annee = ?");
+                                                $pfrais->execute(array($d['id_annee']));
                                                 while($data = $pfrais->fetch()){
                                                     ?>
                                                         <tr>
@@ -152,15 +152,15 @@
                                         <tbody class="">
                                             <!-- affichage -->
                                             <?php
-                                                $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_academique GROUP BY annee_acad ORDER BY id DESC LIMIT 1");
+                                                $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1");
                                                 if($an->rowCount() > 0){
                                                     $an_r = $an->fetch();
                                                 }else{
-                                                    $an_r['annee_acad'] = '';
+                                                    $an_r['id_annee'] = '';
                                                 }
 
-                                                $pfrais = ConnexionBdd::Connecter()->prepare("SELECT * FROM prevision_frais WHERE annee_acad =?");
-                                                $pfrais->execute(array($an_r['annee_acad']));
+                                                $pfrais = ConnexionBdd::Connecter()->prepare("SELECT * FROM prevision_frais WHERE id_annee =?");
+                                                $pfrais->execute(array($an_r['id_annee']));
                                                 while($data = $pfrais->fetch()){
                                                     ?>
                                                         <tr>
@@ -282,10 +282,10 @@
                             <label for="">Faculte</label>
                             <select class="form-control" name="fac_prev_p" id="fac_prev_p">
                                 <?php
-                                    $sel_fac = ConnexionBdd::Connecter()->query("SELECT fac FROM faculte ORDER BY id");
+                                    $sel_fac = ConnexionBdd::Connecter()->query("SELECT id_section, section FROM sections ORDER BY id_section");
                                     while($d = $sel_fac->fetch()){
                                         echo '
-                                        <option value="'.$d['fac'].'">'.$d['fac'].'</option>';
+                                        <option value="'.$d['id_section'].'">'.$d['section'].'</option>';
                                     } 
                                 ?>
                             </select>

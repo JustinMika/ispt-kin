@@ -5,31 +5,32 @@
     if(isset($_POST['poste_recette_univ_']) && !empty($_POST['poste_recette_univ_'])){
         if(isset($_POST['montant_poste_univ']) && !empty($_POST['montant_poste_univ'])){
             // on selectionne le dernier annee academique dnas la base de donnees
-            $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_academique GROUP BY annee_acad ORDER BY id DESC LIMIT 1");
+            $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1");
             if($an->rowCount() > 0){
                 $an_r = $an->fetch();
             }else{
-                $an_r['annee_acad'] = '';
+                $an_r['id_annee'] = '';
                 // die
                 die("Veuillez AJouter l annee academique");
             }
 
-            $verify = ConnexionBdd::Connecter()->prepare("SELECT * FROM previson_frais_univ WHERE poste  = ? AND annee_acad = ?");
-            $verify->execute(array($_POST['poste_recette_univ_'], $an_r['annee_acad']));
+            $verify = ConnexionBdd::Connecter()->prepare("SELECT * FROM poste_recette WHERE poste_rec  = ? AND id_annee = ?");
+            $verify->execute(array($_POST['poste_recette_univ_'], $an_r['id_annee']));
             $n = $verify->rowCount();
 
             if($n <= 0){
                 // on selectionne le dernier annee academique dnas la base de donnees
-                $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_academique GROUP BY annee_acad ORDER BY id DESC LIMIT 1");
+                $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1");
                 if($an->rowCount() > 0){
                     $an_r = $an->fetch();
                 }else{
-                    $an_r['annee_acad'] = '';
+                    $an_r['id_annee'] = '';
+                    // die
                     die("Veuillez AJouter l annee academique");
                 }
 
-                $insert = ConnexionBdd::Connecter()->prepare("INSERT INTO previson_frais_univ(poste, annee_acad, montant) VALUES(?, ?, ?)");
-                $ok = $insert->execute(array(htmlspecialchars($_POST['poste_recette_univ_']), $an_r['annee_acad'], $_POST['montant_poste_univ']));
+                $insert = ConnexionBdd::Connecter()->prepare("INSERT INTO poste_recette(poste_rec, montant, id_annee) VALUES(?, ?, ?)");
+                $ok = $insert->execute(array(htmlspecialchars($_POST['poste_recette_univ_']), $_POST['montant_poste_univ'], $an_r['id_annee']));
                 if($ok){
                     echo "insertion reussi avec succes";
                 }else{

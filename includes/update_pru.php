@@ -6,11 +6,11 @@
 
     if(isset($_POST['id_id_id']) && !empty($_POST['id_id_id'])){
         if(isset($_POST['montant_ru']) && !empty($_POST['montant_ru'])){
-            $update = ConnexionBdd::Connecter()->prepare("UPDATE previson_frais_univ SET montant = ? WHERE id = ?");
+            $update = ConnexionBdd::Connecter()->prepare("UPDATE poste_recette SET montant = ? WHERE id_post_rec = ?");
             $ok = $update->execute(array($_POST['montant_ru'], $_POST['id_id_id']));
             if($ok){ 
                 echo('ok');
-                LogUser::addlog(VerificationUser::verif($_SESSION['data']['noms']), 'a mit a jour le montant pour une prevision de frais universitaire...');
+                LogUser::addlog(VerificationUser::verif($_SESSION['data']['id_user']), 'a mit a jour le montant pour une prevision de frais universitaire...');
             } else {
                 echo 'les donnees ne sont pas mis a jour';
             }
