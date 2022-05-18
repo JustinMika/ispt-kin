@@ -4,7 +4,7 @@
     require_once '../../includes/verification.class.php';
     //verification des sessions
     require_once './sessions.php';
-    $p = "Ajout des faculte";
+    $p = "Ajout des sections";
 
     function restruct_user_admin(){
         if($_SESSION['data']['fonction'] != "" && $_SESSION['data']['access'] !=""){
@@ -28,7 +28,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="author" content="Justin Micah">
 
-    <title>Faculte</title>
+    <title>SEctions</title>
     <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
     <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"rel="stylesheet">
     <link rel="shortcut icon" href="../../images/ispt_kin.png" type="image/x-icon">
@@ -47,26 +47,34 @@
                     <div class="card shadow">
                         <div class="card-body">
                             <div class="row">
-                                <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
-                                    <section class="panel bg-dark p-2 text-white" style="border-radius: 5px;">
-                                        <div class="panel-heading text-center"> Ajout des Facultés</div>
-                                        <div class="panel-body">
-                                            <form class="form-signin  text-white text-center m-2" action="" method="post" id="f0rm-fac" style="<?php restruct_user_admin();?>">
-                                                <input type="text" name="fac" placeholder="Faculté" class="form-control" id="fac">
-                                                <input type="submit" id="l" class="btn btn-primary btn-block mt-2" value="Ajouter" style="margin-top:3px;">
-                                                <label id="error_s"></label>
-                                            </form>
-                                        </div>
-                                    </section>
-                                </div>
-                                <div class="col-xs-12 col-sm-12 col-md-7 col-lg-7">
+                                
+                                <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                                    <button class="btn btn-primary btn-sm mb-1" data-toggle="modal" data-target="#add_section">Ajouter une section</button>
                                     <section class="panel">
                                         <div class="panel-body">
                                             <table class="table table-bordered table-hover table-sm table-md table-lg" id="table_fac">
                                                 <thead class="bg-gray-200">
                                                     <tr>
                                                         <th>#</th>
-                                                        <th>Faculté</th>
+                                                        <th>Sections</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="f_table"></tbody>
+                                            </table>
+                                        </div>
+                                    </section>
+                                </div>
+
+                                <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                                    <button class="btn btn-primary btn-sm mb-1" data-toggle="modal" data-target="#add_depart">Ajouter un département</button>
+                                    <section class="panel">
+                                        <div class="panel-body">
+                                            <table class="table table-bordered table-hover table-sm table-md table-lg" id="table_fac">
+                                                <thead class="bg-gray-200">
+                                                    <tr>
+                                                        <th>#</th>
+                                                        <th>Département</th>
                                                         <th>Actions</th>
                                                     </tr>
                                                 </thead>
@@ -88,6 +96,88 @@
     <a class="scroll-to-top rounded" href="#page-top">
         <i class="fas fa-angle-up"></i>
     </a>
+    <!-- Modal -->
+    <div class="modal fade" id="add_section" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Ajout des sections</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                </div>
+                <div class="modal-body">
+                    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                        <section class="panel bg-light p-2 text-secondary" style="border-radius: 5px;">
+                            <div class="panel-heading text-center"> Ajout des sections</div>
+                            <div class="panel-body">
+                                <form class="form-signin  text-white text-center m-2" action="" method="post" id="f0rm-fac" style="<?php restruct_user_admin();?>">
+                                    <input type="text" name="fac" placeholder="Sections" class="form-control" id="fac">
+                                    <input type="submit" id="l" class="btn btn-primary btn-block mt-2" value="Ajouter" style="margin-top:3px;">
+                                    <label id="error_s"></label>
+                                </form>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- add_depart -->
+    <div class="modal fade" id="add_depart" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Ajout de departement</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                </div>
+                <form action="" method="post" id="add_depart">
+                    <div class="modal-body bg-light">
+                        <div class="form-group">
+                            <label for="">departement</label>
+                            <input type="text" class="form-control" id="n_depart" value="" placeholder="departement">
+                        </div>
+                        <div class="form-group">
+                            <label for="">Section</label>
+                            <select class="form-control" id="section_id">
+                                <?php
+                                    $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_academique GROUP BY annee_acad ORDER BY id DESC LIMIT 1 ");
+                                    // try {
+                                    //     $an_r = $an->fetch();
+                                    // } catch (Exception $e) {
+                                    //     die($e->getMessage());
+                                    // }
+                                    if(!empty($an_r = $an->fetch())){
+                                        $an_r = $an->fetch();
+                                    }else{
+                                        $an_r['annee_acad'] = '';
+                                    }
+                                    echo($an_r['annee_acad']);
+                                    $s = ConnexionBdd::Connecter()->prepare("SELECT * FROM faculte");
+                                    $s->execute(array($an_r['annee_acad']));
+                                    
+                                    while($data = $s->fetch()){
+                                        ?>
+                                            <option value="<?=$data['id']?>"><?=$data['fac']?></option>
+                                        <?php
+                                    }
+                                ?>
+                            </select>
+                        </div>
+                        <span id="erreur_dep"></span>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Ajouter</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>`
 
     <!-- Modal Erreur-->
     <div class="modal fade" id="modelId" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
@@ -161,6 +251,34 @@
                 $("#id_fac_a_modifier").val(id_fac.html())
             }
         })
+    </script>
+
+    <script>
+        $("#add_depart").submit(function (e) { 
+            e.preventDefault();
+            if($("#n_depart").val() !="" && $("#section_id").val() !=""){
+                const data = {
+                    n_depart:$("#n_depart").val(),
+                    section_id:$("#section_id").val()
+                };
+
+                $.ajax({
+                    type: "POST",
+                    url: "../../includes/depart.php",
+                    data: data,
+                    success: function (response) {
+                        
+                    },
+                    error:function(e){
+
+                    }
+                });
+            }else{
+                $("#erreur_dep").html("Veuillez completer tous les champs svp.");
+            }
+        });
+
+
     </script>
 </body>
 

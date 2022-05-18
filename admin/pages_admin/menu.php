@@ -175,14 +175,14 @@
     <li class="nav-item" style="<?=rr()?>;margin-top:-5%">
         <a class="nav-link" href="fac.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>">
             <i class="fas fa-fw fa-chart-area"></i>
-            <span>Faculté</span>
+            <span>Section</span>
         </a>
     </li>
 
     <li class="nav-item" style="<?=rrf()?>">
         <a class="nav-link" href="compt_facultaire.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>">
             <i class="fas fa-fw fa-chart-area"></i>
-            <span>Comptabilité facultaire</span>
+            <span>Comptabilité de section</span>
         </a>
     </li>
 
@@ -202,7 +202,7 @@
                 <a class="collapse-item" href="Affectation.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>">Affectation des frais</a>
                 <!--  -->
                 <a class="collapse-item" href="comptabilite.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>">Payement</a>
-                <a class="collapse-item" href="compt_facultaire.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>"  style="<?=rrf()?>">Comptabilité facultaire</a>
+                <a class="collapse-item" href="compt_facultaire.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>"  style="<?=rrf()?>">Comptabilité de Section</a>
             </div>
         </div>
     </li>
@@ -228,7 +228,7 @@
                 <a class="collapse-item" href="cheques.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>"  style="<?=rrr()?>"> Compt. des chèques</a>
 
                 <!-- Rapport facultaire -->
-                <a class="dropdown-item " href="./rapport_fac.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>"  style="<?=rrr()?>">Depense facultaire</a>
+                <a class="dropdown-item " href="./rapport_fac.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>"  style="<?=rrr()?>">Depense Section</a>
 
                 <!-- Rapport périodique -->
                 <a class="dropdown-item " href="./Rapport_periodique.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>"  style="<?=rr()?>"> Rapport périodique</a>
@@ -240,7 +240,7 @@
                 <a class="dropdown-item" href="poste_depense.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>"  style="<?=rrr()?>"> Poste de dépense</a>
 
                 <!-- Depense facultaire -->
-                <a class="dropdown-item" href="dep_facultaire.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>" style="<?=rrf()?>"> Dépense facultaire</a>
+                <a class="dropdown-item" href="dep_facultaire.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>" style="<?=rrf()?>"> Dépense de section</a>
 
                 <!-- Poste des recettes -->
                 <a class="dropdown-item" href="poste_de_recettes.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>"  style="<?=rrrr()?>"> Poste des recettes</a>
@@ -251,7 +251,7 @@
     <li class="nav-item"  style="<?=rr()?>">
         <a class="nav-link" href="rap_fac.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>">
         <i class="fa fa-calculator" aria-hidden="true"></i>
-        <span>Rapport facultaire </span>
+        <span>Rapport de section </span>
         </a>
     </li>
 

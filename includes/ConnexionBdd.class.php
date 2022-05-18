@@ -4,9 +4,12 @@
      */
     class ConnexionBdd{
         private static $host = "localhost";
-		private static $db_name = "isptkinc_ispt";
-		private static $user = "isptkinc_ispt";
-		private static $pwd_user = "El@23071990";
+		private static $db_name = "projet_gestion_fin_unigom";
+		// private static $db_name = "c1832965c_budget";
+		private static $user = "root";
+		// private static $user = "c1832965c";
+		private static $pwd_user = "";
+		// private static $pwd_user = "t6NA7V5NASdKwjX";
 		private static $pdo = null;
         private static $pdo_o = null;
 
@@ -60,6 +63,7 @@
 	}
 	
 	function montant_restant_pourcent($var1, $var_2){
+		// return intval((($var1 * 100) /  $var_2));
 		if($var_2 >= 1){
 			$v = floatval(($var1 * 100) /  $var_2);
 			$str = strtolower($v);
@@ -107,4 +111,17 @@
             header("Location:../index.php", true, 301);
         }
     }
+
+	// regler les soucis d'encodage de caracters
+	function encode($v){
+		$t1 = array("é", "è", "ç", "â", "î", "à","ù");
+		$t2 = array("&Atilde;&copy;",
+		"&Atilde;&uml;",
+		"&Atilde;&sect;",
+		"&Atilde;&cent;",
+		"&Atilde;&reg;",
+		"&Atilde;&nbsp;",
+		"&Atilde;&sup1;);");
+	}
+	function decode($v){}
 ?>
