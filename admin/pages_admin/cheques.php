@@ -89,13 +89,13 @@
                                                 </thead>
                                                 <tbody>
                                                     <?php
-                                                        $list_user = ConnexionBdd::Connecter()->query("SELECT * FROM hist_cheque ORDER BY id DESC");
+                                                        $list_user = ConnexionBdd::Connecter()->query("SELECT * FROM gestion_cheque ORDER BY id DESC");
                                                         while($data = $list_user->fetch()){
                                                             ?>
                                                                 <tr>
                                                                     <td class="m-3"><?=$data['id']?></td>
-                                                                    <td class="m-3"><?=$data['date_c']?></td>
-                                                                    <td><?=$data['libelle']?></td>
+                                                                    <td class="m-3"><?=$data['date_']?></td>
+                                                                    <td><?=$data['liebelle']?></td>
                                                                     <td><?=$data['num_cheque']?></td>
                                                                     <td><?='$'.$data['montant']?></td>
                                                                 </tr>
