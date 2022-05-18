@@ -426,7 +426,7 @@
 											$an_r['id_annee'] = '';
 										}
 
-									$pfrais = ConnexionBdd::Connecter()->query("SELECT * FROM poste_recette WHERE id_annee = '".$an_r['annee_acad']."'");
+									$pfrais = ConnexionBdd::Connecter()->query("SELECT * FROM poste_recette WHERE id_annee = '".$an_r['id_annee']."'");
 									while($data = $pfrais->fetch()){
 										$npost_recette = $npost_recette.'"'. $data['poste_rec'].'",';
 										$mposte_recette = $mposte_recette.''. $data['montant'].', ';
@@ -593,7 +593,7 @@
 											}else{
 												$an_r['id_annee'] = '';
 											}
-											$pd = ConnexionBdd::Connecter()->query("SELECT * FROM poste_depense WHERE id_annee = '".$an_r['annee_acad']."'");
+											$pd = ConnexionBdd::Connecter()->query("SELECT * FROM poste_depense WHERE id_annee = '".$an_r['id_annee']."'");
 											while($data = $pd->fetch()){
 												$npost = $npost.'"'. $data['poste'].'",';
 												$mposte = $mposte.''. montant_restant_pourcent(montant_restant($data['montant'], $data['depense']), $data['montant']).',';
