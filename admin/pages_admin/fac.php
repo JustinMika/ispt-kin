@@ -179,13 +179,7 @@
                                 <th>Code</th>
                             </tr>
                             </thead>
-                            <tbody>
-                                <tr>
-                                    <td scope="row"></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                </tr>
+                            <tbody id="option_table">
                             </tbody>
                     </table>
                 </div>
@@ -383,6 +377,7 @@
     <!-- afficher les options d'un departement -->
     <script type="text/javascript">
         $("table").on('click', '#list_option_option', function() {
+            $("#list_options").modal("toggle");
             b = $(this);
             m = $(this).parent();
             mm = $(m).parent();
@@ -390,6 +385,32 @@
             id_departement_ = mm.find("#id_departement");
             id_section_ = mm.find("#id_section");
             departement = mm.find("#departement");
+
+            // rehete ajax
+            const data  = {
+                id_departement_:id_departement_.text(),
+                id_section_:id_section_.text()
+            };
+            $.ajax({
+                type: "GET",
+                url: "../../includes/view_options.php",
+                data: data,
+                success: function (response) {
+                    // alert(response);
+                    $("#option_table").empty();
+                    $("#option_table").html(response);
+                    // if(response !=""){
+                    //     $("#option_table").empty();
+                    //     $("#option_table").append(data);
+                    // }else{
+                    //     $("#option_table").empty();
+                    //     $("#option_table").parent().append("<caption>Pas de donnees pour l'instant.</caption>");
+                    // }
+                },
+                error:function(e){
+
+                }
+            });
         });
     </script>
 
