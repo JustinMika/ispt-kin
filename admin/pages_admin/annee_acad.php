@@ -120,7 +120,7 @@
     <script src="../../js/jquery-3.6.0.min.js"></script>
     <script src="js/sb-admin-2.min.js"></script>
     <script type="text/javascript">
-        $('table').on('click', 'a', function() {
+        $('table').on('click', 'button', function() {
             b = $(this);
             m = $(this).parent();
             mm = $(m).parent();

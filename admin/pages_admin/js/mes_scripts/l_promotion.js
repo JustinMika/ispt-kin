@@ -43,14 +43,6 @@ $(document).ready(function() {
         }
     });
 
-    $("#del_").click(function(e) {
-        e.preventDefault();
-    });
-
-    $("#modifier").click(function(e) {
-        e.preventDefault();
-    });
-
     function afficher_annee_acad() {
         $.ajax({
             type: "GET",

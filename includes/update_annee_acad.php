@@ -9,12 +9,13 @@
     if(isset($_POST['id_m_annee_acad']) && !empty($_POST['id_m_annee_acad']) &&
     isset($_POST['update_ann_acad']) && !empty($_POST['update_ann_acad'])){
         // mise a jour
-        $sql = "UPDATE annee_academique SET annee_acad = ? WHERE id  = ?";
+        $sql = "UPDATE annee_acad SET annee_acad = ? WHERE id_annee  = ?";
         $update = ConnexionBdd::Connecter()->prepare($sql);
-        $ok = $update->execute(array(htmlentities(htmlspecialchars(trim($_POST['update_ann_acad']))), htmlentities(htmlspecialchars(trim($_POST['id_m_annee_acad'])))));
+        $ok = $update->execute(array(htmlspecialchars(trim($_POST['update_ann_acad'])), 
+        $_POST['id_m_annee_acad']));
         if($ok){
             echo 'ok';
-            LogUser::addlog(VerificationUser::verif($_SESSION['data']['noms']), 'a mit à jour une anneée academique.');
+            LogUser::addlog(VerificationUser::verif($_SESSION['data']['id_user']), 'a mit à jour une anneée academique.');
         }else{
             echo 'Echec de mise à jour de l anneée academique, ...';
         }
