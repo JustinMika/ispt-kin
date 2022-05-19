@@ -3,7 +3,7 @@
     require_once './ConnexionBdd.class.php';
     require_once './verification.class.php';
     require_once './log_user.class.php';
-    // print_r($_POST);
+    
     if(isset($_POST['_id_type_frais_']) && !empty($_POST['montant_'])){
         // update prevision
         $prevision = ConnexionBdd::Connecter()->prepare("UPDATE prevision_frais SET montant = ? WHERE id_frais = ?");
