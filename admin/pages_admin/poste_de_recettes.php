@@ -143,7 +143,7 @@
                                                 <th>#ID</th>
                                                 <th>Type </th>
                                                 <th>Montant</th>
-                                                <th>Faculte</th>
+                                                <th>Section</th>
                                                 <th>Promotion</th>
                                                 <th>Annee Academique</th>
                                                 <th> # </th>
@@ -159,7 +159,11 @@
                                                     $an_r['id_annee'] = '';
                                                 }
 
-                                                $pfrais = ConnexionBdd::Connecter()->prepare("SELECT * FROM prevision_frais WHERE id_annee =?");
+                                                $pfrais = ConnexionBdd::Connecter()->prepare("SELECT prevision_frais.id_frais as id,prevision_frais.montant, prevision_frais.promotion, prevision_frais.type_frais, sections.section as faculte, departement.departement, annee_acad.annee_acad FROM prevision_frais 
+                                                LEFT JOIN sections on prevision_frais.id_section = sections.id_section 
+                                                LEFT JOIN departement on prevision_frais.id_departement = departement.id_departement 
+                                                LEFT JOIN options on prevision_frais.id_option = options.id_option
+                                                LEFT JOIN annee_acad on prevision_frais.id_annee = annee_acad.id_annee WHERE prevision_frais.id_annee = ?");
                                                 $pfrais->execute(array($an_r['id_annee']));
                                                 while($data = $pfrais->fetch()){
                                                     ?>
@@ -275,12 +279,11 @@
                 <div class="modal-body">
                     <form action="" method ="POST" id="Ajout_frais_etud">
                         <div class="form-group">
-                            <label for="">Type de frais</label>
-                            <input type="text" class="form-control" name="type_Frais_pay_" id="type_Frais_pay_" aria-describedby="helpId" placeholder="Type de frais">
+                            <input type="text" class="form-control" name="_type_Frais_pay_" id="_type_Frais_pay_" aria-describedby="helpId" placeholder="Type de frais">
                         </div>
                         <div class="form-group">
-                            <label for="">Faculte</label>
-                            <select class="form-control" name="fac_prev_p" id="fac_prev_p">
+                            <label for="">Sections</label>
+                            <select class="form-control" name="section_" id="section_">
                                 <?php
                                     $sel_fac = ConnexionBdd::Connecter()->query("SELECT id_section, section FROM sections ORDER BY id_section");
                                     while($d = $sel_fac->fetch()){
@@ -291,10 +294,34 @@
                             </select>
                         </div>
                         <div class="form-group">
+                            <label for="">Departement</label>
+                            <select class="form-control" name="departement_" id="departement_">
+                                <?php
+                                    $sel_fac = ConnexionBdd::Connecter()->query("SELECT id_departement, departement FROM departement ORDER BY id_departement");
+                                    while($d = $sel_fac->fetch()){
+                                        echo '
+                                        <option value="'.$d['id_departement'].'">'.$d['departement'].'</option>';
+                                    } 
+                                ?>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="">Option</label>
+                            <select class="form-control" name="option_" id="option_">
+                                <?php
+                                    $sel_fac = ConnexionBdd::Connecter()->query("SELECT id_option, option_ FROM options ORDER BY id_option");
+                                    while($d = $sel_fac->fetch()){
+                                        echo '
+                                        <option value="'.$d['id_option'].'">'.$d['option_'].'</option>';
+                                    } 
+                                ?>
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <label for="">Promotion</label>
                             <select class="form-control" name="promotion_prev_p" id="promotion_prev_p">
                                 <?php
-                                    $sel_fac = ConnexionBdd::Connecter()->query("SELECT DISTINCT promotion FROM etudiants_inscrits ORDER BY id");
+                                    $sel_fac = ConnexionBdd::Connecter()->query("SELECT DISTINCT promotion FROM options ORDER BY id_option");
                                     while($d = $sel_fac->fetch()){
                                         echo '
                                         <option value="'.$d['promotion'].'">'.$d['promotion'].'</option>';
@@ -302,12 +329,12 @@
                                 ?>
                             </select>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group p-0">
                             <label for="">Montant</label>
                             <input type="text" class="form-control" name="montant_prev_p" id="montant_prev_p" aria-describedby="helpId" placeholder="Montant" required>
                             <small id="Erreor_s"></small>
                         </div>
-                        <div class="modal-footer">
+                        <div class="modal-footer p-o m-0">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
                             <button type="submit" class="btn btn-primary" id="btn_u" disabled="true">Ajouter</button>
                         </div>

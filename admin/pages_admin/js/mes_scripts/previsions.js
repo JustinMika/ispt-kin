@@ -126,7 +126,7 @@ $(document).ready(function() {
     // ajouter une prevision pour les etudiants
     $("#Ajout_frais_etud").submit(function(e) {
         e.preventDefault();
-        if ($("#type_Frais_pay_").val() != "" && $("#type_Frais_pay_").val().length > 4) {
+        if ($("#_type_Frais_pay_").val() != "") {
             $.ajax({
                 type: "POST",
                 url: "../../includes/add_prev_f.php",
