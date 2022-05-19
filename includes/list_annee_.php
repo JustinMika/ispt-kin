@@ -10,6 +10,7 @@
             <td>
                 <button data-toggle="modal" href="#MyModalModif" id="modifier" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#MyModalModif">Modifier</button>
             </td>
-        </tr>';
+        </tr>
+        ';
     }
 ?>
