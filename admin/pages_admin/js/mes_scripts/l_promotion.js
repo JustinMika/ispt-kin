@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    afficher_annee_acad();
+    // afficher_annee_acad();
     $("#f0rm").submit(function(e) {
         e.preventDefault();
         var annee_0_acad = $("#annee_0_acad");
@@ -13,7 +13,8 @@ $(document).ready(function() {
                 data: $('#f0rm').serializeArray(),
             }).done(function(data) {
                 if (data == "ok") {
-                    afficher_annee_acad();
+                    // afficher_annee_acad();
+                    window.location.reload();
                     $("#annee_0_acad").val("");
                 } else {
                     $("#error_s")
@@ -69,8 +70,7 @@ $(document).ready(function() {
                 data: $("#update_annee_acad").serializeArray(),
                 success: function(response) {
                     if (response == "ok") {
-                        afficher_annee_acad();
-                        $("#MyModalModif").modal('toggle');
+                        window.location.reload();
                     } else {
                         $("#helpId_error").html(response);
                     }
@@ -84,8 +84,4 @@ $(document).ready(function() {
         }
 
     });
-
-    setInterval(() => {
-        afficher_annee_acad();
-    }, 3000);
 });

@@ -237,9 +237,9 @@
                                 <label for="">Année academique</label>
                                 <select class="form-control" id="annee_acad" name="annee_acad" required>
                                     <?php
-                                        $a = ConnexionBdd::Connecter()->query("SELECT annee_acad FROM annee_academique");
+                                        $a = ConnexionBdd::Connecter()->query("SELECT id_annee, annee_acad FROM annee_acad");
                                         while($d = $a->fetch()){
-                                            echo '<option value="'.$d['annee_acad'].'">'.$d['annee_acad'].'</option>';
+                                            echo '<option value="'.$d['id_annee'].'">'.$d['annee_acad'].'</option>';
                                         }
                                     ?>
                                 </select>
@@ -283,7 +283,7 @@
                             <select type="text" class="form-control" name="Faculte_etud_ins" id="Faculte_etud_ins" required>
                                 <option> -- Faculté -- </option>
                                 <?php
-                                    $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_academique GROUP BY annee_acad ORDER BY id DESC LIMIT 1 ");
+                                    $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1 ");
                                     $an_r = $an->fetch();
 
                                     if(isset($an_r) && !empty($an_r)){
@@ -293,12 +293,12 @@
                                     }
 
                                     // selection de la faculte de la derniere annee academique
-                                    $sel_etudiants = ConnexionBdd::Connecter()->prepare("SELECT fac FROM faculte WHERE annee_acad = ? GROUP BY fac");
+                                    $sel_etudiants = ConnexionBdd::Connecter()->prepare("SELECT section FROM sections WHERE annee_acad = ? GROUP BY section");
                                     $sel_etudiants->execute(array($ann));
                                     $nbre = $sel_etudiants->rowCount();
 
                                     while($data = $sel_etudiants->fetch()){
-                                        echo '<option value="'.$data['fac'].'">'.$data['fac'].'</option>';
+                                        echo '<option value="'.$data['id_section'].'">'.$data['section'].'</option>';
                                     }
                                 ?>
                             </select>
@@ -311,7 +311,7 @@
 
                         <div class="form-group">
                             <?php
-                                $an =  ConnexionBdd::Connecter()->query("SELECT annee_acad FROM annee_academique GROUP BY annee_acad ORDER BY id DESC LIMIT 1 ");
+                                $an =  ConnexionBdd::Connecter()->query("SELECT annee_acad FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1 ");
                                 $an_r = $an->fetch();
 
                                 if(!empty($an_r)){

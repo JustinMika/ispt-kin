@@ -1,6 +1,4 @@
 $(document).ready(function() {
-    afficher_facul();
-    afficher_depart();
     $("#f0rm-fac").submit((e) => {
         e.preventDefault();
         var fac = $("#fac");
@@ -20,7 +18,6 @@ $(document).ready(function() {
                     // if()
                     $("#fac").val("");
                     window.location.reload();
-                    afficher_facul();
                 } else {
                     $("#fac").val("");
                     $("#error_s")
@@ -50,20 +47,20 @@ $(document).ready(function() {
         }
     });
 
-    function afficher_facul() {
-        $.ajax({
-            type: "GET",
-            url: "../../includes/list_fac.php",
-        }).done(function(data) {
-            if (data != "") {
-                $($("#f_table")).empty();
-                $("#f_table").append(data);
-            } else {
-                $($("#f_table")).empty();
-                $("#f_table").parent().append("<caption>Pas de donnees pour l'instant.</caption>");
-            }
-        }).fail(function(data) {});
-    }
+    // function afficher_facul() {
+    //     $.ajax({
+    //         type: "GET",
+    //         url: "../../includes/list_fac.php",
+    //     }).done(function(data) {
+    //         if (data != "") {
+    //             $($("#f_table")).empty();
+    //             $("#f_table").append(data);
+    //         } else {
+    //             $($("#f_table")).empty();
+    //             $("#f_table").parent().append("<caption>Pas de donnees pour l'instant.</caption>");
+    //         }
+    //     }).fail(function(data) {});
+    // }
 
     function afficher_depart() {
         $.ajax({
@@ -89,8 +86,7 @@ $(document).ready(function() {
                 data: $('#update_faculte').serializeArray(),
                 success: function(response) {
                     if (response == "ok") {
-                        $("#Modify_fac").modal('toggle');
-                        afficher_facul();
+                        window.location.reload();
                     } else {
                         $("#helpId_f").text("ERROR:faculte non modifier");
                     }
