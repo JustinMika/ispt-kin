@@ -101,15 +101,13 @@
                                                         <th>Actions</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody id="f_table_depart">
+                                                <tbody id="">
                                                 <?php
-                                                    // require_once './ConnexionBdd.class.php';
                                                     $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1");
                                                     if($an->rowCount() > 0){
                                                         $an_r = $an->fetch();
                                                     }else{
                                                         $an_r['annee_acad'] = '';
-                                                        die("Veuillez AJouter l annee académique");
                                                     }
 
                                                     $verif = ConnexionBdd::Connecter()->prepare("SELECT * FROM departement WHERE id_annee = ? ORDER BY departement ASC");
