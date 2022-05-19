@@ -185,14 +185,12 @@ $(document).ready(function() {
         const data = {
             type_frais_: $("#type_frais").val(),
             montant_: $("#montant_").val(),
-            promotion: $("#Promotion").val(),
-            faculte: $("#fac_update").val(),
-            annee_acad: $("#annee_acad_").val()
+            _id_type_frais_: $("#_id_type_frais_").val()
         };
         $.ajax({
             type: "POST",
             url: "../../includes/update_affectation_frais.php",
-            data: data,
+            data: $(this).serializeArray(),
             beforeSend: function() {
                 $("#e_update").html('Patienter un instant ...').css({ color: 'green' }).addClass('text-success');
             },

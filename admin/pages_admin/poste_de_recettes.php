@@ -168,7 +168,7 @@
                                                 while($data = $pfrais->fetch()){
                                                     ?>
                                                         <tr>
-                                                            <td><?=$data['id']?></td>
+                                                            <td id="id_type_frais_"><?=$data['id']?></td>
                                                             <td id="type_frais_"><?=$data['type_frais']?></td>
                                                             <td id="montant_a"><?=$data['montant'].'$'?></td>
                                                             <td id="faculte_"><?=$data['faculte']?></td>
@@ -239,18 +239,8 @@
                     <form action="" method="post" id="update_prevision_ffrais">
                         <div class="form-group">
                             <input type="text" name="type_frais_" id="type_frais" class="form-control" placeholder="Type de frais" aria-describedby="helpId">
-                        </div>
-                        <!-- fac -->
-                        <div class="form-group">
-                            <input type="text" name="fac_update" id="fac_update" class="form-control" placeholder="Faculte" aria-describedby="helpId">
-                        </div>
-                        <!-- type de frais -->
-                        <div class="form-group">
-                            <input type="text" name="Promotion" id="Promotion" class="form-control" placeholder="Promotion" aria-describedby="helpId">
-                        </div>
-                        <!--  -->
-                        <div class="form-group">
-                            <input type="text" name="annee_acad_" id="annee_acad_" class="form-control" placeholder="Annee Acad." aria-describedby="helpId">
+
+                            <input type="hidden" name="_id_type_frais_" id="_id_type_frais_" class="form-control" placeholder="Type de frais" aria-describedby="helpId">
                         </div>
                         <div class="form-group">
                             <input type="text" name="montant_" id="montant_" class="form-control" placeholder="Montant" aria-describedby="helpId">
@@ -584,19 +574,17 @@
             b = $(this);
             m = $(this).parent();
             mm = $(m).parent();
-            // alert(mm.text());
-
+            
+            var id_type_frais_ = mm.find("#id_type_frais_");
             var type_frais_ = mm.find("#type_frais_");
             var montant_a = mm.find("#montant_a");
-            var faculte_ = mm.find("#faculte_");
-            var promotion_ = mm.find("#promotion_");
-            var annee_acad_a = mm.find("#annee_acad_a");
+            
             // e_update
             $("#type_frais").val(type_frais_.text()).attr('disabled', true);
-            $("#fac_update").val(faculte_.text()).attr('disabled', true);
-            $("#Promotion").val(promotion_.text()).attr('disabled', true);
-            $("#annee_acad_").val(annee_acad_a.text()).attr('disabled', true);
+            $("#_id_type_frais_").val(id_type_frais_.text());
             $("#montant_").val(montant_a.text());
+
+            // alert(id_type_frais_.text());
 
             var x = $("#montant_").val();
             if(!isNaN(x)){
