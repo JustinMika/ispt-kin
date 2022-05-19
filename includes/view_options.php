@@ -1,6 +1,6 @@
 <?php
     require_once './ConnexionBdd.class.php';
-    print_r($_GET);
+    // print_r($_GET);
     if(isset($_GET['id_departement_']) && isset($_GET['id_section_'])){
         $s = ConnexionBdd::Connecter()->prepare("SELECT * FROM options WHERE id_departement = ? AND id_section = ?");
         $s->execute(array($_GET['id_departement_'], $_GET['id_section_']));

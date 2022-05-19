@@ -427,7 +427,8 @@
             $.ajax({
                 type: "GET",
                 url: "../../includes/view_options.php",
-                async: false,
+                async: true,
+                cache:false,
                 data: data,
                 success: function (response) {
                     $("#option_table").empty();
