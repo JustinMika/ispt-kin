@@ -38,7 +38,7 @@
 
                             if($ok){
                                 echo("success");
-                                LogUser::addlog(VerificationUser::verif($_SESSION['data']['noms']), 
+                                LogUser::addlog(VerificationUser::verif($_SESSION['data']['id_user']), 
                                 strtolower('il(elle) ajouté(e)  ['.$_POST['pseudo_user'].'] parmi les les utilisateurs administrateur !.'));
                             }else{
                                 die("Une erreur s'est produite. Reesayer !!!. vérifier les informations de l'utilisateur avant de l'enregistrer !");

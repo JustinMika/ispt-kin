@@ -20,7 +20,7 @@
     }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 
 <head>
     <meta charset="utf-8">
@@ -28,7 +28,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="author" content="Justin Micah">
 
-    <title>SEctions</title>
+    <title>Sections</title>
     <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
     <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"rel="stylesheet">
     <link rel="shortcut icon" href="../../images/ispt_kin.png" type="image/x-icon">
@@ -66,8 +66,7 @@
                                                         if($an->rowCount() > 0){
                                                             $an_r = $an->fetch();
                                                         }else{
-                                                            $an_r['annee_acad'] = '';
-                                                            die("Veuillez AJouter l annee académique");
+                                                            $an_r['id_annee'] = '';
                                                         }
                                                     
                                                         $verif = ConnexionBdd::Connecter()->prepare("SELECT * FROM sections WHERE id_annee = ? ORDER BY section ASC");
@@ -107,7 +106,7 @@
                                                     if($an->rowCount() > 0){
                                                         $an_r = $an->fetch();
                                                     }else{
-                                                        $an_r['annee_acad'] = '';
+                                                        $an_r['id_annee'] = '';
                                                     }
 
                                                     $verif = ConnexionBdd::Connecter()->prepare("SELECT * FROM departement WHERE id_annee = ? ORDER BY departement ASC");
@@ -127,7 +126,7 @@
                                                                     <i class="fa fa-plus-circle" aria-hidden="true"></i>
                                                                 </button>
 
-                                                                <button href="#" data-toggle="modal" data-target="#list_options" class="btn btn-info btn-sm" id="modif_fac_l" title="Ajouter une option">
+                                                                <button href="#" data-toggle="modal" class="btn btn-info btn-sm" id="option_xy" title="Afficher une option">
                                                                     <i class="fa fa-list" aria-hidden="true"></i>
                                                                 </button>
                                                             </td>
@@ -230,8 +229,20 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="">Promotion</label>
-                            <input type="text" name="Option_promotion" id="Option_promotion" class="form-control" placeholder="Promotion" aria-describedby="helpId">
+                            <div class="form-group">
+                                <label for="">Promotion</label> 
+                                <select class="form-control" name="Option_promotion" id="Option_promotion">
+                                    <option value="G1">G1</option>
+                                    <option value="G2">G2</option>
+                                    <option value="G3">G3</option>
+                                    <option value="L1 A">L1 A</option>
+                                    <option value="L2 A">L2 A</option>
+                                    <option value="L1">L1</option>
+                                    <option value="L2">L2</option>
+                                    <option value="M1">M1</option>
+                                    <option value="M2">M2</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div class="form-group">
@@ -397,7 +408,7 @@
 
     <!-- afficher les options d'un departement -->
     <script type="text/javascript">
-        $("table").on('click', '#list_option_option', function() {
+        $("table").on('click', '#option_xy', function() {
             $("#list_options").modal("toggle");
             b = $(this);
             m = $(this).parent();
@@ -407,26 +418,20 @@
             id_section_ = mm.find("#id_section");
             departement = mm.find("#departement");
 
-            // rehete ajax
+            // requete ajax
             const data  = {
                 id_departement_:id_departement_.text(),
                 id_section_:id_section_.text()
             };
+
             $.ajax({
                 type: "GET",
                 url: "../../includes/view_options.php",
+                async: false,
                 data: data,
                 success: function (response) {
-                    // alert(response);
                     $("#option_table").empty();
                     $("#option_table").html(response);
-                    // if(response !=""){
-                    //     $("#option_table").empty();
-                    //     $("#option_table").append(data);
-                    // }else{
-                    //     $("#option_table").empty();
-                    //     $("#option_table").parent().append("<caption>Pas de donnees pour l'instant.</caption>");
-                    // }
                 },
                 error:function(e){
                     alert("Erreur de connexion.");
