@@ -179,10 +179,12 @@
                 </div>
                 <div class="modal-body">
                     <form action="" method="POST" id="delaffect">
-                        <input type="hidden" name="mat_etud_da" id="mat_etud_aff_aff_da">
-                        <input type="hidden" name="annee_acad_da" id="annee_acad_aff_aff_da">
-                        <input type="hidden" name="fac_da" id="fac_aff_aff_da">
-                        <input type="hidden" name="promotion_da" id="promotion_aff_aff_da">
+                    <input type="hidden" name="mat_etud" id="mat_etud_aff_aff">
+                        <input type="hidden" name="annee_acad" id="annee_acad_aff_aff_da">
+                        <input type="hidden" name="section_aff" id="section_aff_da">
+                        <input type="hidden" name="departement_aff" id="departement_aff_da">
+                        <input type="hidden" name="option_aff" id="option_aff_da">
+                        <input type="hidden" name="promotion_aff" id="promotion_aff_da">
                         
                         <div class="card" style="overflow-y: scroll;height:20rem">
                             <div class="card-body p-3" id="frais_del"></div>
@@ -366,40 +368,47 @@
                 etudiants = mm.find("#mat").text()+ " : "+mm.find("#noms").text();
                 $("#etud_xy_mod").text(etudiants);
 
-                // fac = mm.find("#fac").text();
-                // promotion = mm.find("#promotion").text();
-                // annee_acad = mm.find("#annee_academique").text();
+                section = mm.find("#id_section").text();
+                departement = mm.find("#id_departement").text();
+                option = mm.find("#id_option").text();
+                promotion = mm.find("#promotion").text();
+                annee_acad = mm.find("#id_annee").text();
 
-                // if(fac !="" && promotion !="" && annee_acad != ""){
-                //     $("#etud_").text(etudiants);
+                if(section !="" && promotion !="" && annee_acad != "" && option !="" && departement !="" && mm.find("#mat").text() !=""){
+                    $("#etud_").text(etudiants);
 
-                //     $("#mat_etud_aff_aff_da").val(mm.find("#mat").text());
-                //     $("#annee_acad_aff_aff_da").val(annee_acad);
-                //     $("#fac_aff_aff_da").val(fac);
-                //     $("#promotion_aff_aff_da").val(promotion);
+                    $("#mat_etud_aff_aff").val(mm.find("#mat").text());
+                    $("#annee_acad_aff_aff").val(annee_acad);
+                    $("#section_aff").val(section);
+                    $("#departement_aff").val(departement);
+                    $("#option_aff").val(option);
+                    $("#promotion_aff").val(promotion);
+                    //"payement_del_aff":"payement"
 
-                //     const data = {
-                //         "payement_del_aff":"payement",
-                //         "mat_student":mm.find("#mat").text(),
-                //         "fac":fac,
-                //         "annee_acad":annee_acad,
-                //         "promotion":promotion
-                //     };
-                //     $.ajax({
-                //         type: "GET",
-                //         url: "../../includes/del_affect.php",
-                //         data: data,
-                //         async: false,
-                //         success: function (data) {
-                //             $("#frais_del").empty();
-                //             $("#frais_del").append(data);
-                //         },
-                //         error: function (response){
-                //             // une erreur est survenue
-                //             alert("Erreur de la connexion" + response);
-                //         }
-                //     });
-                // }
+                    const data = {
+                        "payement_del_aff":"payement",
+                        "mat_student":mm.find("#mat").text(),
+                        "section":section,
+                        "departement":departement,
+                        "option":option,
+                        "promotion":promotion,
+                        "annee_acad":annee_acad
+                    };
+
+                    $.ajax({
+                        type: "GET",
+                        url: "../../includes/del_affect.php",
+                        data: data,
+                        async: false,
+                        success: function (data) {
+                            $("#frais_del").empty();
+                            $("#frais_del").append(data);
+                        },
+                        error: function (response){
+                            alert("Erreur de la connexion; verifier votre connexion.");
+                        }
+                    });
+                }
             });
         });
 	</script>
