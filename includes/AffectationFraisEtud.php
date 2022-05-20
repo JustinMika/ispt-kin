@@ -149,6 +149,7 @@
         }
     }
 
+    // affectationdes frais aux etudiants
     if(isset($_POST['affect']) && !empty($_POST['affect']) && $_POST['affect'] = "affecter"){  
         // print_r($_POST);
         if(!empty($_POST['mat']) && !empty($_POST['promotion']) && !empty($_POST['frais']) && !empty($_POST['section']) && !empty($_POST['departement']) && !empty($_POST['option']) && !empty($_POST['annee_acad'])){
@@ -181,7 +182,6 @@
             echo "Veuillez selectionner un type de frais";
         }
     }else{
-        // die("une erreur est survenue -2");
     }
 
     // recherche par faculte, promotion et par annee academique
@@ -216,6 +216,5 @@
             die('<p class="h3 text-danger">Veuillez completer tous les champs svp</p>');
         }
     }else{
-        // die('<p class="h3 text-danger">Veuillez completer tous les champs svp</p>');
     }
 ?>

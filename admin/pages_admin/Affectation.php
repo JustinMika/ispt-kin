@@ -179,7 +179,7 @@
                 </div>
                 <div class="modal-body">
                     <form action="" method="POST" id="delaffect">
-                    <input type="hidden" name="mat_etud" id="mat_etud_aff_aff">
+                        <input type="hidden" name="mat_etud" id="mat_etud_aff_aff">
                         <input type="hidden" name="annee_acad" id="annee_acad_aff_aff_da">
                         <input type="hidden" name="section_aff" id="section_aff_da">
                         <input type="hidden" name="departement_aff" id="departement_aff_da">
@@ -372,7 +372,9 @@
                 departement = mm.find("#id_departement").text();
                 option = mm.find("#id_option").text();
                 promotion = mm.find("#promotion").text();
-                annee_acad = mm.find("#id_anneegit ").text();
+                annee_acad = mm.find("#id_annee").text();
+
+                // alert(departement +" "+option+" "+promotion+" "+annee_acad);
 
                 if(section !="" && promotion !="" && annee_acad != "" && option !="" && departement !="" && mm.find("#mat").text() !=""){
                     $("#etud_").text(etudiants);

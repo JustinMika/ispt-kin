@@ -146,50 +146,34 @@ $(document).ready(function() {
 
     $("#delaffect").submit(function(e) {
         e.preventDefault();
-        var mat_etud_aff = $("#mat_etud_aff_aff_da").val();
-        var annee_acad_aff = $("#annee_acad_aff_aff_da").val();
-        var fac_aff = $("#fac_aff_aff_da").val();
-        var promotion_aff = $("#promotion_aff_aff_da").val();
-
         frais_a_payer = Array();
-        montant = Array();
 
         $('input[name="ch_sh_d"]:checked').each(function() {
-            montant.push($(this).val());
-            montant.join(', ');
-            frais_a_payer.push($(this).attr('placeholder'));
+            frais_a_payer.push($(this).val());
             frais_a_payer.join(', ');
         });
 
-        if (mat_etud_aff != "" && annee_acad_aff != "" && fac_aff != "" && promotion_aff != "") {
-            const data = {
-                d_affect: "d_affect",
-                mat: mat_etud_aff,
-                promotion: promotion_aff,
-                frais: frais_a_payer,
-                fac: fac_aff,
-                annee_acad: annee_acad_aff,
-                montant_f: montant
-            };
-            $.ajax({
-                type: "POST",
-                url: "../../includes/del_affect.php",
-                data: data,
-            }).done(function(data) {
-                if (data != "" && data == "ok") {
-                    $("#del_affectation").modal('toggle');
-                    $("#Affich_info").modal('toggle');
-                } else {
-                    // alert(data);
-                    $("#ErrorAffD").text("");
-                    $("#ErrorAffD").text(data).css({ color: 'red' });
-                    // $("#ErrorAff").text("Veuillez selectionner au moins un type de frais").css({ color: 'red' });
-                }
-            }).fail(function(data) {
-                alert("Erreur de connexion.");
-            });
-        } else {
-            alert("Veuillez completer tous les champs");
-        }
+        const data = {
+            d_affect: "d_affect",
+            frais: frais_a_payer
+        };
+        $.ajax({
+            type: "POST",
+            url: "../../includes/del_affect.php",
+            data: data,
+        }).done(function(data) {
+            if (data != "" && data == "ok") {
+                $("#del_affectation").modal('toggle');
+                $("#Affich_info").modal('toggle');
+            } else {
+                // alert(data);
+                $("#ErrorAffD").text("");
+                $("#ErrorAffD").text(data).css({ color: 'red' });
+                // $("#ErrorAff").text("Veuillez selectionner au moins un type de frais").css({ color: 'red' });
+            }
+        }).fail(function(data) {
+            $("#ErrorAffD").text("");
+            $("#ErrorAffD").text("Erreur de connexion,...").css({ color: 'red' });
+        });
     });
 });
