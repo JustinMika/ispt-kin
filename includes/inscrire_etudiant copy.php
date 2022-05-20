@@ -1,5 +1,6 @@
 <?php
     session_start();
+    header('Content-type:text/html; charset=UTF-8');
     require_once './ConnexionBdd.class.php';
     require_once './log_user.class.php';
     require_once './verification.class.php';
@@ -39,68 +40,40 @@
                             if(!empty($mat) && !empty($pwd) && !empty($noms) && !empty($faculte) && !empty($promotion) && !empty($annee_academique)){
                                 $verif = ConnexionBdd::Connecter()->prepare("SELECT * FROM etudiants_inscrits WHERE matricule = ? AND password = ? AND noms = ? AND fac = ? AND promotion = ? AND annee_academique = ?");
 
-                                $verif->execute(array($mat, $pwd, $noms, $faculte, $promotion, $annee_academique));
-
+                                $verif->execute(array($mat, sha1($pwd), $noms, $faculte, $promotion, $annee_academique));
                                 $nbre = $verif->rowcount();
-
                                 // verification si les donnees existe deja dans la base de donnees
                                 if($nbre <= 0){
                                     // verification pour le matricule, promotion, fac, annee acad
                                     $v = ConnexionBdd::Connecter()->prepare("SELECT * FROM etudiants_inscrits WHERE matricule = ? AND fac = ? AND promotion = ? AND annee_academique = ?");
                                     $v->execute(array($mat, $faculte, $promotion, $annee_academique));
-
+                                    // verification
                                     if($v->rowCount() <= 0){
-                                        $v = ConnexionBdd::Connecter()->prepare("SELECT * FROM etudiants_inscrits WHERE matricule = ? AND fac = ? AND annee_academique = ?");
-                                        $v->execute(array($mat, $faculte, $annee_academique));
+                                        // verification sur un matricule et l'annee
+                                        $v = ConnexionBdd::Connecter()->prepare("SELECT * FROM etudiants_inscrits WHERE matricule = ? AND annee_academique = ?");
+                                        $v->execute(array($mat, $annee_academique));
 
                                         if($v->rowCount() <= 0){
-                                            $v = ConnexionBdd::Connecter()->prepare("SELECT * FROM etudiants_inscrits WHERE matricule = ? AND promotion = ? AND annee_academique = ?");
-                                            $v->execute(array($mat, $promotion, $annee_academique));
-                                            if($v->rowCount() <= 0){
-                                                $mf = ConnexionBdd::Connecter()->prepare("SELECT matricule, fac FROM etudiants_inscrits WHERE matricule = ?");
-                                                $mf->execute(array($mat));
-                                                
-                                                if($mf->rowCount() >= 0){
-                                                    $data_mf = $mf->fetch();
-                                                    if($data_mf['fac'] != $faculte){
-                                                        echo 'le matricule '.$mat.' est presente dans la fac de '.$data_mf['fac']."<hr class='m-0'>";
-                                                    }else{
-                                                        // insertion de donnees dans la base de donnees 
-                                                        $pwd = htmlspecialchars(trim($pwd));
-                                                        $insert_etud = ConnexionBdd::Connecter()->prepare("INSERT INTO etudiants_inscrits(matricule, password, noms, fac, promotion, annee_academique) VALUES(?, ?, ?, ?, ?, ?)");
-                                                        $ok = $insert_etud->execute(array($mat, sha1($pwd), $noms, $faculte, $promotion, $annee_academique));
-                                                        if($ok){
-                                                            // tables des etudiants
-                                                            $pwd = htmlspecialchars(trim($pwd));
-                                                            $insert_etud = ConnexionBdd::Connecter()->prepare("INSERT INTO etudiants(matricule, noms, photo, password) VALUES(?,?,'../images/etudiants.jpg', ?)");
-                                                            $pwd = sha1($pwd);
-                                                            $insert_etud->execute(array($mat, $noms, $pwd));
-                                                            // echo 'insertion encours';
-                                                        }else{
-                                                            // les donnees ne sont inserer dans la base de donnees.
-                                                            echo "[] Données non inseré à la ligne {$i} dans le fichier {$nf}<hr class='m-0'>";
-                                                        }
-                                                    }
-                                                }else{
-                                                    $insert_etud = ConnexionBdd::Connecter()->prepare("INSERT INTO etudiants_inscrits(matricule, password, noms, fac, promotion, annee_academique) VALUES(?,?,?,?,?,?)");
-                                                    $ok = $insert_etud->execute(array($mat, sha1($pwd), $noms, $faculte, $promotion, $annee_academique));
-                                                    if($ok){
-                                                        // tables des etudiants
-                                                        $pwd = htmlspecialchars(trim($pwd));
-                                                        $insert_etud = ConnexionBdd::Connecter()->prepare("INSERT INTO etudiants(matricule, noms, photo, password) VALUES(?,?,'../images/etudiants.jpg',?)");
-                                                        $pwd = sha1($pwd);
-                                                        $insert_etud->execute(array($mat, $noms, $pwd));
-                                                        // echo "<i class='text-success'>insertion encours <hr class=/></i>";
-                                                    }else{
-                                                        // les donnees ne sont inserer dans la base de donnees.
-                                                        echo "données non inseré à la ligne {$i} dans le fichier {$nf}.<hr class='m-0'>";
-                                                    }
+                                            // insertion de donnees dans la base de donnees 
+                                            $pwd = htmlspecialchars(trim($pwd));
+                                            $insert_etud = ConnexionBdd::Connecter()->prepare("INSERT INTO etudiants_inscrits(matricule, password, noms, fac, promotion, annee_academique) VALUES(?, ?, ?, ?, ?, ?)");
+                                            $ok = $insert_etud->execute(array($mat, sha1($pwd), $noms, $faculte, $promotion, $annee_academique));
+                                            if($ok){
+                                                // tables des etudiants
+                                                $pwd = htmlspecialchars(trim($pwd));
+                                                $r = ConnexionBdd::Connecter()->prepare("SELECT * FROM etudiants WHERE matricule = ? AND noms = ? AND photo = '../images/etudiants.jpg' AND password = ?");
+                                                $r->execute(array($mat, $noms, $pwd));
+                                                if($r->rowCount() <= 0){
+                                                    $insert_etud = ConnexionBdd::Connecter()->prepare("INSERT INTO etudiants(matricule, noms, photo, password) VALUES(?,?,'../images/etudiants.jpg', ?)");
+                                                    $pwd = sha1($pwd);
+                                                    $insert_etud->execute(array($mat, $noms, $pwd));
                                                 }
                                             }else{
-                                                echo("ligne {$i}: <b>le numero {$mat}  existe déjà pour un autre <hr class='m-0'>");
+                                                // les donnees ne sont inserer dans la base de donnees.
+                                                echo "Données non inserée à la ligne {$i} dans le fichier {$nf}<hr class='m-0'>";
                                             }
                                         }else{
-                                            echo("ligne {$i}: <b>le numero {$mat}  existe déjà pour un autre <hr class='m-0'>");
+                                            echo ("le matricule {$mat} est deja prise pour l'annee academique {$annee_academique}");
                                         }
                                     }else{
                                         echo("ligne {$i}: l étudiant <b>{$mat} {$noms}-{$faculte}-{$promotion} {$annee_academique}</b> existe déjà <hr class='m-0'>");

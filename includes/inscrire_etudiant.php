@@ -27,65 +27,63 @@
                         $highestColumnIndex = PHPExcel_Cell::columnIndexFromString($highestColumn);
                         $nrColumns = ord($highestColumn) - 64;
 
+                        // on recupere le dernier annee academique
+                        $a = ConnexionBdd::Connecter()->query("SELECT id_annee FROM annee_acad ORDER BY id_annee DESC LIMIT 0,1");
+                        if($a->rowCount() > 0){
+                            $data = $a->fetch();
+                        }else{
+                            $data['id_annee'] = '';
+                            die("Veuillez resneigner l'annee academique svp...");
+                        }
+
                         // traitement
                         for ($i=2; $i <= $highestRow+1 ; $i++){
                             $mat = $worksheet->getCellByColumnAndRow(0, $i)->getValue();
                             $pwd = $worksheet->getCellByColumnAndRow(1, $i)->getValue();
                             $noms = $worksheet->getCellByColumnAndRow(2, $i)->getValue();
-                            $faculte = $worksheet->getCellByColumnAndRow(3, $i)->getValue();
-                            $promotion = $worksheet->getCellByColumnAndRow(4, $i)->getValue();
-                            $annee_academique = $worksheet->getCellByColumnAndRow(5, $i)->getValue();
+                            $code = $worksheet->getCellByColumnAndRow(3, $i)->getValue();
                             $pwd = htmlspecialchars(trim($pwd));
 
-                            if(!empty($mat) && !empty($pwd) && !empty($noms) && !empty($faculte) && !empty($promotion) && !empty($annee_academique)){
-                                $verif = ConnexionBdd::Connecter()->prepare("SELECT * FROM etudiants_inscrits WHERE matricule = ? AND password = ? AND noms = ? AND fac = ? AND promotion = ? AND annee_academique = ?");
+                            if(!empty($mat) && !empty($pwd) && !empty($noms) && !empty($code)){
+                                $verif = ConnexionBdd::Connecter()->prepare("SELECT * FROM etudiants_inscrits WHERE matricule = ? AND id_annee = ?");
 
-                                $verif->execute(array($mat, sha1($pwd), $noms, $faculte, $promotion, $annee_academique));
+                                $verif->execute(array($mat, $data['id_annee']));
                                 $nbre = $verif->rowcount();
                                 // verification si les donnees existe deja dans la base de donnees
                                 if($nbre <= 0){
                                     // verification pour le matricule, promotion, fac, annee acad
-                                    $v = ConnexionBdd::Connecter()->prepare("SELECT * FROM etudiants_inscrits WHERE matricule = ? AND fac = ? AND promotion = ? AND annee_academique = ?");
-                                    $v->execute(array($mat, $faculte, $promotion, $annee_academique));
-                                    // verification
-                                    if($v->rowCount() <= 0){
-                                        // verification sur un matricule et l'annee
-                                        $v = ConnexionBdd::Connecter()->prepare("SELECT * FROM etudiants_inscrits WHERE matricule = ? AND annee_academique = ?");
-                                        $v->execute(array($mat, $annee_academique));
+                                    $v = ConnexionBdd::Connecter()->prepare("SELECT * FROM options WHERE code_ = ? AND id_annee = ? ORDER BY id_option DESC LIMIT 0, 1");
+                                    $v->execute(array($code, $data['id_annee']));
+                                    // verification 
+                                    if($v->rowCount() > 0){
+                                        $data = $v->fetch();
+                                        // print_r($data);
+                                        $id_section = $data['id_section'];
+                                        $id_option = $data['id_option'];
+                                        $id_departement = $data['id_departement'];
+                                        $promotion = $data['promotion'];
 
-                                        if($v->rowCount() <= 0){
-                                            // insertion de donnees dans la base de donnees 
-                                            $pwd = htmlspecialchars(trim($pwd));
-                                            $insert_etud = ConnexionBdd::Connecter()->prepare("INSERT INTO etudiants_inscrits(matricule, password, noms, fac, promotion, annee_academique) VALUES(?, ?, ?, ?, ?, ?)");
-                                            $ok = $insert_etud->execute(array($mat, sha1($pwd), $noms, $faculte, $promotion, $annee_academique));
-                                            if($ok){
-                                                // tables des etudiants
-                                                $pwd = htmlspecialchars(trim($pwd));
-                                                $r = ConnexionBdd::Connecter()->prepare("SELECT * FROM etudiants WHERE matricule = ? AND noms = ? AND photo = '../images/etudiants.jpg' AND password = ?");
-                                                $r->execute(array($mat, $noms, $pwd));
-                                                if($r->rowCount() <= 0){
-                                                    $insert_etud = ConnexionBdd::Connecter()->prepare("INSERT INTO etudiants(matricule, noms, photo, password) VALUES(?,?,'../images/etudiants.jpg', ?)");
-                                                    $pwd = sha1($pwd);
-                                                    $insert_etud->execute(array($mat, $noms, $pwd));
-                                                }
-                                            }else{
-                                                // les donnees ne sont inserer dans la base de donnees.
-                                                echo "Données non inserée à la ligne {$i} dans le fichier {$nf}<hr class='m-0'>";
-                                            }
+                                        $insetion_etudiant = ConnexionBdd::Connecter()->prepare("INSERT INTO etudiants_inscrits(matricule, noms, password, id_section, id_departement, id_option, promotion, id_annee) VALUES(?,?,?,?,?,?,?,?)");
+                                        $ok = $insetion_etudiant->execute(array($mat, $noms, $pwd, $id_section, $id_departement, $id_option, $promotion, $data['id_annee']));
+
+                                        if($ok){
+                                            echo "";
                                         }else{
-                                            echo ("le matricule {$mat} est deja prise pour l'annee academique {$annee_academique}");
+                                            echo("Erreur : l'etudiant {$mat} n'est pas enregistrer. ligne {$i}<hr class='m-0'>");
                                         }
                                     }else{
-                                        echo("ligne {$i}: l étudiant <b>{$mat} {$noms}-{$faculte}-{$promotion} {$annee_academique}</b> existe déjà <hr class='m-0'>");
+                                        echo("lLe code de l'option {$code} n'est pas enregistrer<hr class='m-0'>");
                                     }
                                 }else{
                                     // rien a faire les donnees existe deja dans la table
-                                    echo("l etudiant existe deja<hr class='m-0'>");
+                                    echo("ligne {$i}: l étudiant <b>{$mat} {$noms}</b> existe déjà <hr class='m-0'>");
                                 }
+                            }else{
+                                // echo("Il y'a des elements manquants sur la ligne {$i} du fichier Execel:<hr class='m-0'>");
                             }
                         }
                         echo "<br/>Traitement reussi avec succès<hr class='m-0'>";
-                        LogUser::addlog(VerificationUser::verif($_SESSION['data']['noms']), 'il a uploader le fichier ['.$_FILES['file']['name'].'] contenant les identités des étudiants');
+                        LogUser::addlog(VerificationUser::verif($_SESSION['data']['id_user']), 'il a uploader le fichier ['.$_FILES['file']['name'].'] contenant les identités des étudiants');
                     }
                 }else{
                     die("Veuillez selectionner un fichier d'insciption des étudiants pas n'importe quoi svp !!!");

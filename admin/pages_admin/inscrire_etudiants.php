@@ -21,9 +21,7 @@
     <link href="css/sb-admin-2.min.css" rel="stylesheet">
     <link rel="stylesheet" href="js/DataTables/css/dataTables.jqueryui.min.css">
     <link rel="stylesheet" href="js/DataTables/css/dataTables.bootstrap4.min.css">
-
 </head>
-
 <body id="page-top">
     <div id="wrapper">
         <?php require_once 'menu.php'; ?>
@@ -54,7 +52,8 @@
                                             <tr  style="font-size: medium;">
                                                 <th>Mat</th>
                                                 <th>Noms</th>
-                                                <th>Fac.</th>
+                                                <th>Departement</th>
+                                                <th>Option</th>
                                                 <th>Promotion</th>
                                                 <th>Annee Acad.</th>
                                                 <th>#</th>

@@ -427,7 +427,7 @@
             $.ajax({
                 type: "GET",
                 url: "../../includes/view_options.php",
-                async: true,
+                async: false,
                 cache:false,
                 data: data,
                 success: function (response) {
