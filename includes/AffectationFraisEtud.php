@@ -151,22 +151,21 @@
 
     if(isset($_POST['affect']) && !empty($_POST['affect']) && $_POST['affect'] = "affecter"){  
         // print_r($_POST);
-        if(!empty($_POST['matricule']) && !empty($_POST['promotion_aff']) && !empty($_POST['frais']) && !empty($_POST['fac_aff']) && !empty($_POST['annee_acad_aff']) && !empty($_POST['montant_f'])){
-
+        if(!empty($_POST['mat']) && !empty($_POST['promotion']) && !empty($_POST['frais']) && !empty($_POST['section']) && !empty($_POST['departement']) && !empty($_POST['option']) && !empty($_POST['annee_acad'])){
             $a = $_POST['frais'];
-            $b = $_POST['montant_f'];
             // print_r($_POST);
 
-            if(count($_POST['frais']) == count($_POST['montant_f'])){
+            if(count($_POST['frais']) >= 1){
                 for ($i=0; $i < count($a) ; $i++) { 
                     // verificatio si le montant n existe pas dans la base de donnees.
-                    $verification = ConnexionBdd::Connecter()->prepare("SELECT * FROM affectation_frais WHERE matricule = ? AND promotion=? AND faculte = ? AND annee_acad=? AND type_frais=? AND montant = ?");
-                    $verification->execute(array($_POST['matricule'], $_POST['promotion_aff'], $_POST['fac_aff'], $_POST['annee_acad_aff'], $a[$i], $b[$i]));
+                    //matricule	id_frais	promotion	id_section	id_departement	id_option	id_annee
+                    $verification = ConnexionBdd::Connecter()->prepare("SELECT * FROM affectation_frais WHERE matricule = ? AND id_frais =? AND promotion = ? AND id_section = ? AND id_departement=? AND id_option = ? AND id_annee = ?");
+                    $verification->execute(array($_POST['mat'], $a[$i], $_POST['promotion'], $_POST['section'], $_POST['departement'], $_POST['option'], $_POST['annee_acad']));
 
                     $n = $verification->rowCount();
                     if($n <= 0){
-                        $insert = ConnexionBdd::Connecter()->prepare("INSERT INTO affectation_frais(matricule, promotion, faculte, annee_acad, type_frais, montant) VALUES(?, ?, ?, ?, ?, ?)");
-                        $ok  = $insert->execute(array($_POST['matricule'], $_POST['promotion_aff'], $_POST['fac_aff'], $_POST['annee_acad_aff'], $a[$i], $b[$i])); 
+                        $insert = ConnexionBdd::Connecter()->prepare("INSERT INTO affectation_frais(matricule, id_frais, promotion, id_section, id_departement, id_option, id_annee) VALUES(?, ?, ?, ?, ?, ?, ?)");
+                        $ok  = $insert->execute(array($_POST['mat'], $a[$i], $_POST['promotion'], $_POST['section'], $_POST['departement'], $_POST['option'], $_POST['annee_acad'])); 
                         if(!$ok){
                             $erreur[] = "une affectation n'a pas reussie.";
                         }

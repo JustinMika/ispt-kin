@@ -146,8 +146,10 @@
                     <form action="" method="POST" id="fff">
                         <input type="hidden" name="mat_etud" id="mat_etud_aff_aff">
                         <input type="hidden" name="annee_acad" id="annee_acad_aff_aff">
-                        <input type="hidden" name="fac" id="fac_aff_aff">
-                        <input type="hidden" name="promotion" id="promotion_aff_aff">
+                        <input type="hidden" name="section_aff" id="section_aff">
+                        <input type="hidden" name="departement_aff" id="departement_aff">
+                        <input type="hidden" name="option_aff" id="option_aff">
+                        <input type="hidden" name="promotion_aff" id="promotion_aff">
                         <!-- <div class="form-group">
                             <input type="checkbox" name="ch_sh_cochet_t" id="ch_sh_cochet_t"> Tous cocher
                         </div> -->
@@ -323,10 +325,12 @@
                 if(section !="" && departement !="" && annee_acad != "" && option !=""){
                     $("#etud_").text(etudiants);
                     
-                    // $("#mat_etud_aff_aff").val(mm.find("#mat").text());
-                    // $("#annee_acad_aff_aff").val(annee_acad);
-                    // $("#fac_aff_aff").val(fac);
-                    // $("#promotion_aff_aff").val(promotion);
+                    $("#mat_etud_aff_aff").val(mm.find("#mat").text());
+                    $("#annee_acad_aff_aff").val(annee_acad);
+                    $("#section_aff").val(section);
+                    $("#departement_aff").val(departement);
+                    $("#option_aff").val(option);
+                    $("#promotion_aff").val(promotion);
 
                     const data = {
                         "payement":"payement",

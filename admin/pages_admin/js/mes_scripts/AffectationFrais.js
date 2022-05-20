@@ -98,48 +98,49 @@ $(document).ready(function() {
         e.preventDefault();
         var mat_etud_aff = $("#mat_etud_aff_aff").val();
         var annee_acad_aff = $("#annee_acad_aff_aff").val();
-        var fac_aff = $("#fac_aff_aff").val();
-        var promotion_aff = $("#promotion_aff_aff").val();
+        var section = $("#section_aff").val();
+        var departement = $("#departement_aff").val();
+        var option = $("#option_aff").val();
+        var promotion_aff = $("#promotion_aff").val();
 
         frais_a_payer = Array();
-        montant = Array();
 
         $('input[name="ch_sh"]:checked').each(function() {
-            montant.push($(this).val());
-            montant.join(', ');
-            frais_a_payer.push($(this).attr('placeholder'));
+            frais_a_payer.push($(this).val());
             frais_a_payer.join(', ');
         });
-        if (mat_etud_aff != "" && annee_acad_aff != "" && fac_aff != "" && promotion_aff != "") {
+        if (mat_etud_aff != "" && annee_acad_aff != "" && promotion_aff != "" && option !="" && departement !="" && section !="") {
             const data = {
                 affect: "affect",
                 mat: mat_etud_aff,
                 promotion: promotion_aff,
                 frais: frais_a_payer,
-                fac: fac_aff,
-                annee_acad: annee_acad_aff,
-                montant_f: montant
+                section: section,
+                departement:departement,
+                option:option,
+                annee_acad: annee_acad_aff
             };
+            //{ affect: "affecter", matricule: mat_etud_aff, promotion_aff: promotion_aff, fac_aff: fac_aff, annee_acad_aff: annee_acad_aff, frais: frais_a_payer, montant_f: montant }
             $.ajax({
                 type: "POST",
                 url: "../../includes/AffectationFraisEtud.php",
-                data: { affect: "affecter", matricule: mat_etud_aff, promotion_aff: promotion_aff, fac_aff: fac_aff, annee_acad_aff: annee_acad_aff, frais: frais_a_payer, montant_f: montant },
+                data: data,
             }).done(function(data) {
                 if (data != "" && data == "ok") {
                     // window.location.reload();
                     $("#mod_affectation").modal('toggle');
                     $("#Affich_info").modal('toggle');
                 } else {
-                    // alert(data);
                     $("#ErrorAff").text("");
                     $("#ErrorAff").text(data).css({ color: 'red' });
-                    // $("#ErrorAff").text("Veuillez selectionner au moins un type de frais").css({ color: 'red' });
                 }
             }).fail(function(data) {
-                alert("Erreur de connexion.");
+                $("#ErrorAff").text("");
+                $("#ErrorAff").text("Erreur de connexion,...").css({ color: 'red' });
             });
         } else {
-            alert("Veuillez completer tous les champs");
+            $("#ErrorAff").text("");
+             $("#ErrorAff").text("Veuillez completer tous les champs, ...").css({ color: 'red' });
         }
     });
 
