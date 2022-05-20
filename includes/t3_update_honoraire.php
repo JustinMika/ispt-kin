@@ -105,19 +105,13 @@
         }
     }else if(!empty($_POST['update_etudiants_pwd']) && $_POST['update_etudiants_pwd'] == "update_etudiants_pwd"){
         if(isset($_POST['mat']) && isset($_POST['pwd'])){
-            $pwd = htmlspecialchars(trim(sha1($_POST['pwd'])));
-            $u = ConnexionBdd::Connecter()->prepare("UPDATE etudiants SET password = ? WHERE matricule = ?");
-            $ok = $u->execute(array($pwd, $_POST['mat']));
+            $pwd = $_POST['pwd'];
+            $u = ConnexionBdd::Connecter()->prepare("UPDATE etudiants_inscrits SET password = ? WHERE matricule = ?");
+            $ok = $u->execute(array(htmlspecialchars(trim(sha1(base64_encode($pwd)))), $_POST['mat']));
             if($ok){
-                $u = ConnexionBdd::Connecter()->prepare("UPDATE etudiants_inscrits SET password = ? WHERE matricule = ?");
-                $ok = $u->execute(array($pwd, $_POST['mat']));
-                if($ok){
-                    echo 'ok';
-                }else{
-                    die("Une erreur s'est produit,...");   
-                }
+                echo 'ok';
             }else{
-                die("Une erreur s'est produit,...");
+                die("Une erreur s'est produit,...");   
             }
         }else{
             die("le matricule est vide.");

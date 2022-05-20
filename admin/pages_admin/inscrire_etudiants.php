@@ -172,7 +172,7 @@
                         </div>
                         <!-- noms -->
                         <div class="form-group">
-                            <input type="text" class="form-control" name="pwd_generate" id="pwd_generate" placeholder="mot de passe">
+                            <input type="text" class="form-control" name="pwd_generate" id="pwd_generate" placeholder="mot de passe" disabled>
                         </div>
                         <small id="_error_ins_"></small>
                     </div>
@@ -531,8 +531,9 @@
         /* Function to generate combination of password */
         function generateP() {
             var pass = '';
-            var str = 'AB!CDEFGHIJKLMNOP_QRSTUVWXYZ-' + 
-                    'abcdefghijklmnopqrstuvwxyz0123456789@#$';
+            var str = 'AB!CDEFGHIJ-KLMNOP_QRSTUVWXYZ-' + 
+                    'abcdefghijklmnopqrstuvwxyz0123456789@#$'+
+                    '~!@#$%^&*()_+<>?|\/';
               
             for (i = 1; i <= 10; i++) {
                 var char = Math.floor(Math.random()
@@ -542,6 +543,11 @@
             }
             return pass;
         }
+    </script>
+    <script>
+        $(document).ready(function () {
+            $("#pwd_generate").val(generateP());
+        });
     </script>
 
     <script type="text/javascript">
