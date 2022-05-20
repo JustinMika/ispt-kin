@@ -372,7 +372,7 @@
                 departement = mm.find("#id_departement").text();
                 option = mm.find("#id_option").text();
                 promotion = mm.find("#promotion").text();
-                annee_acad = mm.find("#id_annee").text();
+                annee_acad = mm.find("#id_anneegit ").text();
 
                 if(section !="" && promotion !="" && annee_acad != "" && option !="" && departement !="" && mm.find("#mat").text() !=""){
                     $("#etud_").text(etudiants);

@@ -39,8 +39,8 @@
                         // traitement
                         for ($i=2; $i <= $highestRow+1 ; $i++){
                             $mat = $worksheet->getCellByColumnAndRow(0, $i)->getValue();
-                            $pwd = $worksheet->getCellByColumnAndRow(1, $i)->getValue();
-                            $noms = $worksheet->getCellByColumnAndRow(2, $i)->getValue();
+                            $pwd = $worksheet->getCellByColumnAndRow(2, $i)->getValue();
+                            $noms = $worksheet->getCellByColumnAndRow(1, $i)->getValue();
                             $code = $worksheet->getCellByColumnAndRow(3, $i)->getValue();
                             $pwd = htmlspecialchars(trim(sha1(base64_encode($pwd))));
 
@@ -69,7 +69,7 @@
                                         if($ok){
                                             echo "";
                                         }else{
-                                            echo("Erreur : l'etudiant {$mat} n'est pas enregistrer. ligne {$i}<hr class='m-0'>");
+                                            echo("Erreur : l'etudiant {$mat} n\'est pas enregistrer. ligne {$i}<hr class='m-0'>");
                                         }
                                     }else{
                                         echo("Ligne {$i} : Le code de l'option {$code} n'est pas enregistrer<hr class='m-0'>");
