@@ -42,7 +42,7 @@
                             $pwd = $worksheet->getCellByColumnAndRow(1, $i)->getValue();
                             $noms = $worksheet->getCellByColumnAndRow(2, $i)->getValue();
                             $code = $worksheet->getCellByColumnAndRow(3, $i)->getValue();
-                            $pwd = htmlspecialchars(trim($pwd));
+                            $pwd = htmlspecialchars(trim(sha1(base64_encode($pwd))));
 
                             if(!empty($mat) && !empty($pwd) && !empty($noms) && !empty($code)){
                                 $verif = ConnexionBdd::Connecter()->prepare("SELECT * FROM etudiants_inscrits WHERE matricule = ? AND id_annee = ?");
@@ -72,7 +72,7 @@
                                             echo("Erreur : l'etudiant {$mat} n'est pas enregistrer. ligne {$i}<hr class='m-0'>");
                                         }
                                     }else{
-                                        echo("lLe code de l'option {$code} n'est pas enregistrer<hr class='m-0'>");
+                                        echo("Ligne {$i} : Le code de l'option {$code} n'est pas enregistrer<hr class='m-0'>");
                                     }
                                 }else{
                                     // rien a faire les donnees existe deja dans la table
