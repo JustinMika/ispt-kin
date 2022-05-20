@@ -3,7 +3,7 @@
     require_once './ConnexionBdd.class.php';
     require_once './verification.class.php';
     require_once './log_user.class.php';
-
+    // print_r($_POST);
     if(!empty($_POST['noms_enseign_']) && !empty($_POST['grade_enseign_'])){
         if(!empty($_POST['faculte_gh']) && !empty($_POST['cours_enseign_'])){
             if(!empty($_POST['type_enseignant']) && !empty($_POST['type_prestation'])){
@@ -37,7 +37,7 @@
 
                             if($v->rowCount() <= 0){
                                 // insertion
-                                $v = ConnexionBdd::Connecter()->prepare("INSERT INTO gest_honoraire(noms_ens, grade_ens, cours, heure_th, montant_th, heure_pr, montant_hp, taux, total,  type_enseig, prestation, id_annee, id_section) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)");
+                                $v = ConnexionBdd::Connecter()->prepare("INSERT INTO gest_honoraire(noms_ens, grade_ens, cours, heure_th, montant, heure_pr, montant_hp, taux, total, type_enseig, prestation, id_annee, id_section) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)");
                                 $true  = $v->execute(array($noms_enseign_, $grade_enseign_, $cours_enseign_, $heure_t, 
                                 $montant_ht, $heure_pr, $montant_pr, $taux, $total_gen, $type_enseignant, $type_prestation, $annee_acad, $faculte_gh));
 

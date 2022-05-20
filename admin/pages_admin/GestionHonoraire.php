@@ -1932,12 +1932,6 @@
                     if(data !="" && data == "ok"){
                         $("#erreur_trans").removeClass('text-danger');
                         $("#erreur_trans").html('ok, traitement reussi avec succes, ...').css('color','green').addClass('text-success');
-                        $("#noms_enseign_").val('');
-                        $("#grade_enseign_").val('');
-                        $("#cours_enseign_").val('');
-                        $("#volume_horaire_enseign_").val('');
-                        $("#taux_enseign_").val('');
-                        $("#total_gen").val('');
                         window.location.reload();
                     }else{
                         $("#erreur_trans").removeClass('text-success');

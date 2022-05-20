@@ -198,8 +198,8 @@
 											$frais_par_fac->execute(array(f_annee($an_r['annee_acad'])));
 
 											while($data_ = $frais_par_fac->fetch()){
-											$data1 = $data1.'"'. $data_['f'].'",';
-											$data2 = $data2.''. $data_['m'].',';
+												$data1 = $data1.'"'. $data_['f'].'",';
+												$data2 = $data2.''. $data_['m'].',';
 											}
 
 											$data1 = trim(decode_fr($data1), ",");
@@ -424,10 +424,10 @@
 									// on recuoere le dernier annee acad
 									$an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1");
 									if($an->rowCount() > 0){
-											$an_r = $an->fetch();
-										}else{
-											$an_r['id_annee'] = '';
-										}
+										$an_r = $an->fetch();
+									}else{
+										$an_r['id_annee'] = '';
+									}
 
 									$pfrais = ConnexionBdd::Connecter()->query("SELECT * FROM poste_recette WHERE id_annee = '".$an_r['id_annee']."'");
 									while($data = $pfrais->fetch()){
@@ -435,14 +435,14 @@
 										$mposte_recette = $mposte_recette.''. $data['montant'].', ';
 									}
 
-									$pfrais = ConnexionBdd::Connecter()->query("SELECT type_frais, id_annee, SUM(montant) AS montant FROM prevision_frais WHERE id_annee = '".$an_r['annee_acad']."' GROUP BY type_frais DESC");
+									$pfrais = ConnexionBdd::Connecter()->query("SELECT type_frais, id_annee, SUM(montant) AS montant FROM prevision_frais WHERE id_annee = '".$an_r['id_annee']."' GROUP BY type_frais DESC");
 									while($data = $pfrais->fetch()){
 										$npost_recette = $npost_recette.'"'. $data['type_frais'].'",';
 										$mposte_recette = $mposte_recette.''. $data['montant'].', ';
 									}
 
-									$npost_recette = trim(decode_fr($npost_recette), ",");
-									$mposte_recette = trim(decode_fr($mposte_recette), ",");
+									$npost_recette = trim($npost_recette, ",");
+									$mposte_recette = trim($mposte_recette, ",");
 
 									// var_dump($npost_recette);
 									?>
