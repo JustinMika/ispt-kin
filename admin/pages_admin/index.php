@@ -85,24 +85,27 @@
 					<!-- faculte -> nombres etudiants -->
 					<div class="row" style="<?=r5()?>">
 						<?php
-							$sel_etudiants = ConnexionBdd::Connecter()->query("SELECT * FROM etudiants_inscrits GROUP BY id_section");
+							$sel_etudiants = ConnexionBdd::Connecter()->query("SELECT id_section FROM etudiants_inscrits GROUP BY id_section");
 							$nbre = $sel_etudiants->rowCount();
 							$tableau_fac = array();
 							// die($nbre);
 
 							while($data = $sel_etudiants->fetch()){
-								$tableau_fac[] = $data['fac'];
+								$tableau_fac[] = $data['id_section'];
 							}
 
 							foreach ($tableau_fac as $faculte) {
-							  // on recuoere le dernier annee acad
-							  $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_academique GROUP BY annee_acad ORDER BY id DESC LIMIT 1 ");
-							  $an_r = $an->fetch();
+								// on recuoere le dernier annee acad
+								$an =  ConnexionBdd::Connecter()->query("SELECT id_annee FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1 ");
+								$an_r = $an->fetch();
 
-							  $nb_fac = ConnexionBdd::Connecter()->prepare("SELECT * FROM etudiants_inscrits WHERE fac = ? AND annee_academique = ?");
-							  $nb_fac->execute(array($faculte, $an_r['annee_acad']));
-							  $n = $nb_fac->rowCount();
+								$nb_fac = ConnexionBdd::Connecter()->prepare("SELECT * FROM etudiants_inscrits WHERE id_section = ? AND id_annee = ?");
+								$nb_fac->execute(array($faculte, $an_r['id_annee']));
+								$n = $nb_fac->rowCount();
 								
+								$s = ConnexionBdd::Connecter()->prepare("SELECT section FROM sections WHERE id_section = ?");
+								$s->execute(array($faculte));
+								$f = $s->fetch();
 								?>
 									<div class="col-xl-3 col-md-6 mb-4">
 										<div class="card border-left-primary shadow h-100 py-2">
@@ -110,7 +113,7 @@
 												<div class="row no-gutters align-items-center">
 													<div class="col mr-2">
 														<div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-															<?=$faculte?></div>
+															<?=$f['section']?></div>
 														<div class="h5 mb-0 font-weight-bold text-gray-800"><?=$n?> Étudiant(s)</div>
 													</div>
 													<div class="col-auto">

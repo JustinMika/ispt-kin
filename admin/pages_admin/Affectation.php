@@ -70,7 +70,9 @@
                                             <tr>
                                                 <td><i class="icon_profile"></i> Matricule</td>
                                                 <td><i class="icon_calendar"></i> Noms</td>
-                                                <td><i class="icon_mail_alt"></i> Fac.</td>
+                                                <td><i class="icon_mail_alt"></i> Section</td>
+                                                <td><i class="icon_mail_alt"></i> Departement</td>
+                                                <td><i class="icon_pin_alt"></i> Option</td>
                                                 <td><i class="icon_pin_alt"></i> Promotion</td>
                                                 <td><i class="icon_mobile"></i> Année Acad.</td>
                                                 <td><i class="icon_cogs"></i> #</td>
@@ -109,40 +111,13 @@
                             <input type="text" class="form-control" name="mat_etud" id="mat_etud" required placeholder="matricule de l'etudiant">
                         </div>
                         <div class="form-group">
-                            <select class="custom-select" name="fac_search" id="fac_search" required>
-                                <option value="">- Faculté -</option>
-                                <?php
-                                    $verif = ConnexionBdd::Connecter()->query("SELECT * FROM etudiants_inscrits GROUP BY fac");
-                                    while($data = $verif->fetch()){
-                                        ?>
-                                            <option value="<?=$data['fac']?>"><?=$data['fac']?></option>
-                                        <?php
-                                    }
-                                ?>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <select class="custom-select" name="promotion_search" id="promotion_search" required>
-                                <option value="">- Promotion -</option>
-                                <optgroup>-------------------</optgroup>
-                                <?php
-                                    $verif = ConnexionBdd::Connecter()->query("SELECT * FROM etudiants_inscrits GROUP BY promotion");
-                                    while($data = $verif->fetch()){
-                                        ?>
-                                            <option value="<?=$data['promotion']?>"><?=$data['promotion']?></option>
-                                        <?php
-                                    }
-                                ?>
-                            </select>
-                        </div>
-                        <div class="form-group">
                             <select class="custom-select" name="annee_acad_search" id="annee_acad_search" required>
                                 <option value="">- Annee Academique -</option>
                                 <?php
-                                    $verif = ConnexionBdd::Connecter()->query("SELECT * FROM annee_academique ORDER BY id DESC");
+                                    $verif = ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad ORDER BY id_annee DESC");
                                     while($data = $verif->fetch()){
                                         ?>
-                                            <option value="<?=$data['annee_acad']?>"><?=$data['annee_acad']?></option>
+                                            <option value="<?=$data['id_anee']?>"><?=$data['annee_acad']?></option>
                                         <?php
                                     }
                                 ?>
@@ -237,10 +212,10 @@
                                 <option value="">- Faculté -</option>
                                 <optgroup>____________</optgroup>
                                 <?php
-                                    $verif = ConnexionBdd::Connecter()->query("SELECT * FROM etudiants_inscrits GROUP BY fac");
+                                    $verif = ConnexionBdd::Connecter()->query("SELECT * FROM etudiants_inscrits GROUP BY id_section");
                                     while($data = $verif->fetch()){
                                         ?>
-                                            <option value="<?=$data['fac']?>"><?=$data['fac']?></option>
+                                            <option value="<?=$data['id_section']?>"><?=$data['id_section']?></option>
                                         <?php
                                     }
                                 ?>
@@ -265,10 +240,10 @@
                                 <option value="">- Annee Academique -</option>
                                 <optgroup>-------------------</optgroup>
                                 <?php
-                                    $verif = ConnexionBdd::Connecter()->query("SELECT * FROM annee_academique ORDER BY id DESC");
+                                    $verif = ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad ORDER BY id_annee DESC");
                                     while($data = $verif->fetch()){
                                         ?>
-                                            <option value="<?=$data['annee_acad']?>"><?=$data['annee_acad']?></option>
+                                            <option value="<?=$data['id_annee']?>"><?=$data['annee_acad']?></option>
                                         <?php
                                     }
                                 ?>
@@ -336,25 +311,31 @@
                 b = $(this);
                 m = $(this).parent();
                 mm = $(m).parent();
+
                 etudiants = mm.find("#mat").text()+ " : "+mm.find("#noms").text();
-                fac = mm.find("#fac").text();
+
+                section = mm.find("#id_section").text();
+                departement = mm.find("#id_departement").text();
+                option = mm.find("#id_option").text();
                 promotion = mm.find("#promotion").text();
-                annee_acad = mm.find("#annee_academique").text();
-                // alert(promotion);
-                if(fac !="" && promotion !="" && annee_acad != ""){
+                annee_acad = mm.find("#id_annee").text();
+                
+                if(section !="" && departement !="" && annee_acad != "" && option !=""){
                     $("#etud_").text(etudiants);
                     
-                    $("#mat_etud_aff_aff").val(mm.find("#mat").text());
-                    $("#annee_acad_aff_aff").val(annee_acad);
-                    $("#fac_aff_aff").val(fac);
-                    $("#promotion_aff_aff").val(promotion);
+                    // $("#mat_etud_aff_aff").val(mm.find("#mat").text());
+                    // $("#annee_acad_aff_aff").val(annee_acad);
+                    // $("#fac_aff_aff").val(fac);
+                    // $("#promotion_aff_aff").val(promotion);
 
                     const data = {
                         "payement":"payement",
                         "mat_student":mm.find("#mat").text(),
-                        "fac":fac,
-                        "annee_acad":annee_acad,
-                        "promotion":promotion
+                        "section":section,
+                        "departement":departement,
+                        "option":option,
+                        "promotion":promotion,
+                        "annee_acad":annee_acad
                     };
                     $.ajax({
                         type: "GET",
@@ -381,40 +362,40 @@
                 etudiants = mm.find("#mat").text()+ " : "+mm.find("#noms").text();
                 $("#etud_xy_mod").text(etudiants);
 
-                fac = mm.find("#fac").text();
-                promotion = mm.find("#promotion").text();
-                annee_acad = mm.find("#annee_academique").text();
-                // alert(mm.find("#mat").text()+" "+fac+" "+promotion+" "+annee_acad);
-                if(fac !="" && promotion !="" && annee_acad != ""){
-                    $("#etud_").text(etudiants);
+                // fac = mm.find("#fac").text();
+                // promotion = mm.find("#promotion").text();
+                // annee_acad = mm.find("#annee_academique").text();
 
-                    $("#mat_etud_aff_aff_da").val(mm.find("#mat").text());
-                    $("#annee_acad_aff_aff_da").val(annee_acad);
-                    $("#fac_aff_aff_da").val(fac);
-                    $("#promotion_aff_aff_da").val(promotion);
+                // if(fac !="" && promotion !="" && annee_acad != ""){
+                //     $("#etud_").text(etudiants);
 
-                    const data = {
-                        "payement_del_aff":"payement",
-                        "mat_student":mm.find("#mat").text(),
-                        "fac":fac,
-                        "annee_acad":annee_acad,
-                        "promotion":promotion
-                    };
-                    $.ajax({
-                        type: "GET",
-                        url: "../../includes/del_affect.php",
-                        data: data,
-                        async: false,
-                        success: function (data) {
-                            $("#frais_del").empty();
-                            $("#frais_del").append(data);
-                        },
-                        error: function (response){
-                            // une erreur est survenue
-                            alert("Erreur de la connexion" + response);
-                        }
-                    });
-                }
+                //     $("#mat_etud_aff_aff_da").val(mm.find("#mat").text());
+                //     $("#annee_acad_aff_aff_da").val(annee_acad);
+                //     $("#fac_aff_aff_da").val(fac);
+                //     $("#promotion_aff_aff_da").val(promotion);
+
+                //     const data = {
+                //         "payement_del_aff":"payement",
+                //         "mat_student":mm.find("#mat").text(),
+                //         "fac":fac,
+                //         "annee_acad":annee_acad,
+                //         "promotion":promotion
+                //     };
+                //     $.ajax({
+                //         type: "GET",
+                //         url: "../../includes/del_affect.php",
+                //         data: data,
+                //         async: false,
+                //         success: function (data) {
+                //             $("#frais_del").empty();
+                //             $("#frais_del").append(data);
+                //         },
+                //         error: function (response){
+                //             // une erreur est survenue
+                //             alert("Erreur de la connexion" + response);
+                //         }
+                //     });
+                // }
             });
         });
 	</script>

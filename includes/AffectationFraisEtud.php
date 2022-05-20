@@ -3,23 +3,38 @@
     require_once './ConnexionBdd.class.php';
     if(isset($_GET['affich']) && !empty($_GET['affich'])){
         // on recupere le dernier annee academique
-        $a = ConnexionBdd::Connecter()->query("SELECT annee_acad FROM annee_academique ORDER BY id DESC LIMIT 0,1");
+        $a = ConnexionBdd::Connecter()->query("SELECT id_annee FROM annee_acad ORDER BY id_annee DESC LIMIT 0,1");
         if($a->rowCount() > 0){
             $data = $a->fetch();
         }else{
-            $data['annee_acad'] = '';
+            $data['id_annee'] = '';
         }
 
-        $verif = ConnexionBdd::Connecter()->prepare("SELECT * FROM etudiants_inscrits WHERE annee_academique = ?");
-        $verif->execute(array($data['annee_acad']));
+        $verif = ConnexionBdd::Connecter()->query("SELECT etudiants_inscrits.id, etudiants_inscrits.matricule, etudiants_inscrits.noms, sections.id_section, sections.section as fac, departement.id_departement, departement.departement, options.id_option, options.option_ as option, options.promotion, annee_acad.id_annee, annee_acad.annee_acad as annee_academique  
+        FROM etudiants_inscrits 
+        LEFT JOIN sections ON etudiants_inscrits.id_section = sections.id_section 
+        LEFT JOIN departement ON etudiants_inscrits.id_departement = departement.id_departement 
+        LEFT JOIN options ON etudiants_inscrits.id_option = options.id_option 
+        LEFT JOIN annee_acad ON etudiants_inscrits.id_annee = annee_acad.id_annee WHERE etudiants_inscrits.id_annee = '{$data['id_annee']}'");
         while($data = $verif->fetch()){
             echo '
                 <tr>
                     <td id="mat">'.$data['matricule'].'</td>
                     <td id="noms">'.utf8_decode($data['noms']).'</td>
-                    <td id="fac">'.$data['fac'].'</td>
+
+                    <td >'.$data['fac'].'</td>
+                    <td id="id_section" style="display:none">'.$data['id_section'].'</td>
+
+                    <td>'.$data['departement'].'</td>
+                    <td id="id_departement"  style="display:none">'.$data['id_departement'].'</td>
+
+                    <td>'.$data['option'].'</td>
+                    <td id="id_option" style="display:none">'.$data['id_option'].'</td>
+
                     <td id="promotion">'.$data['promotion'].'</td>
-                    <td id="annee_academique">'.$data['annee_academique'].'</td>
+
+                    <td>'.$data['annee_academique'].'</td>
+                    <td id="id_annee" style="display:none">'.$data['id_annee'].'</td>
                     <td>
                         <a class="btn btn-primary" href="#" id="btn_affecter" data-toggle="modal" data-target="#mod_affectation"><i class="fa fa-plus-circle" aria-hidden="true"></i> Affecter</a>
                         <a class="btn btn-danger" href="#" id="btn_del_affecter" data-toggle="modal" data-target="#del_affectation"><i class="fa fa-recycle" aria-hidden="true"></i></a>
@@ -76,40 +91,61 @@
     }
 
     if(isset($_GET['payement']) && !empty($_GET['payement'])){
-        if(!empty($_GET['fac']) && !empty($_GET['promotion']) && !empty($_GET['annee_acad']) && !empty($_GET['mat_student'])){
+        if(!empty($_GET['section']) && !empty($_GET['promotion']) && !empty($_GET['annee_acad']) && !empty($_GET['mat_student']) && !empty($_GET['departement']) && !empty($_GET['option'])){
             // verification si on a deja affetcre le frais a l'etudiant 
-            $ss = "SELECT * FROM affectation_frais WHERE matricule = ? AND promotion = ? AND faculte = ? AND annee_acad = ?";
-            $s_array = array($_GET['mat_student'], $_GET['promotion'], $_GET['fac'], $_GET['annee_acad']);
+            $ss = "SELECT affectation_frais.id, affectation_frais.matricule, prevision_frais.type_frais, prevision_frais.montant 
+            FROM affectation_frais 
+            LEFT JOIN prevision_frais ON affectation_frais.id_frais=prevision_frais.id_frais 
+            WHERE affectation_frais.matricule = ?
+            AND affectation_frais.id_section = ?
+            AND affectation_frais.id_departement = ?
+            AND affectation_frais.id_option = ?
+            AND affectation_frais.id_annee = ?;";
+            $s_array = array($_GET['mat_student'], $_GET['section'], $_GET['departement'], $_GET['option'], $_GET['annee_acad']);
             $ch = ConnexionBdd::Connecter()->prepare($ss);
             $ch->execute($s_array);
 
             $list_frais = array();
             $n = $ch->rowCount();
 
+            // print_r($_GET);
+
             // selection du montant
-            $verif_montant = ConnexionBdd::Connecter()->prepare("SELECT * FROM  prevision_frais WHERE annee_acad = ? AND faculte = ? AND promotion = ?");
-            $verif_montant->execute(array($_GET['annee_acad'], $_GET['fac'], $_GET['promotion']));
+            $verif_montant = ConnexionBdd::Connecter()->prepare("SELECT prevision_frais.id_frais, prevision_frais.type_frais, prevision_frais.montant, sections.section, departement.departement, options.option_, options.promotion FROM prevision_frais 
+            LEFT JOIN sections on prevision_frais.id_section = sections.id_section 
+            LEFT JOIN departement ON prevision_frais.id_departement = departement.id_departement 
+            LEFT JOIN options ON prevision_frais.id_option = options.id_option 
+            WHERE prevision_frais.id_section = ? AND
+            prevision_frais.id_departement = ? AND
+            prevision_frais.id_option = ? AND
+            prevision_frais.id_annee = ?");
+            $verif_montant->execute(array($_GET['section'], $_GET['departement'], $_GET['option'], $_GET['annee_acad']));
             $f = "";
             while($data_f = $ch->fetch()){
                 $list_frais[] = $data_f['type_frais'];
                 $f = $f.''. $data_f['type_frais'].', ';
             }
             $f = trim($f, ",");
-            echo('<b class="text-primary h6">'.$f.'</b>');
-            echo '<hr class="mt-0 p-0"/>';
+            if(!empty($f)){
+                echo('<b class="text-primary h6">'.$f.'</b>');
+                echo '<hr class="mt-0 p-0"/>';
+            }else{
+                echo '<span class="text-danger">Aucun frais affecté</span><hr class="mt-0 p-0"/>';
+            }
+            
             while($data = $verif_montant->fetch()){
                 echo '
                     <div class="form-group m-0 p-0">
                         <div id="ch_elmts" class="form-check" style="">
                             <label class="form-check-label">
-                                <input type="checkbox" class="form-check-input" name="ch_sh" id="ch_sh" value="'.$data['montant'].'" placeholder="'.$data['type_frais'].'" '.vf($data['type_frais'], $list_frais).'>'.$data['type_frais'].'($'.$data['montant'].')
+                                <input type="checkbox" class="form-check-input" name="ch_sh" id="ch_sh" value="'.$data['id_frais'].'" placeholder="'.$data['type_frais'].'" '.vf($data['type_frais'], $list_frais).'>'.$data['type_frais'].'($'.$data['montant'].')
                             </label>
                         </div>
                         <hr class="mt-0 p-0"/>
                     </div>';
             }
         }else{
-            echo '';
+            echo 'Aucun type frais disponible ';
         }
     }
 
