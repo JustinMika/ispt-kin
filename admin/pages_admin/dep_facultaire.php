@@ -13,15 +13,15 @@
 
     // selection des facultes
     $lf = array();
-    $fac = connexionBdd::Connecter()->query("SELECT DISTINCT * FROM faculte GROUP BY fac");
+    $fac = connexionBdd::Connecter()->query("SELECT DISTINCT * FROM sections GROUP BY section");
     while($l = $fac->fetch()){
-        $lf[] =  $l['fac'];  
+        $lf[] =  $l['section'];  
     }
 
-    if(!in_array($rr['access'], $lf)){
-        header("location: ../index.php");
-        exit();
-    }
+    // if(!in_array($rr['access'], $lf)){
+    //     header("location: ../index.php");
+    //     exit();
+    // }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -107,7 +107,14 @@
                                         </thead>
                                         <tbody class="text-secondary" id="tbody_transaction">
                                             <?php
-                                                $pd = ConnexionBdd::Connecter()->query("SELECT * FROM depense_facultaire_transact where faculte = '".$rr['access']."' ORDER BY date_trans DESC");
+                                                // die($rr['access']);
+                                                $pd = ConnexionBdd::Connecter()->query("SELECT transaction_pdf.id_transaction, transaction_pdf.montant, transaction_pdf.motif, transaction_pdf.date_transaction, depense_facultaire.id_pdf, depense_facultaire.poste,
+                                                sections.id_section, sections.section, annee_acad.id_annee, annee_acad.annee_acad
+                                                FROM transaction_pdf
+                                                LEFT JOIN depense_facultaire ON transaction_pdf.id_pdf = depense_facultaire.id_pdf
+                                                LEFT JOIN sections on transaction_pdf.id_section = sections.id_section
+                                                LEFT JOIN annee_acad ON transaction_pdf.id_annee = annee_acad.id_annee
+                                                WHERE transaction_pdf.id_annee = '1' AND sections.section ='SECTION INFORMATIQUE'");
                                             //  	 	 	 	 	 	
                                                 while($data = $pd->fetch()){
                                                     ?>
@@ -173,10 +180,10 @@
                         <div class="form-group">
                             <select name="annee_acad" id="annee_acad" class="form-control">
                                 <?php
-                                    $list = ConnexionBdd::Connecter()->query("SELECT * FROM `annee_academique` ORDER BY id DESC LIMIT 1");
+                                    $list = ConnexionBdd::Connecter()->query("SELECT * FROM `annee_acad` ORDER BY id_annee DESC LIMIT 1");
                                     while($data = $list->fetch()){
                                         ?>
-                                            <option value="<?=$data['annee_acad']?>"><?=$data['annee_acad']?></option>
+                                            <option value="<?=$data['id_annee']?>"><?=$data['annee_acad']?></option>
                                         <?php
                                     }
                                 ?>
@@ -284,7 +291,7 @@
                             <select name="poste_depense" id="poste_depense" class="form-control">
                                 <option value="Tous">Tous</option>
                                 <?php
-                                    $pdh = ConnexionBdd::Connecter()->prepare("SELECT DISTINCT poste FROM depense_facultaire WHERE faculte = ?");
+                                    $pdh = ConnexionBdd::Connecter()->prepare("SELECT DISTINCT poste FROM depense_facultaire WHERE id_sections = ?");
                                     $pdh->execute(array($_SESSION['data']['access']));
                                     while($data = $pdh->fetch()){
                                         echo '
@@ -343,7 +350,7 @@
                                 <optgroup></optgroup>
                                 <hr>
                                 <?php
-                                    $lpd = ConnexionBdd::Connecter()->query("SELECT * FROM depense_facultaire GROUP BY annee_acad DESC");
+                                    $lpd = ConnexionBdd::Connecter()->query("SELECT * FROM depense_facultaire GROUP BY id_annee DESC");
                                     while($data = $lpd->fetch()){
                                         ?>
                                             <option value="<?=$data['annee_acad']?>"><?=$data['annee_acad']?></option>
@@ -393,7 +400,7 @@
                                     while($data = $lpd->fetch()){
 
                                         ?>
-                                            <option value="<?=$data['poste']?>"><?=$data['poste']?></option>
+                                            <option value="<?=$data['id_pdf']?>"><?=$data['poste']?></option>
                                         <?php
                                     }
                                 ?>
@@ -411,7 +418,7 @@
                                 <optgroup></optgroup>
                                 <hr>
                                 <?php
-                                    $lpd = ConnexionBdd::Connecter()->query("SELECT * FROM poste_depense GROUP BY annee_acad DESC");
+                                    $lpd = ConnexionBdd::Connecter()->query("SELECT * FROM depense_facultaire GROUP BY id_annee DESC");
                                     while($data = $lpd->fetch()){
                                         ?>
                                             <option value="<?=$data['annee_acad']?>"><?=$data['annee_acad']?></option>

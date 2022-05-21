@@ -179,12 +179,12 @@
         </a>
     </li>
 
-    <li class="nav-item" style="<?=rrf()?>">
+    <!-- <li class="nav-item" style="<?=rrf()?>">
         <a class="nav-link" href="compt_facultaire.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>">
             <i class="fas fa-fw fa-chart-area"></i>
             <span>Comptabilité de section</span>
         </a>
-    </li>
+    </li> -->
 
     <!-- <div class="sidebar-heading" style="<?=rr()?>;margin-top:-5%">
         Etudiant(e)s

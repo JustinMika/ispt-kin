@@ -47,15 +47,15 @@
 					<div class="d-sm-flex align-items-center justify-content-between mb-4">
 					  <h1 class="h3 mb-0 text-gray-800" style="text-transform: uppercase;">Dashboard</h1>
 					</div>
-					<div class="row" style="<?php if($_SESSION['data']['fonction'] == "Sec. de fac."){echo 'd';}else{
+					<div class="row" style="<?php if($_SESSION['data']['fonction'] != "Sec. de fac."){
 						echo 'display:none';}?>">
 						<!-- nombre total d etudiants -->
 						<?php 
-							$an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1 ");
+							$an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1");
 							if(!empty($an->fetch())){
 								$an_r = $an->fetch();
 							}else{
-								$an_r['annee_acad'] = '';
+								$an_r['id_annee'] = '';
 							}
 							
 							$nb_fac = ConnexionBdd::Connecter()->prepare("SELECT * FROM etudiants_inscrits WHERE annee_academique = ? AND fac  = ?");
@@ -128,7 +128,7 @@
 						?>	
 						<!-- nombre total d etudiants -->
 						<?php 
-							$an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1 ");
+							$an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1");
 							try {
 								$an_r = $an->fetch();
 							} catch (Exception $e) {
@@ -137,10 +137,10 @@
 							if(!empty($an_r = $an->fetch())){
 								$an_r = $an->fetch();
 							}else{
-								$an_r['annee_acad'] = '';
+								$an_r['id_annee'] = '';
 							}
-							$nb_fac = ConnexionBdd::Connecter()->prepare("SELECT * FROM etudiants_inscrits WHERE annee_academique = ?");
-							$nb_fac->execute(array($an_r['annee_acad']));
+							$nb_fac = ConnexionBdd::Connecter()->prepare("SELECT * FROM etudiants_inscrits WHERE id_annee = ?");
+							$nb_fac->execute(array($an_r['id_annee']));
 							$n = $nb_fac->rowCount();
 							?>
 								<div class="col-xl-3 col-md-6 mb-4">
@@ -409,9 +409,9 @@
 							</div>
 						</div>
 					</div>
-
+					
+					<!-- poste de recette -->
 					<div class="row" style="<?=r4()?>">
-						<!-- poste de recette -->
 						<div class="col-xl-12 col-sm-12 col-md-12 col-lg-12">
 							<div class="card shadow mb-4">
 								<div class="card-header py-3">
@@ -576,9 +576,9 @@
 							</div>
 						</div>
 					</div>
-
+					
+					<!-- poste de recette -->
 					<div class="row" style="<?=r4()?>">
-						<!-- poste de recette -->
 						<div class="col-xl-12 col-sm-12 col-md-12 col-lg-12">
 							<div class="card shadow mb-4">
 								<div class="card-header py-3">
@@ -725,6 +725,7 @@
 							</div>
 						</div>
 					</div>
+
 					<!-- utilisateur admin et logs -->
 					<div class="row">
 					  <div class="col-md-5">
