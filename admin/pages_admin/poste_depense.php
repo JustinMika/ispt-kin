@@ -45,7 +45,7 @@
                                         <button class="btn btn-primary btn-sm dropdown-toggle" type="button" id="triggerId" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</button>
                                         <div class="dropdown-menu" aria-labelledby="triggerId">
                                             <a class="dropdown-item" data-toggle="modal" href="#myModal_1"> <i class="fa fa-plus" aria-hidden="true"></i> Ajouter un poste de dépense</a>
-                                            <a class="dropdown-item" data-toggle="modal" href="#myModal_2"> <i class="fa fa-upload" aria-hidden="true"> Uploader le fichier Excel</i></a>
+                                            <!-- <a class="dropdown-item" data-toggle="modal" href="#myModal_2"> <i class="fa fa-upload" aria-hidden="true"> Uploader le fichier Excel</i></a> -->
                                             <hr class="m-0 p-0">
                                             <?php
                                                 if(isset($_SESSION['req_rapport']) && strlen($_SESSION['req_rapport']) > 0 && isset($_SESSION['params']) && array_sum($_SESSION['params'])){

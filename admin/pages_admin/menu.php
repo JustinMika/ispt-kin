@@ -222,7 +222,7 @@
                 <!-- <h6 class="collapse-header">Comptabilité</h6> -->
 
                 <!-- Gestion de la caisse -->
-                <a class="dropdown-item" href="caisse.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>" style="<?=rr()?>"> Caisse</a>
+                <!-- <a class="dropdown-item" href="caisse.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>" style="<?=rr()?>"> Caisse</a> -->
 
                 <!-- les Checque -->
                 <a class="collapse-item" href="cheques.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>"  style="<?=rrr()?>"> Compt. des chèques</a>
@@ -262,7 +262,7 @@
         </a>
     </li>
 
-    <hr class="sidebar-divider m-0">
+    <!-- <hr class="sidebar-divider m-0"> -->
 
     <li class="nav-item">
         <a class="nav-link" href="Utilisateurs.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>">
@@ -271,14 +271,14 @@
         </a>
     </li>
     
-    <li class="nav-item"  style="<?=rest_corb()?>">
+    <!-- <li class="nav-item"  style="<?=rest_corb()?>">
         <a class="nav-link" href="corbeille.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>">
         <i class="fa fa-trash" aria-hidden="true"></i>
         <span>Corbeille </span>
         </a>
-    </li>
+    </li> -->
    
-    <hr class="sidebar-divider d-none d-md-block mt-2 p-0">
+    <hr class="sidebar-divider d-none d-md-block mt-2 p-1">
 
     <div class="text-center d-none d-md-inline">
         <button class="rounded-circle border-0" id="sidebarToggle"></button>

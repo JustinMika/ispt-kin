@@ -4,7 +4,7 @@
     require_once '../../includes/verification.class.php';
     //verification des sessions
     require_once './sessions.php';
-    $p = 'Comptabilite | Payement des frais';
+    $p = 'PAYEMENT DES FRAIS';
 
     function restruct_user(){
         if($_SESSION['data']['fonction'] != "" && $_SESSION['data']['access'] !=""){
@@ -37,7 +37,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-        <title>Comptabilité | Admin</title>
+        <title>payements | Admin</title>
 
         <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
         <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"rel="stylesheet">
@@ -67,8 +67,10 @@
                                                 <span class="sr-only">Toggle Dropdown</span>
                                             </button>
                                             <div class="dropdown-menu">
+                                                <a class="dropdown-item" data-toggle="modal" href="#myModal_ppe" style="<?=restruct_r_ab()?>;"><i class="fa fa-upload" aria-hidden="true"></i> Payement par étudiant(e)</a>
+
                                                 <a class="dropdown-item" data-toggle="modal" href="#Effect_payement" style="<?=restruct_r_ab()?>;"><i class="fa fa-plus" aria-hidden="true"></i> Effectuer un Payement</a>
-                                                <a class="dropdown-item" data-toggle="modal" href="#myModal" style="<?=restruct_r_ab()?>;"><i class="fa fa-upload" aria-hidden="true"></i> Charger le Fichier excel ...</a>
+                                                <!-- <a class="dropdown-item" data-toggle="modal" href="#myModal" style="<?=restruct_r_ab()?>;"><i class="fa fa-upload" aria-hidden="true"></i> Charger le Fichier excel ...</a> -->
                                                 <a class="dropdown-item" data-toggle="modal" href="#histpay"><i class="fa fa-upload" aria-hidden="true"></i> historique de paiement</a>
                                             </div>
                                         </div>
@@ -79,7 +81,7 @@
                                                 <tr>
                                                     <td>#</td>
                                                     <td style="font-weight: 500;"><i class="icon_profile"></i> Matricule</td>
-                                                    <td>Faculte</td>
+                                                    <td>Option</td>
                                                     <td>Promotion</td>
                                                     <td>Type de frais</td>
                                                     <td>Numero du Bordereau</td>
@@ -91,7 +93,7 @@
                                             </thead>
                                             <tbody class="">
                                                 <?php
-                                                    $verif = ConnexionBdd::Connecter()->query("SELECT * FROM payement ORDER BY date_payement, annee_acad DESC");
+                                                    $verif = ConnexionBdd::Connecter()->query("SELECT * FROM payement ORDER BY date_payement, id_annee DESC");
                                                     while($data = $verif->fetch()){
                                                         ?>
                                                             <tr>
@@ -187,11 +189,11 @@
                                 </div>
                                 <div class="form-group">
                                     <select class="form-control" name="fac_etud_payemt" id="fac_etud_payemt" required>
-                                        <option>--faculte--</option>
+                                        <option>--section--</option>
                                         <?php
-                                            $list = ConnexionBdd::Connecter()->query("SELECT  DISTINCT * FROM `faculte` ORDER BY fac ASC");
+                                            $list = ConnexionBdd::Connecter()->query("SELECT  DISTINCT * FROM `sections` ORDER BY section ASC");
                                             while($data = $list->fetch()){
-                                                echo '<option value="'.$data['fac'].'">'.utf8_decode($data['fac']).'</option>';
+                                                echo '<option value="'.$data['id_section'].'">'.$data['section'].'</option>';
                                             }
                                         ?>
                                     </select>
@@ -199,12 +201,6 @@
                                 <div class="form-group">
                                     <select class="form-control" name="type_frais_p_etud" id="type_frais_p_etud" required>
                                         <option>--Type de frais--</option>
-                                        <?php
-                                            $list = ConnexionBdd::Connecter()->query("SELECT type_frais FROM `prevision_frais` GROUP BY type_frais");
-                                            while($data = $list->fetch()){
-                                                echo '<option value="'.$data['type_frais'].'">'.utf8_decode($data['type_frais']).'</option>';
-                                            }
-                                        ?>
                                     </select>
                                 </div>
 
@@ -212,9 +208,9 @@
                                     <select class="form-control" name="annee_acad_pay_etud" id="annee_acad_pay_etud" required>
                                         <option>--Annee Academique--</option>
                                         <?php
-                                            $list = ConnexionBdd::Connecter()->query("SELECT * FROM `annee_academique` ORDER BY id DESC LIMIT 1");
+                                            $list = ConnexionBdd::Connecter()->query("SELECT * FROM `annee_acad` ORDER BY id_annee DESC LIMIT 1");
                                             while($data = $list->fetch()){
-                                                echo '<option value="'.$data['annee_acad'].'">'.$data['annee_acad'].'</option>';
+                                                echo '<option value="'.$data['id_annee'].'">'.$data['annee_acad'].'</option>';
                                             }
                                         ?>
                                     </select>
@@ -352,6 +348,47 @@
         <!-- fenetre modal pour la deconnexion-->
         <?php include_once './modal_decon.php';?>
 
+        <div class="modal fade" id="myModal_ppe" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+            <div class="modal-dialog modal-md" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Historique de payement d'un(e) étudiant(e)</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <form action="" method="post" id="historique_pay">
+                        <div class="modal-body">
+                            <div class="" id="se">
+                                <div class="form-group">
+                                <label for="">Matricule de l'étudiant</label>
+                                <input type="text"
+                                    class="form-control" name="mat_etu" id="mat_etu" aria-describedby="helpId" placeholder="" required>
+                                <small id="helpId" class="form-text text-muted"></small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="">Année academique</label>
+                                    <select class="form-control" id="annee_acad" name="annee_acad" required>
+                                        <?php
+                                            $a = ConnexionBdd::Connecter()->query("SELECT id_annee, annee_acad FROM annee_acad");
+                                            while($d = $a->fetch()){
+                                                echo '<option value="'.$d['id_annee'].'">'.$d['annee_acad'].'</option>';
+                                            }
+                                        ?>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" id="btn_close" data-dismiss="modal">Fermer</button>
+                            <button type="submit" class="btn btn-primary" id="btn_s">Chercher</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <div class="modal fade" id="histpay" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
             <div class="modal-dialog modal-md" role="document">
                 <div class="modal-content">
@@ -375,9 +412,9 @@
                                     <label for="">Année academique</label>
                                     <select class="form-control" id="annee_acad" name="annee_acad" required>
                                         <?php
-                                            $a = ConnexionBdd::Connecter()->query("SELECT annee_acad FROM annee_academique");
+                                            $a = ConnexionBdd::Connecter()->query("SELECT id_annee, annee_acad FROM annee_acad");
                                             while($d = $a->fetch()){
-                                                echo '<option value="'.$d['annee_acad'].'">'.$d['annee_acad'].'</option>';
+                                                echo '<option value="'.$d['id_annee'].'">'.$d['annee_acad'].'</option>';
                                             }
                                         ?>
                                     </select>
