@@ -94,7 +94,6 @@
         }
     }
 
-    // die($_SESSION['data']['fonction']);
     //admin
     function restruct_r_admin(){
         if($_SESSION['data']['fonction'] != "" && $_SESSION['data']['access'] !=""){
@@ -202,7 +201,7 @@
                 <a class="collapse-item" href="Affectation.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>">Affectation des frais</a>
                 <!--  -->
                 <a class="collapse-item" href="comptabilite.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>">Payement</a>
-                <a class="collapse-item" href="compt_facultaire.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>"  style="<?=rrf()?>">Comptabilité de Section</a>
+                <!-- <a class="collapse-item" href="compt_facultaire.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>"  style="<?=rrf()?>">Comptabilité de Section</a> -->
             </div>
         </div>
     </li>
