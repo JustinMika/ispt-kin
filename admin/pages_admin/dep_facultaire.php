@@ -98,7 +98,7 @@
                                             <tr>
                                                 <th>#ID</th>
                                                 <th>Poste</th>
-                                                <th>Faculte</th>
+                                                <th>Section</th>
                                                 <th>Montant</th>
                                                 <th>Date</th>
                                                 <th>Motif</th>

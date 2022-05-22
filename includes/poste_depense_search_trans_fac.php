@@ -13,13 +13,15 @@
     require_once './ConnexionBdd.class.php';
     require_once './verification.class.php';
     if(isset($_GET['data'])){
+        $an =  ConnexionBdd::Connecter()->query("SELECT id_annee FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1");
+		$an_r = $an->fetch();
         $sql = "SELECT
-                    depense_facultaire.id_pdf,
+                    depense_facultaire.id_pdf as id,
                     depense_facultaire.poste,
                     depense_facultaire.montant,
                     depense_facultaire.depense,
                     sections.id_section,
-                    sections.section,
+                    sections.section as faculte,
                     annee_acad.id_annee,
                     annee_acad.annee_acad
                 FROM
@@ -27,8 +29,10 @@
                 LEFT JOIN sections ON depense_facultaire.id_section = sections.id_section
                 LEFT JOIN annee_acad ON depense_facultaire.id_annee = annee_acad.id_annee
                 WHERE
-                    sections.section = '".$_SESSION['data']['access']."' AND annee_acad.id_annee = 1";
-        $req = ConnexionBdd::Connecter()->query($sql);
+                    depense_facultaire.id_section = ? AND depense_facultaire.id_annee = ?";
+        $p = array(VerificationUser::verif($_SESSION['data']['access']), $an_r['id_annee']);
+        $req = ConnexionBdd::Connecter()->prepare($sql);
+        $req->execute($p);
         if($req->rowCount() > 0){
             while($data = $req->fetch()){
                 echo '
@@ -56,8 +60,6 @@
                     </tr>
                 ';
             }
-        }else{
-            die("Aucun resultat trouvé, ...");
         }
     }   
 ?>
