@@ -352,37 +352,63 @@
             <div class="modal-dialog modal-md" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Historique de payement d'un(e) étudiant(e)</h5>
+                        <h5 class="modal-title">Payement</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
                     <form action="" method="post" id="historique_pay">
-                        <div class="modal-body">
-                            <div class="" id="se">
+                        <div class="modal-body m-0 pl-2 pr-2">
+                            <div class="" id="">
                                 <div class="form-group">
-                                <label for="">Matricule de l'étudiant</label>
+                                <label for="">Matricule de l'étudiant(e)</label>
                                 <input type="text"
-                                    class="form-control" name="mat_etu" id="mat_etu" aria-describedby="helpId" placeholder="" required>
-                                <small id="helpId" class="form-text text-muted"></small>
+                                    class="form-control" name="mat_etudiants_" id="mat_etudiants_" aria-describedby="helpId" placeholder="Matricule de l'étudiant(e)" required>
                                 </div>
-
-                                <div class="form-group">
+                                
+                                <!-- annee academique -->
+                                <div class="form-group m-0 p-0 mt-1">
                                     <label for="">Année academique</label>
-                                    <select class="form-control" id="annee_acad" name="annee_acad" required>
+                                    <select class="form-control" id="annee_acad_pay" name="annee_acad_pay" required>
                                         <?php
-                                            $a = ConnexionBdd::Connecter()->query("SELECT id_annee, annee_acad FROM annee_acad");
+                                            $a = ConnexionBdd::Connecter()->query("SELECT id_annee, annee_acad FROM annee_acad ORDER BY id_annee DESC LIMIT 1");
                                             while($d = $a->fetch()){
                                                 echo '<option value="'.$d['id_annee'].'">'.$d['annee_acad'].'</option>';
                                             }
                                         ?>
                                     </select>
                                 </div>
+
+                                <!-- code de l'option -->
+                                <div class="form-group m-0 p-0">
+                                    <input type="hidden" class="form-control" id="section_etud" name="section_etud" required />
+                                    <input type="hidden" class="form-control" id="departement_etud" name="departement_etud" required />
+                                    <input type="hidden" class="form-control" id="option_etu" name="option_etu" required />
+                                </div>
+                                <!-- type de frais -->
+                                <div class="form-group m-0 p-0 mt-1">
+                                    <label for="">Type de frais</label>
+                                    <select class="form-control" id="type_d_frais" name="type_d_frais" required>
+                                    </select>
+                                </div>
+                                <!-- num bordear -->
+                                <div class="form-group m-0 p-0 mt-1">
+                                    <input type="text" class="form-control" id="numer_border_" name="numer_border_" required placeholder="Numero du bordereau">
+                                </div>
+                                <!-- date payement -->
+                                <div class="form-group m-0 p-0 mt-1">
+                                    <input type="date" class="form-control" id="date_pay_etud" name="date_pay_etud" required>
+                                </div>
+                                <!-- montant -->
+                                <div class="form-group m-0 p-0 mt-1">
+                                    <input type="text" class="form-control" id="montant_pay_et" name="montant_pay_et" required placeholder="Montant : ">
+                                </div>
+                                <small id="error_payement"></small>
                             </div>
                         </div>
-                        <div class="modal-footer">
+                        <div class="modal-footer m-0 p-0">
                             <button type="button" class="btn btn-secondary" id="btn_close" data-dismiss="modal">Fermer</button>
-                            <button type="submit" class="btn btn-primary" id="btn_s">Chercher</button>
+                            <button type="submit" class="btn btn-primary" id="btn_payem_">Effectuer le payement</button>
                         </div>
                     </form>
                 </div>
@@ -429,6 +455,101 @@
                 </div>
             </div>
         </div>
+
+        <!-- payement des etudiants(e) -->
+        <script>
+            // mat_etudiants_   annee_acad_pay
+            /**code_section
+            type_d_frais */
+            $("#btn_payem_").attr('disabled', true);
+            $("#mat_etudiants_").keyup(function (e) { 
+                if($("#annee_acad_pay").val() !=""){
+                    getInfoEtud();
+                }else{
+                    $("#error_payement").html("Veuillez selectionner une année académique");
+                    $("#btn_payem_").attr('disabled', true);
+                }
+            });
+
+            $("#annee_acad_pay").change(function (e) { 
+                e.preventDefault();
+                if($("#mat_etudiants_").val() !=""){
+                    getInfoEtud();
+                }else{
+                    $("#error_payement").html("Veuillez Enter le mat. de l' étudiant");
+                    $("#btn_payem_").attr('disabled', true);
+                }
+            });
+
+            function getInfoEtud(){
+                const data = {
+                    get_code:"get_code",
+                    a:$("#mat_etudiants_").val(),
+                    f:$("#annee_acad_pay").val()
+                };
+                $.ajax({
+                    type: "GET",
+                    url: "../../includes/select_std.php",
+                    data: data,
+                    success: function (data) {
+                        if(data !=""){
+                            try {
+                                const obj_data = JSON.parse(data);
+                                $("#section_etud").val(obj_data.id_section);
+                                $("#departement_etud").val(obj_data.id_departement);
+                                $("#option_etu").val(obj_data.id_option);
+
+                                $("#error_payement").html("l'etudiant(e) "+obj_data.noms).addClass('text-success');
+                                if($("#section_etud").val() !="" && $("#option_etu").val() !="" && $("#departement_etud").val() !=""){
+
+                                }else{
+
+                                }
+                            } catch (err) {
+                                $("#error_payement").html("Erreur").removeClass('text-success').addClass('text-danger');
+                                $("#btn_payem_").attr('disabled', true);
+                            }
+                        }else{
+                            $("#error_payement").html("l'etudiant n'est pas inscrit(e) dans "+$("#annee_acad_pay option:selected").text() +" - "+ data);
+                            $("#btn_payem_").attr('disabled', true);
+                        }
+                    },
+                    error: function(e){
+                        $("#error_payement").html("Erreur de connexion ...");
+                        $("#btn_payem_").attr('disabled', true);
+                    }
+                });
+            }
+
+            function getFraisEtud(){
+                if($("#section_etud").val() !="" && $("#option_etu").val() !="" && $("#departement_etud").val() !="" && $("#mat_etudiants_").val() && $("#annee_acad_pay").val() !=""){
+                    const data_  = {
+                        list_frais:"list_frais",
+                        a:$("#section_etud").val(),
+                        b:$("#option_etu").val(),
+                        c:$("#departement_etud").val(),
+                        d:$("#mat_etudiants_").val(),
+                        e:$("#annee_acad_pay").val()
+                    };
+                    $.ajax({
+                        type: "POST",
+                        url: "../../select_std.php",
+                        data: data_,
+                        success: function (response) {
+                            if(response !=""){
+                                $("#").empty();
+                                $("#").append(response);
+                            }else{
+                                $("#error_payement").html("Aucun frais n'est affecté à l'étudiant(e)").removeClass('text-success').addClass('text-danger');
+                                $("#btn_payem_").attr('disabled', true);
+                            }
+                        }
+                    });
+                }else{
+
+                }
+            }
+        </script>
         
         <script>
             $("#mat_etu").show();
