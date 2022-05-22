@@ -10,17 +10,17 @@
         $ok = $d->execute(array($_POST['id_poste_rec_univ']));
 
         if($ok){
-            LogUser::addlog(VerificationUser::verif($_SESSION['data']['noms']), 'a supprimé(e) une prévision academique.');
+            LogUser::addlog(VerificationUser::verif($_SESSION['data']['id_user']), 'a supprimé(e) une prévision academique.');
             echo 'ok';
         }else{
             echo "une erreur est survenue lors de la suppression...";
         }
     }else if(isset($_POST['id_poste_dep']) && !empty($_POST['id_poste_dep'])){
         // print_r($_POST);
-        $d = ConnexionBdd::Connecter()->prepare("DELETE FROM depense_facultaire WHERE id  = ?");
+        $d = ConnexionBdd::Connecter()->prepare("DELETE FROM depense_facultaire WHERE id_pdf  = ?");
         $ok = $d->execute(array($_POST['id_poste_dep']));
         if($ok){
-            LogUser::addlog(VerificationUser::verif($_SESSION['data']['noms']), 'a supprimé(e) un poste de dépense facultaire.');
+            LogUser::addlog(VerificationUser::verif($_SESSION['data']['id_user']), 'a supprimé(e) un poste de dépense facultaire.');
             echo 'ok';
         }else{
             echo "une erreur est survenue lors de la suppression...";

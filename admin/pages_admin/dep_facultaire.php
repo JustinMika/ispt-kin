@@ -132,8 +132,9 @@
                                             //  	 	 	 	 	 	
                                                 while($data = $pd->fetch()){
                                                     ?>
-                                                        <tr>
+                                                        <tr> 
                                                             <td id="trans_id"><?=$data['id']?></td>
+                                                            <td id="trans_id_del" style="display: none;"><?=$data['id_pdf']?></td>
                                                             <td id="trans_poste"><?=$data['poste_df']?></td>
                                                             <td id="trans_date_t"><?=$data['faculte']?></td>
                                                             <td id="trans_montant"><?=$data['montant_trans']?></td>
@@ -421,7 +422,6 @@
                                 <?php
                                     $lpd = ConnexionBdd::Connecter()->query("SELECT DISTINCT * FROM depense_facultaire");
                                     while($data = $lpd->fetch()){
-
                                         ?>
                                             <option value="<?=$data['id_pdf']?>"><?=$data['poste']?></option>
                                         <?php
@@ -525,6 +525,7 @@
                 <form action="" method="post" id="delete_transaction_pd">
                     <div class="modal-body">
                         <input type="hidden" name="id_trans_mod_delete" id="id_trans_mod_delete">
+                        <input type="hidden" name="id_trans_mod_poste_delete" id="id_trans_mod_poste_delete">
                         <input type="hidden" name="id_trans_mod_delete" id="fac_delete">
 
                         <p class="text-warning">Voulez-vous vraiment supprimer cette transaction ?</span></p>
@@ -743,11 +744,15 @@
             // alert(mm.text());
             
             trans_id = mm.find("#trans_id");
+            trans_id_del = mm.find("#trans_id_del");
             trans_poste = mm.find("#trans_poste");
             trans_date_t = mm.find("#trans_date_t");
             trans_montant = mm.find("#trans_montant");
             trans_motif = mm.find("#trans_motif");
 
+            // alert(trans_id.text());
+
+            $("#id_trans_mod_poste_delete").val(trans_id_del.text());
             $("#id_trans_mod_delete").val(trans_id.text());
             $("#trans_post_d_delete").val(trans_poste.text());
             $("#trans_post_montant_delete").val(trans_montant.text());
@@ -765,6 +770,7 @@
             if($("#id_trans_mod_delete").val() !="" && $("#trans_post_d_delete").val() !="" && $("#trans_post_montant_delete").val() !=""){
                 const data = {
                     del_trans : "del_trans",
+                    id_poste_del : $("#id_trans_mod_poste_delete").val(),
                     id_trans_mod_delete : $("#id_trans_mod_delete").val() ,
                     trans_post_d_delete : $("#trans_post_d_delete").val() ,
                     trans_post_d_fac : $("#fac_delete").val() ,
