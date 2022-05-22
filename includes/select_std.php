@@ -26,11 +26,22 @@
             $mat = $_GET['d'];
             $annee = $_GET['e'];
 
+            $sql = "SELECT
+                        affectation_frais.id_frais,
+                        prevision_frais.type_frais
+                    FROM
+                        affectation_frais
+                    LEFT JOIN prevision_frais ON affectation_frais.id_frais = prevision_frais.id_frais
+                    WHERE
+                        affectation_frais.matricule = ? AND affectation_frais.id_section = ? AND affectation_frais.id_departement = ? AND affectation_frais.id_option = ? AND affectation_frais.id_annee = ?";
+            $p = array($mat, $id_section, $id_departement, $id_option, $annee);
             $req = ConnexionBdd::Connecter()->prepare($sql);
             $req->execute($p);
             if($req->rowCount() > 0){
-                while($data = ){
-
+                while($data = $req->fetch()){
+                    ?>
+                        <option value="<?=$data['id_frais']?>"><?=$data['type_frais']?></option>
+                    <?php
                 }
             }else{
                 die("Aucun frais affecter a l'étudiant(e)");

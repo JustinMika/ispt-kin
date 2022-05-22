@@ -501,7 +501,7 @@
 
                                 $("#error_payement").html("l'etudiant(e) "+obj_data.noms).addClass('text-success');
                                 if($("#section_etud").val() !="" && $("#option_etu").val() !="" && $("#departement_etud").val() !=""){
-
+                                    getFraisEtud();
                                 }else{
 
                                 }
