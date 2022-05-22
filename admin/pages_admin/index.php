@@ -52,15 +52,18 @@
 						<!-- nombre total d etudiants -->
 						<?php 
 							$an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1");
-							if(!empty($an->fetch())){
-								$an_r = $an->fetch();
-							}else{
-								$an_r['id_annee'] = '';
-							}
+							$an_r = $an->fetch();
+							// if(!empty($an->fetch())){
+							// 	$an_r = $an->fetch();
+							// }else{
+							// 	$an_r['id_annee'] = '';
+							// }
 							
-							$nb_fac = ConnexionBdd::Connecter()->prepare("SELECT * FROM etudiants_inscrits WHERE annee_academique = ? AND fac  = ?");
-							$nb_fac->execute(array($an_r['annee_acad'], $_SESSION['data']['access']));
+							$nb_fac = ConnexionBdd::Connecter()->prepare("SELECT etudiants_inscrits.id, sections.section,annee_acad.annee_acad FROM etudiants_inscrits LEFT JOIN sections ON etudiants_inscrits.id_section = sections.id_section LEFT JOIN annee_acad ON etudiants_inscrits.id_annee = annee_acad.id_annee WHERE etudiants_inscrits.id_section = ? AND etudiants_inscrits.id_annee = ?");
+							$nb_fac->execute(array($_SESSION['data']['access'], $an_r['id_annee']));
+							// print_r(array($_SESSION['data']['access'], $an_r['id_annee']));
 							$n = $nb_fac->rowCount();
+							$data = $nb_fac->fetch();
 							?>
 								<div class="col-xl-3 col-md-6 mb-4">
 									<div class="card border-left-success shadow">
@@ -69,7 +72,7 @@
 												<div class="">
 													<div class="text-xs font-weight-bold text-primary text-uppercase mb-3">
 													<!-- <i class="fab fa-facebook-f"></i> -->
-													<?=$_SESSION['data']['access']?>::<?=$an_r['annee_acad']?></div>
+													<?=$data['section']?>::<?=$an_r['annee_acad']?></div>
 													<div class="h5 mt-1 font-weight-bold text-gray-800">
 														<?=$n?> Etudiant(e)s
 													</div>

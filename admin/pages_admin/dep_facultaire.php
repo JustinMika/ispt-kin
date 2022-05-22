@@ -167,7 +167,15 @@
                         </div>
                         <div class="form-group">
                             <select name="faculte" id="faculte" class="form-control" required>
-                                    <option value="<?=VerificationUser::verif($rr['access'])?>"><?=VerificationUser::verif($rr['access'])?></option>
+                                <?php
+                                    $nn = ConnexionBdd::Connecter()->prepare("SELECT id_section, section FROM sections WHERE id_section = ?");
+                                    $nn->execute(array(VerificationUser::verif($rr['access'])));
+                                    while($data = $nn->fetch()){
+                                        ?>
+                                            <option value="<?=$data['id_section']?>"><?=$data['section']?></option>
+                                        <?php
+                                    }
+                                ?>
                             </select>
                         </div>
                          <!-- promotion -->

@@ -54,7 +54,7 @@ $(document).ready(function() {
         event.preventDefault();
         var p_depense = $("#p_depense");
         var annee_acad = $("#annee_acad option:selected");
-        var faculte = $("#faculte option:selected");
+        var faculte = $("#faculte");
         var promotion = $("#promotion option:selected");
         var a_montant = $("#a_montant");
 
