@@ -471,10 +471,6 @@
     <script src="js/mes_scripts/admin_script.js"></script>
     <script src="js/sb-admin-2.min.js"></script>
     <script type="text/javascript">
-        $("#Access").change(function (e) { 
-    e.preventDefault();
-    alert($(this).val());
-});
         $(document).ready(function(){
             $("#st").hide();
             $("#error_s").css({
