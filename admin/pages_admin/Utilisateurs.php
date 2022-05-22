@@ -380,8 +380,6 @@
         });
     </script>
 
-    
-
     <!-- fenetre pour ajouter un utilisateur admin. -->
     <div class="modal fade" id="modelId" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -473,11 +471,72 @@
     <script src="js/mes_scripts/admin_script.js"></script>
     <script src="js/sb-admin-2.min.js"></script>
     <script type="text/javascript">
+        $("#Access").change(function (e) { 
+    e.preventDefault();
+    alert($(this).val());
+});
         $(document).ready(function(){
             $("#st").hide();
             $("#error_s").css({
                 display:'none'
             });
+        });
+
+        // ajout d el utilisateur dans la base de donnees.
+        $("#form_admin_user").submit(function(e) {
+            e.preventDefault(); 
+            var pseudo = $("#user_name");
+            var fonction = $("#fonction option:selected");
+            var Access = $("#Access");
+            var a = $("#mail_user");
+            var Accpass_useress = $("#Accpass_useress");
+
+            if (Accpass_useress.val() != "" && a.val() != "" && pseudo.val() != "" && fonction.text() != "" && Access.val() != "") {
+                const data = {
+                    pseudo_user: $("#user_name").val(),
+                    fonction: $("#fonction option:selected").text(),
+                    Access: $("#Access").val(),
+                    Accpass_useress: $("#Accpass_useress").val(),
+                    mail_user: $("#mail_user").val()
+                };
+                $.ajax({
+                    type: "POST",
+                    url: "../../includes/user_admin.php",
+                    data: data,
+                }).done(function(data) {
+                    if (data == "success") {
+                        $(pseudo).val("");
+                        $(fonction).val("");
+                        $(Access).val("");
+                        $(email_user).val("");
+                        $(Accpass_useress).val("");
+                        $("#modelId").modal('toggle');
+                        window.location.reload();
+
+                    } else {
+                        $("#error_s")
+                            .addClass('text-danger text-center mt-1')
+                            .css({
+                                'font-weight': '500'
+                            })
+                            .text("Erreur [" + data + "]:\n l'utilisateur n'est pas inseré dans la base de donnees.");
+                    }
+                }).fail(function(data) {
+                    $("#error_s")
+                        .addClass('text-warning text-center mt-1')
+                        .css({
+                            'font-weight': '500'
+                        })
+                        .text("Erreur: Veuillez rverifier votre connexion svp ...");
+                });
+            } else {
+                $("#error_s")
+                    .addClass('text-danger text-center mt-1')
+                    .css({
+                        'font-weight': '800'
+                    })
+                    .text("Certains champs sont vide");
+            }
         });
 
         $("#mail_user").keyup(function (e) { 

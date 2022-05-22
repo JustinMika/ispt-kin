@@ -6,7 +6,7 @@
     // print_r($_POST);
 
     function formater($var){
-        return htmlentities(htmlspecialchars(trim($var)));
+        return htmlspecialchars(trim($var));
     }
 
     if(!empty($_POST['pseudo_user'])){

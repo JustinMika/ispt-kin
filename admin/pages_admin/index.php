@@ -129,17 +129,13 @@
 						<!-- nombre total d etudiants -->
 						<?php 
 							$an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1");
-							try {
-								$an_r = $an->fetch();
-							} catch (Exception $e) {
-								die($e->getMessage());
-							}
 							if(!empty($an_r = $an->fetch())){
 								$an_r = $an->fetch();
 							}else{
 								$an_r['id_annee'] = '';
 							}
-							$nb_fac = ConnexionBdd::Connecter()->prepare("SELECT * FROM etudiants_inscrits WHERE id_annee = ?");
+							print_r($an_r['id_annee']);
+							$nb_fac = ConnexionBdd::Connecter()->prepare("SELECT count(*) FROM etudiants_inscrits WHERE etudiants_inscrits.id_annee = ?");
 							$nb_fac->execute(array($an_r['id_annee']));
 							$n = $nb_fac->rowCount();
 							?>
@@ -149,7 +145,7 @@
 											<div class="row no-gutters align-items-center">
 												<div class="">
 													<div class="text-xs font-weight-bold text-primary text-uppercase mb-3">
-														Total Etudiants : <?=$an_r['annee_acad']?></div>
+														Total Etudiants : <?=$an_r['id_annee']?></div>
 													<div class="h5 mt-1 font-weight-bold text-gray-800">
 														<?=$n?> Etudiant(e)s
 													</div>
