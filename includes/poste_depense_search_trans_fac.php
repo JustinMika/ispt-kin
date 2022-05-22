@@ -39,7 +39,8 @@
                     <tr>
                         <td id="id_poste_dep">'.$data['id'].'</td>
                         <td id="post">'.$data['poste'].'</td>
-                        <td id="m_fac">'.$data['faculte'].'</td>
+                        <td id="m_fac" style="display:none">'.$data['id_section'].'</td>
+                        <td>'.$data['faculte'].'</td>
                         
                         <td id="montant">'.$data['montant'].'$'.'</td>
                         <td id="m_depense">'.$data['depense'].'</td>

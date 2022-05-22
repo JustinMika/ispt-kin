@@ -4,7 +4,8 @@
     require_once './log_user.class.php';
     require_once './verification.class.php';
     // print_r($_POST);
-    if(!empty($_POST['date_r'])){
+    // die("");
+    if(!empty($_POST['date_r']) && !empty($_POST['id_pdf_t'])){
         if(!empty($_POST['motif'])){
             if(!empty($_POST['update_montant_'])){
                 if(!empty($_POST['dep_post_'])){
@@ -14,25 +15,25 @@
                                 // verification de la date
                                 if(date('Y-m-d',strtotime($_POST['date_r'])) <= date('Y-m-d')){
                                     // on recupere l'annee academique
-                                    $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_academique GROUP BY annee_acad ORDER BY id DESC LIMIT 1");
+                                    $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY id_annee ORDER BY id_annee DESC LIMIT 1");
                                     if($an->rowCount() > 0){
                                         $an_r = $an->fetch();
                                     }else{
-                                        $an_r['annee_acad'] = '';
+                                        $an_r['id_annee'] = '';
                                         die("Veuillez AJouter l annee academique");
                                     }
                                     
-                                    $sql_update = "UPDATE depense_facultaire SET depense = ? WHERE poste = ? AND faculte = ? AND annee_acad = ?";
+                                    $sql_update = "UPDATE depense_facultaire SET depense = ? WHERE id_pdf = ? AND id_section = ? AND id_annee = ?";
                                     $update = ConnexionBdd::Connecter()->prepare($sql_update);
-                                    $ok = $update->execute(array($_POST['tot_montant'], $_POST['dep_post_'], $_POST['fac_pf'], $an_r['annee_acad']));
+                                    $ok = $update->execute(array($_POST['tot_montant'], $_POST['id_pdf_t'], $_POST['fac_pf'], $an_r['id_annee']));
 
                                     if($ok){
-                                        $hist = ConnexionBdd::Connecter()->prepare("INSERT INTO depense_facultaire_transact(poste_df, montant_trans, faculte, annee_acad, date_trans, motif) VALUES(?, ?, ?, ?, ?, ?)");
-                                        $ok = $hist->execute(array($_POST['dep_post_'], floatval($_POST['update_montant_']), $_POST['fac_pf'], $an_r['annee_acad'], $_POST['date_r'], $_POST['motif']));
+                                        $hist = ConnexionBdd::Connecter()->prepare("INSERT INTO transaction_pdf(montant, motif, date_transaction, id_pdf, id_section, id_annee) VALUES(?, ?, ?, ?, ?, ?)");
+                                        $ok = $hist->execute(array($_POST['update_montant_'], $_POST['motif'], $_POST['date_r'], $_POST['id_pdf_t'],  $_POST['fac_pf'], $an_r['id_annee']));
 
                                         if($ok){
                                             echo 'ok';
-                                            LogUser::addlog(VerificationUser::verif($_SESSION['data']['noms']), 'a fait une transaction sur le poste facultaire.');
+                                            LogUser::addlog(VerificationUser::verif($_SESSION['data']['id_user']), 'a fait une transaction sur le poste facultaire.');
                                         }else{
                                             echo 'une erreur est survenue lors de votre transaction';
                                         }

@@ -108,13 +108,27 @@
                                         <tbody class="text-secondary" id="tbody_transaction">
                                             <?php
                                                 // die($rr['access']);
-                                                $pd = ConnexionBdd::Connecter()->query("SELECT transaction_pdf.id_transaction, transaction_pdf.montant, transaction_pdf.motif, transaction_pdf.date_transaction, depense_facultaire.id_pdf, depense_facultaire.poste,
-                                                sections.id_section, sections.section, annee_acad.id_annee, annee_acad.annee_acad
-                                                FROM transaction_pdf
-                                                LEFT JOIN depense_facultaire ON transaction_pdf.id_pdf = depense_facultaire.id_pdf
-                                                LEFT JOIN sections on transaction_pdf.id_section = sections.id_section
-                                                LEFT JOIN annee_acad ON transaction_pdf.id_annee = annee_acad.id_annee
-                                                WHERE transaction_pdf.id_annee = '1' AND sections.section ='SECTION INFORMATIQUE'");
+                                                $sql = "SELECT
+                                                            transaction_pdf.id_transaction as id,
+                                                            transaction_pdf.montant as montant_trans ,
+                                                            transaction_pdf.motif,
+                                                            transaction_pdf.date_transaction as date_trans,
+                                                            depense_facultaire.id_pdf,
+                                                            depense_facultaire.poste as poste_df,
+                                                            sections.id_section,
+                                                            sections.section as faculte,
+                                                            annee_acad.id_annee,
+                                                            annee_acad.annee_acad
+                                                        FROM
+                                                            transaction_pdf
+                                                        LEFT JOIN depense_facultaire ON transaction_pdf.id_pdf = depense_facultaire.id_pdf
+                                                        LEFT JOIN sections ON transaction_pdf.id_section = sections.id_section
+                                                        LEFT JOIN annee_acad ON transaction_pdf.id_annee = annee_acad.id_annee
+                                                        WHERE
+                                                            transaction_pdf.id_annee = 1 AND transaction_pdf.id_section = 1";
+                                                $p = array($_SESSION['data']['access']); 
+                                                $pd = ConnexionBdd::Connecter()->prepare($sql);
+                                                $pd->execute($p); 
                                             //  	 	 	 	 	 	
                                                 while($data = $pd->fetch()){
                                                     ?>
@@ -232,6 +246,7 @@
                             <label for="">date</label>
                             <input type="date" class="form-control" name="date_r" id="date_r" aria-describedby="helpId" placeholder="Date" required>
                         </div>
+                        <input type="hidden" name="id_pdf_t" id="id_pdf_t">
                         <input type="hidden" name="fac_pf" id="fac_pf">
                         <input type="hidden" name="promotion_pf" id="promotion_pf">
                         <input type="hidden" name="depense_pf" id="depense_pf">
@@ -693,7 +708,9 @@
             m_promotion = mm.find("#m_promotion");
 
             m_depense = mm.find("#m_depense");
+            id_poste_dep = mm.find("#id_poste_dep");
 
+            $("#id_pdf_t").val(id_poste_dep.text());
             $("#fac_pf").val(m_fac.html());
             $("#promotion_pf").val(m_promotion.html());
             $("#depense_pf").val(m_depense.text());
