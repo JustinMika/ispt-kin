@@ -94,6 +94,15 @@
         }
     }
 
+
+    function r_sec_fac(){
+        if($_SESSION['data']['fonction']== "Sec. de fac."){
+            return ''; 
+        }else{
+            return 'display:none';
+        }
+    }
+
     //admin
     function restruct_r_admin(){
         if($_SESSION['data']['fonction'] != "" && $_SESSION['data']['access'] !=""){
@@ -239,7 +248,7 @@
                 <a class="dropdown-item" href="poste_depense.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>"  style="<?=rrr()?>"> Poste de dépense</a>
 
                 <!-- Depense facultaire -->
-                <a class="dropdown-item" href="dep_facultaire.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>" style="<?=rrf()?>"> Dépense de section</a>
+                <a class="dropdown-item" href="dep_facultaire.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>" style="<?=r_sec_fac()?>"> Dépense de section</a>
 
                 <!-- Poste des recettes -->
                 <a class="dropdown-item" href="poste_de_recettes.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>"  style="<?=rrrr()?>"> Poste des recettes</a>

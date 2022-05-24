@@ -9,6 +9,16 @@
         exit();
     }
 
+    function get_fac($f){
+        if($f == "Tous"){
+            return $f;
+        }else{
+            $d = ConnexionBdd::Connecter()->query("SELECT section from sections where id_section  = {$f}");
+            $data = $d->fetch();
+            return $data['section'];
+        }
+    }
+
     // print_r($_SESSION);
     $pdf = new FPDF('P', 'mm', 'A4');
 	$pdf->AddPage();
@@ -28,17 +38,18 @@
 
     if(array_sum($_SESSION) > 0){
         if(!empty($_SESSION['data']['access'])){
-            $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_academique GROUP BY annee_acad ORDER BY id DESC LIMIT 1");
+            $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1");
             if($an->rowCount() > 0){
                 $an_r = $an->fetch();
             }else{
-                $an_r['annee_acad'] = '';
+                $an_r['id_annee'] = '';
                 die("Veuillez AJouter l annee academique");
             }
-            $post_dep = "SELECT * FROM depense_facultaire WHERE faculte = ? AND annee_acad = ?";
-            $params = array($_SESSION['data']['access'], $an_r['annee_acad']);
+            $post_dep = "SELECT * FROM depense_facultaire WHERE id_section = ? AND id_annee = ?";
+            $params = array($_SESSION['data']['access'], $an_r['id_annee']);
             $pdf->Ln(1);
             $pdf->cell(197,7,'POSTE DES DEPENSES',0,1,'C');
+            $pdf->cell(197,7,'SECTION : '.get_fac($_SESSION['data']['access']),0,1,'C');
             $a = array();
             $b = array();
         
