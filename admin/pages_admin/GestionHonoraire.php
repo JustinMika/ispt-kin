@@ -8,6 +8,22 @@
     require_once '../../includes/log_user.class.php';
     $p = "Gestion des honoraires";
 
+    function get_annee($id){
+        $d = ConnexionBdd::Connecter()->query("SELECT annee_acad from annee_acad where id_annee  = {$id}");
+        $data = $d->fetch();
+        return $data['annee_acad'];
+    }
+
+    function get_fac($f){
+        if($f == "Tous"){
+            return $f;
+        }else{
+            $d = ConnexionBdd::Connecter()->query("SELECT section from sections where id_section  = {$f}");
+            $data = $d->fetch();
+            return $data['section'];
+        }
+    }
+
     function restruct_user(){
         if($_SESSION['data']['fonction'] != "" && $_SESSION['data']['access'] !=""){
             if($_SESSION['data']['fonction'] && $_SESSION['data']['access'] && $_SESSION['data']['access'] == "Admin"){
@@ -64,8 +80,8 @@
         $pdf->SetTextColor(0,0,0);
         $pdf->SetFillColor(0,0,0);
 
-        $pdf->cell(60, 5, decode_fr('Année Academique : '.verify($_POST['annee_acad'])), 0, 1, 'L');
-        $pdf->cell(60, 5, decode_fr('Faculté                     : '.verify($_POST['faculte'])), 0, 1, 'L');
+        $pdf->cell(60, 5, decode_fr('Année Academique : '.verify(get_annee($_POST['annee_acad']))), 0, 1, 'L');
+        $pdf->cell(60, 5, decode_fr('Faculté                     : '.verify(get_fac($_POST['faculte']))), 0, 1, 'L');
     }
 
     function footer($pdf){
@@ -80,6 +96,7 @@
     $c = array();
     $d = array();
 
+    // par faculte
     if(isset($_POST['btn_fac'])){
         $pdf = new FPDF('L', 'mm', 'A4');
         $annee_acad = $_POST['annee_acad'];
@@ -92,15 +109,15 @@
         if($_POST['faculte'] == "Tous" && $_POST['prestation'] == "Tous" && $_POST['type_enseign'] == "Tous"){
             $list_fac = array();
 
-            $fac = ConnexionBdd::Connecter()->query("SELECT DISTINCT fac FROM faculte");
+            $fac = ConnexionBdd::Connecter()->query("SELECT DISTINCT id_section FROM gest_honoraire WHERE id_annee = {$annee_acad}");
             while($data = $fac->fetch()){
-                $list_fac[] = $data['fac'];
+                $list_fac[] = $data['id_section'];
             }
 
             foreach ($list_fac as $fac) {
                 $pdf->Ln(3);
                 $pdf->SetFont('Arial','BU',10);
-                $pdf->cell(60, 5, decode_fr(''.verify($fac)), 0, 1, 'L');
+                $pdf->cell(60, 5, decode_fr(verify(get_fac($fac))), 0, 1, 'L');
                 $pdf->Ln(2);
                 $pdf->SetFont('Arial','B',10);
                 $pdf->cell(60, 5,'Enseignants',1,0,'C');
@@ -116,7 +133,29 @@
                 $pdf->cell(15, 5,'Solde',1,0,'C');
                 $pdf->Ln(5);
 
-                $req = ConnexionBdd::Connecter()->prepare("SELECT * FROM gest_honoraire WHERE annee_acad = ? AND faculte = ?");
+                $sql = "SELECT
+                            gest_honoraire.id,
+                            gest_honoraire.noms_ens,
+                            gest_honoraire.grade_ens,
+                            gest_honoraire.cours,
+                            gest_honoraire.heure_th,
+                            gest_honoraire.montant_ht,
+                            gest_honoraire.heure_pr,
+                            gest_honoraire.montant_hp,
+                            gest_honoraire.taux,
+                            gest_honoraire.total,
+                            gest_honoraire.total_payer,
+                            gest_honoraire.type_enseig,
+                            gest_honoraire.prestation,
+                            annee_acad.annee_acad,
+                            sections.section AS faculte
+                        FROM
+                            gest_honoraire
+                        LEFT JOIN annee_acad ON gest_honoraire.id_annee = annee_acad.id_annee
+                        LEFT JOIN sections ON gest_honoraire.id_section = sections.id_section
+                        WHERE
+                            gest_honoraire.id_annee = ? AND gest_honoraire.id_section = ?";
+                $req = ConnexionBdd::Connecter()->prepare($sql);
                 $req->execute(array($annee_acad, $fac));
 
                 $pdf->SetFont('Arial','',7);
@@ -169,7 +208,20 @@
             $pdf->cell(15, 5,'Solde',1,0,'C');
             $pdf->Ln(5);
 
-            $req = ConnexionBdd::Connecter()->prepare("SELECT SUM(total) AS total, SUM(total_payer) AS total_payer, faculte  FROM gest_honoraire WHERE annee_acad = ? GROUP BY faculte");
+            $sql_2 = "SELECT
+                        SUM(total) AS total,
+                        SUM(total_payer) AS total_payer,
+                        annee_acad.annee_acad,
+                        sections.section AS faculte
+                    FROM
+                        gest_honoraire
+                    LEFT JOIN sections ON gest_honoraire.id_section = sections.id_section
+                    LEFT JOIN annee_acad ON gest_honoraire.id_annee = annee_acad.id_annee
+                    WHERE
+                        gest_honoraire.id_annee = ?
+                    GROUP BY
+                        gest_honoraire.id_section";
+            $req = ConnexionBdd::Connecter()->prepare($sql_2);
             $req->execute(array($annee_acad));
 
             $pdf->SetFont('Arial','',7);
@@ -222,6 +274,28 @@
                 $pdf->cell(15, 5,'Solde',1,0,'C');
                 $pdf->Ln(5);
 
+                $sql = "SELECT
+                            gest_honoraire.id,
+                            gest_honoraire.noms_ens,
+                            gest_honoraire.grade_ens,
+                            gest_honoraire.cours,
+                            gest_honoraire.heure_th,
+                            gest_honoraire.montant_ht,
+                            gest_honoraire.heure_pr,
+                            gest_honoraire.montant_hp,
+                            gest_honoraire.taux,
+                            gest_honoraire.total,
+                            gest_honoraire.total_payer,
+                            gest_honoraire.type_enseig,
+                            gest_honoraire.prestation,
+                            annee_acad.annee_acad,
+                            sections.section AS faculte
+                        FROM
+                            gest_honoraire
+                        LEFT JOIN annee_acad ON gest_honoraire.id_annee = annee_acad.id_annee
+                        LEFT JOIN sections ON gest_honoraire.id_section = sections.id_section
+                        WHERE
+                            gest_honoraire.id_annee = ? AND gest_honoraire.id_section = ? AND gest_honoraire.prestation = ?";
                 $req = ConnexionBdd::Connecter()->prepare("SELECT * FROM gest_honoraire WHERE annee_acad = ? AND
                  faculte = ? AND prestation = ?");
                 $req->execute(array($annee_acad, $fac, $_POST['prestation']));
@@ -277,7 +351,20 @@
             $pdf->cell(15, 5,'Solde',1,0,'C');
             $pdf->Ln(5);
 
-            $req = ConnexionBdd::Connecter()->prepare("SELECT SUM(total) AS total, SUM(total_payer) AS total_payer, faculte  FROM gest_honoraire WHERE annee_acad = ? GROUP BY faculte");
+            $sql_2 = "SELECT
+                        SUM(total) AS total,
+                        SUM(total_payer) AS total_payer,
+                        annee_acad.annee_acad,
+                        sections.section AS faculte
+                    FROM
+                        gest_honoraire
+                    LEFT JOIN sections ON gest_honoraire.id_section = sections.id_section
+                    LEFT JOIN annee_acad ON gest_honoraire.id_annee = annee_acad.id_annee
+                    WHERE
+                        gest_honoraire.id_annee = ?
+                    GROUP BY
+                        gest_honoraire.id_section";
+            $req = ConnexionBdd::Connecter()->prepare($sql_2);
             $req->execute(array($annee_acad));
 
             $pdf->SetFont('Arial','',7);
@@ -330,8 +417,30 @@
                 $pdf->cell(15, 5,'Solde',1,0,'C');
                 $pdf->Ln(5);
 
-                $req = ConnexionBdd::Connecter()->prepare("SELECT * FROM gest_honoraire WHERE annee_acad = ? AND
-                 faculte = ? AND type_enseig = ?");
+                $sql = "SELECT
+                            gest_honoraire.id,
+                            gest_honoraire.noms_ens,
+                            gest_honoraire.grade_ens,
+                            gest_honoraire.cours,
+                            gest_honoraire.heure_th,
+                            gest_honoraire.montant_ht,
+                            gest_honoraire.heure_pr,
+                            gest_honoraire.montant_hp,
+                            gest_honoraire.taux,
+                            gest_honoraire.total,
+                            gest_honoraire.total_payer,
+                            gest_honoraire.type_enseig,
+                            gest_honoraire.prestation,
+                            annee_acad.annee_acad,
+                            sections.section AS faculte
+                        FROM
+                            gest_honoraire
+                        LEFT JOIN annee_acad ON gest_honoraire.id_annee = annee_acad.id_annee
+                        LEFT JOIN sections ON gest_honoraire.id_section = sections.id_section
+                        WHERE
+                            gest_honoraire.id_annee = ? AND gest_honoraire.id_section = ? AND gest_honoraire.type_enseig = ?";
+
+                $req = ConnexionBdd::Connecter()->prepare($sql);
                 $req->execute(array($annee_acad, $fac, $_POST['type_enseign']));
 
                 $pdf->SetFont('Arial','',7);
@@ -384,8 +493,20 @@
             $pdf->cell(20, 5, decode_fr('Total payé'),1,0,'C');
             $pdf->cell(15, 5,'Solde',1,0,'C');
             $pdf->Ln(5);
-
-            $req = ConnexionBdd::Connecter()->prepare("SELECT SUM(total) AS total, SUM(total_payer) AS total_payer, faculte  FROM gest_honoraire WHERE annee_acad = ? GROUP BY faculte");
+            $sql_2 = "SELECT
+                        SUM(total) AS total,
+                        SUM(total_payer) AS total_payer,
+                        annee_acad.annee_acad,
+                        sections.section AS faculte
+                    FROM
+                        gest_honoraire
+                    LEFT JOIN sections ON gest_honoraire.id_section = sections.id_section
+                    LEFT JOIN annee_acad ON gest_honoraire.id_annee = annee_acad.id_annee
+                    WHERE
+                        gest_honoraire.id_annee = ?
+                    GROUP BY
+                        gest_honoraire.id_section";
+            $req = ConnexionBdd::Connecter()->prepare($sql_2);
             $req->execute(array($annee_acad));
 
             $pdf->SetFont('Arial','',7);
@@ -414,7 +535,7 @@
         }else if($_POST['faculte'] != "Tous" && $_POST['prestation'] == "Tous" && $_POST['type_enseign'] == "Tous"){
             $pdf->Ln(1);
             $pdf->SetFont('Arial','BU',10);
-            $pdf->cell(60, 5, decode_fr(''.verify($fac)), 0, 1, 'L');
+            $pdf->cell(60, 5, decode_fr(''.verify(get_fac($_POST['faculte']))), 0, 1, 'L');
             $pdf->Ln(2);
             $pdf->SetFont('Arial','B',10);
             $pdf->cell(60, 5,'Enseignants',1,0,'C');
@@ -429,9 +550,29 @@
             $pdf->cell(20, 5, decode_fr('Total payé'),1,0,'C');
             $pdf->cell(15, 5,'Solde',1,0,'C');
             $pdf->Ln(5);
-
-            $req = ConnexionBdd::Connecter()->prepare("SELECT * FROM gest_honoraire WHERE annee_acad = ? AND
-                faculte = ?");
+            $sql = "SELECT
+                        gest_honoraire.id,
+                        gest_honoraire.noms_ens,
+                        gest_honoraire.grade_ens,
+                        gest_honoraire.cours,
+                        gest_honoraire.heure_th,
+                        gest_honoraire.montant_ht,
+                        gest_honoraire.heure_pr,
+                        gest_honoraire.montant_hp,
+                        gest_honoraire.taux,
+                        gest_honoraire.total,
+                        gest_honoraire.total_payer,
+                        gest_honoraire.type_enseig,
+                        gest_honoraire.prestation,
+                        annee_acad.annee_acad,
+                        sections.section AS faculte
+                    FROM
+                        gest_honoraire
+                    LEFT JOIN annee_acad ON gest_honoraire.id_annee = annee_acad.id_annee
+                    LEFT JOIN sections ON gest_honoraire.id_section = sections.id_section
+                    WHERE
+                        gest_honoraire.id_annee = ? AND gest_honoraire.id_section = ?";
+            $req = ConnexionBdd::Connecter()->prepare($sql);
             $req->execute(array($annee_acad, $_POST['faculte']));
 
             $pdf->SetFont('Arial','',7);
@@ -473,7 +614,7 @@
         }else if($_POST['faculte'] != "Tous" && $_POST['prestation'] != "Tous" && $_POST['type_enseign'] == "Tous"){
             $pdf->Ln(1);
             $pdf->SetFont('Arial','BU',10);
-            $pdf->cell(60, 5, decode_fr(''.verify($fac)), 0, 1, 'L');
+            $pdf->cell(60, 5, decode_fr(''.verify(get_fac($_POST['faculte']))), 0, 1, 'L');
             $pdf->Ln(2);
             $pdf->SetFont('Arial','B',10);
             $pdf->cell(60, 5,'Enseignants',1,0,'C');
@@ -489,8 +630,29 @@
             $pdf->cell(15, 5,'Solde',1,0,'C');
             $pdf->Ln(5);
 
-            $req = ConnexionBdd::Connecter()->prepare("SELECT * FROM gest_honoraire WHERE annee_acad = ? AND
-                faculte = ? AND prestation = ?");
+            $sql = "SELECT
+                        gest_honoraire.id,
+                        gest_honoraire.noms_ens,
+                        gest_honoraire.grade_ens,
+                        gest_honoraire.cours,
+                        gest_honoraire.heure_th,
+                        gest_honoraire.montant_ht,
+                        gest_honoraire.heure_pr,
+                        gest_honoraire.montant_hp,
+                        gest_honoraire.taux,
+                        gest_honoraire.total,
+                        gest_honoraire.total_payer,
+                        gest_honoraire.type_enseig,
+                        gest_honoraire.prestation,
+                        annee_acad.annee_acad,
+                        sections.section AS faculte
+                    FROM
+                        gest_honoraire
+                    LEFT JOIN annee_acad ON gest_honoraire.id_annee = annee_acad.id_annee
+                    LEFT JOIN sections ON gest_honoraire.id_section = sections.id_section
+                    WHERE
+                        gest_honoraire.id_annee = ? AND gest_honoraire.id_section = ? gest_honoraire.prestation = ?";
+            $req = ConnexionBdd::Connecter()->prepare($sql);
             $req->execute(array($annee_acad, $_POST['faculte'], $_POST['prestation']));
 
             $pdf->SetFont('Arial','',7);
@@ -532,7 +694,7 @@
         }else if($_POST['faculte'] != "Tous" && $_POST['prestation'] != "Tous" && $_POST['type_enseign'] != "Tous"){
             $pdf->Ln(1);
             $pdf->SetFont('Arial','BU',10);
-            $pdf->cell(60, 5, decode_fr(''.verify($fac)), 0, 1, 'L');
+            $pdf->cell(60, 5, decode_fr(''.verify(get_fac($_POST['faculte']))), 0, 1, 'L');
             $pdf->Ln(2);
             $pdf->SetFont('Arial','B',10);
             $pdf->cell(60, 5,'Enseignants',1,0,'C');
@@ -548,8 +710,29 @@
             $pdf->cell(15, 5,'Solde',1,0,'C');
             $pdf->Ln(5);
 
-            $req = ConnexionBdd::Connecter()->prepare("SELECT * FROM gest_honoraire WHERE annee_acad = ? AND
-                faculte = ? AND prestation = ? AND type_enseig = ?");
+            $sql = "SELECT
+                        gest_honoraire.id,
+                        gest_honoraire.noms_ens,
+                        gest_honoraire.grade_ens,
+                        gest_honoraire.cours,
+                        gest_honoraire.heure_th,
+                        gest_honoraire.montant_ht,
+                        gest_honoraire.heure_pr,
+                        gest_honoraire.montant_hp,
+                        gest_honoraire.taux,
+                        gest_honoraire.total,
+                        gest_honoraire.total_payer,
+                        gest_honoraire.type_enseig,
+                        gest_honoraire.prestation,
+                        annee_acad.annee_acad,
+                        sections.section AS faculte
+                    FROM
+                        gest_honoraire
+                    LEFT JOIN annee_acad ON gest_honoraire.id_annee = annee_acad.id_annee
+                    LEFT JOIN sections ON gest_honoraire.id_section = sections.id_section
+                    WHERE
+                        gest_honoraire.id_annee = ? AND gest_honoraire.id_section = ? gest_honoraire.prestation = ? AND gest_honoraire.type_enseign = ?";
+            $req = ConnexionBdd::Connecter()->prepare($sql);
             $req->execute(array($annee_acad, $_POST['faculte'], $_POST['prestation'], $_POST['type_enseign']));
 
             $pdf->SetFont('Arial','',7);
@@ -605,7 +788,7 @@
         if($_POST['faculte'] == "Tous" && $_POST['prestation'] == "Tous"){
             $list_fac = array();
 
-            $fac = ConnexionBdd::Connecter()->query("SELECT DISTINCT prestation FROM gest_honoraire");
+            $fac = ConnexionBdd::Connecter()->query("SELECT DISTINCT prestation FROM gest_honoraire WHERE id_annee = {$annee_acad}");
             while($data = $fac->fetch()){
                 $list_fac[] = $data['prestation'];
             }
@@ -628,7 +811,29 @@
                 $pdf->cell(15, 5,'Solde',1,0,'C');
                 $pdf->Ln(5);
 
-                $req = ConnexionBdd::Connecter()->prepare("SELECT * FROM gest_honoraire WHERE annee_acad = ? AND prestation = ?");
+                $sql = "SELECT
+                        gest_honoraire.id,
+                        gest_honoraire.noms_ens,
+                        gest_honoraire.grade_ens,
+                        gest_honoraire.cours,
+                        gest_honoraire.heure_th,
+                        gest_honoraire.montant_ht,
+                        gest_honoraire.heure_pr,
+                        gest_honoraire.montant_hp,
+                        gest_honoraire.taux,
+                        gest_honoraire.total,
+                        gest_honoraire.total_payer,
+                        gest_honoraire.type_enseig,
+                        gest_honoraire.prestation,
+                        annee_acad.annee_acad,
+                        sections.section AS faculte
+                    FROM
+                        gest_honoraire
+                    LEFT JOIN annee_acad ON gest_honoraire.id_annee = annee_acad.id_annee
+                    LEFT JOIN sections ON gest_honoraire.id_section = sections.id_section
+                    WHERE
+                        gest_honoraire.id_annee = ? AND gest_honoraire.prestation = ?";
+                $req = ConnexionBdd::Connecter()->prepare($sql);
                 $req->execute(array($annee_acad, $fac));
 
                 $pdf->SetFont('Arial','',7);
@@ -680,7 +885,7 @@
             $pdf->Ln(5);
 
             $req = ConnexionBdd::Connecter()->prepare("SELECT prestation, SUM(heure_pr) AS heure_pr, SUM(heure_th) AS heure_th, SUM(total) AS total, SUM(total_payer) AS total_payer,
-            SUM(montant_ht) AS montant_ht, SUM(montant_hp) AS montant_hp FROM gest_honoraire WHERE annee_acad = ? GROUP BY prestation");
+            SUM(montant_ht) AS montant_ht, SUM(montant_hp) AS montant_hp FROM gest_honoraire WHERE id_annee = ? GROUP BY prestation");
             $req->execute(array($annee_acad));
             //, SUM(heure_pr) AS heure_pr, SUM(heure_pr) AS heure_pr SUM() AS , SUM() AS 
             $pdf->SetFont('Arial','',7);
@@ -726,7 +931,29 @@
             $pdf->cell(15, 5,'Solde',1,0,'C');
             $pdf->Ln(5);
 
-            $req = ConnexionBdd::Connecter()->prepare("SELECT * FROM gest_honoraire WHERE annee_acad = ? AND prestation = ?");
+            $sql = "SELECT
+                        gest_honoraire.id,
+                        gest_honoraire.noms_ens,
+                        gest_honoraire.grade_ens,
+                        gest_honoraire.cours,
+                        gest_honoraire.heure_th,
+                        gest_honoraire.montant_ht,
+                        gest_honoraire.heure_pr,
+                        gest_honoraire.montant_hp,
+                        gest_honoraire.taux,
+                        gest_honoraire.total,
+                        gest_honoraire.total_payer,
+                        gest_honoraire.type_enseig,
+                        gest_honoraire.prestation,
+                        annee_acad.annee_acad,
+                        sections.section AS faculte
+                    FROM
+                        gest_honoraire
+                    LEFT JOIN annee_acad ON gest_honoraire.id_annee = annee_acad.id_annee
+                    LEFT JOIN sections ON gest_honoraire.id_section = sections.id_section
+                    WHERE
+                        gest_honoraire.id_annee = ? AND gest_honoraire.prestation = ?";
+            $req = ConnexionBdd::Connecter()->prepare($sql);
             $req->execute(array($annee_acad, $_POST['prestation']));
 
             $pdf->SetFont('Arial','',7);
@@ -780,7 +1007,29 @@
             $pdf->cell(15, 5,'Solde',1,0,'C');
             $pdf->Ln(5);
 
-            $req = ConnexionBdd::Connecter()->prepare("SELECT * FROM gest_honoraire WHERE annee_acad = ? AND prestation = ? AND faculte = ?");
+            $sql = "SELECT
+                        gest_honoraire.id,
+                        gest_honoraire.noms_ens,
+                        gest_honoraire.grade_ens,
+                        gest_honoraire.cours,
+                        gest_honoraire.heure_th,
+                        gest_honoraire.montant_ht,
+                        gest_honoraire.heure_pr,
+                        gest_honoraire.montant_hp,
+                        gest_honoraire.taux,
+                        gest_honoraire.total,
+                        gest_honoraire.total_payer,
+                        gest_honoraire.type_enseig,
+                        gest_honoraire.prestation,
+                        annee_acad.annee_acad,
+                        sections.section AS faculte
+                    FROM
+                        gest_honoraire
+                    LEFT JOIN annee_acad ON gest_honoraire.id_annee = annee_acad.id_annee
+                    LEFT JOIN sections ON gest_honoraire.id_section = sections.id_section
+                    WHERE
+                        gest_honoraire.id_annee = ? AND gest_honoraire.prestation = ? AND gest_honoraire.id_section = ?";
+            $req = ConnexionBdd::Connecter()->prepare($sql);
             $req->execute(array($annee_acad, $_POST['prestation'], $_POST['faculte']));
 
             $pdf->SetFont('Arial','',7);
@@ -831,8 +1080,7 @@
         $pdf->SetFont('Arial','',10);
         if($_POST['faculte'] == "Tous" && $_POST['type_enseign'] == "Tous"){
             $list_fac = array();
-
-            $fac = ConnexionBdd::Connecter()->query("SELECT DISTINCT type_enseig FROM gest_honoraire");
+            $fac = ConnexionBdd::Connecter()->query("SELECT DISTINCT type_enseig FROM gest_honoraire WHERE id_annee = {$annee_acad}");
             while($data = $fac->fetch()){
                 $list_fac[] = $data['type_enseig'];
             }
@@ -855,7 +1103,29 @@
                 $pdf->cell(15, 5,'Solde',1,0,'C');
                 $pdf->Ln(5);
 
-                $req = ConnexionBdd::Connecter()->prepare("SELECT * FROM gest_honoraire WHERE annee_acad = ? AND type_enseig = ?");
+                $sql = "SELECT
+                            gest_honoraire.id,
+                            gest_honoraire.noms_ens,
+                            gest_honoraire.grade_ens,
+                            gest_honoraire.cours,
+                            gest_honoraire.heure_th,
+                            gest_honoraire.montant_ht,
+                            gest_honoraire.heure_pr,
+                            gest_honoraire.montant_hp,
+                            gest_honoraire.taux,
+                            gest_honoraire.total,
+                            gest_honoraire.total_payer,
+                            gest_honoraire.type_enseig,
+                            gest_honoraire.prestation,
+                            annee_acad.annee_acad,
+                            sections.section AS faculte
+                        FROM
+                            gest_honoraire
+                        LEFT JOIN annee_acad ON gest_honoraire.id_annee = annee_acad.id_annee
+                        LEFT JOIN sections ON gest_honoraire.id_section = sections.id_section
+                        WHERE
+                            gest_honoraire.id_annee = ? AND gest_honoraire.type_enseig = ?";
+                $req = ConnexionBdd::Connecter()->prepare($sql);
                 $req->execute(array($annee_acad, $fac));
 
                 $pdf->SetFont('Arial','',7);
@@ -907,7 +1177,7 @@
             $pdf->Ln(5);
 
             $req = ConnexionBdd::Connecter()->prepare("SELECT type_enseig, SUM(heure_pr) AS heure_pr, SUM(heure_th) AS heure_th, SUM(total) AS total, SUM(total_payer) AS total_payer,
-            SUM(montant_ht) AS montant_ht, SUM(montant_hp) AS montant_hp FROM gest_honoraire WHERE annee_acad = ? GROUP BY type_enseig");
+            SUM(montant_ht) AS montant_ht, SUM(montant_hp) AS montant_hp FROM gest_honoraire WHERE id_annee = ? GROUP BY type_enseig");
             $req->execute(array($annee_acad));
             //, SUM(heure_pr) AS heure_pr, SUM(heure_pr) AS heure_pr SUM() AS , SUM() AS 
             $pdf->SetFont('Arial','',7);
@@ -973,7 +1243,29 @@
             $pdf->cell(15, 5,'Solde',1,0,'C');
             $pdf->Ln(5);
 
-            $req = ConnexionBdd::Connecter()->prepare("SELECT * FROM gest_honoraire WHERE annee_acad = ? AND type_enseig = ?");
+            $sql = "SELECT
+                        gest_honoraire.id,
+                        gest_honoraire.noms_ens,
+                        gest_honoraire.grade_ens,
+                        gest_honoraire.cours,
+                        gest_honoraire.heure_th,
+                        gest_honoraire.montant_ht,
+                        gest_honoraire.heure_pr,
+                        gest_honoraire.montant_hp,
+                        gest_honoraire.taux,
+                        gest_honoraire.total,
+                        gest_honoraire.total_payer,
+                        gest_honoraire.type_enseig,
+                        gest_honoraire.prestation,
+                        annee_acad.annee_acad,
+                        sections.section AS faculte
+                    FROM
+                        gest_honoraire
+                    LEFT JOIN annee_acad ON gest_honoraire.id_annee = annee_acad.id_annee
+                    LEFT JOIN sections ON gest_honoraire.id_section = sections.id_section
+                    WHERE
+                        gest_honoraire.id_annee = ? AND gest_honoraire.type_enseig = ?";
+            $req = ConnexionBdd::Connecter()->prepare($sql);
             $req->execute(array($annee_acad, $_POST['type_enseign']));
 
             $pdf->SetFont('Arial','',7);
@@ -1027,7 +1319,29 @@
             $pdf->cell(15, 5,'Solde',1,0,'C');
             $pdf->Ln(5);
 
-            $req = ConnexionBdd::Connecter()->prepare("SELECT * FROM gest_honoraire WHERE annee_acad = ? AND type_enseig = ? AND faculte = ?");
+            $sql = "SELECT
+                        gest_honoraire.id,
+                        gest_honoraire.noms_ens,
+                        gest_honoraire.grade_ens,
+                        gest_honoraire.cours,
+                        gest_honoraire.heure_th,
+                        gest_honoraire.montant_ht,
+                        gest_honoraire.heure_pr,
+                        gest_honoraire.montant_hp,
+                        gest_honoraire.taux,
+                        gest_honoraire.total,
+                        gest_honoraire.total_payer,
+                        gest_honoraire.type_enseig,
+                        gest_honoraire.prestation,
+                        annee_acad.annee_acad,
+                        sections.section AS faculte
+                    FROM
+                        gest_honoraire
+                    LEFT JOIN annee_acad ON gest_honoraire.id_annee = annee_acad.id_annee
+                    LEFT JOIN sections ON gest_honoraire.id_section = sections.id_section
+                    WHERE
+                        gest_honoraire.id_annee = ? AND gest_honoraire.type_enseig = ? AND gest_honoraire.id_section";
+            $req = ConnexionBdd::Connecter()->prepare($sql);
             $req->execute(array($annee_acad, $_POST['type_enseign'], $_POST['faculte']));
 
             $pdf->SetFont('Arial','',7);
@@ -1067,7 +1381,7 @@
         footer($pdf);
     }
 
-    //btn_cours_payer
+    //btn_cours_payer [ok]
     if(isset($_POST['btn_cours_payer'])){
         $pdf = new FPDF('L', 'mm', 'A4');
         $annee_acad = $_POST['annee_acad'];
@@ -1089,7 +1403,31 @@
             $pdf->cell(15, 5,'Solde',1,0,'C');
             $pdf->Ln(5);
 
-            $req = ConnexionBdd::Connecter()->prepare("SELECT * FROM gest_honoraire WHERE annee_acad = ? HAVING total-total_payer=0");
+            $sql = "SELECT
+                    gest_honoraire.id,
+                    gest_honoraire.noms_ens,
+                    gest_honoraire.grade_ens,
+                    gest_honoraire.cours,
+                    gest_honoraire.heure_th,
+                    gest_honoraire.montant_ht,
+                    gest_honoraire.heure_pr,
+                    gest_honoraire.montant_hp,
+                    gest_honoraire.taux,
+                    gest_honoraire.total,
+                    gest_honoraire.total_payer,
+                    gest_honoraire.type_enseig,
+                    gest_honoraire.prestation,
+                    annee_acad.annee_acad,
+                    sections.section as faculte
+                FROM
+                    gest_honoraire
+                LEFT JOIN annee_acad ON gest_honoraire.id_annee = annee_acad.id_annee
+                LEFT JOIN sections ON gest_honoraire.id_section = sections.id_section
+                WHERE
+                    gest_honoraire.id_annee = ?
+                HAVING
+                    gest_honoraire.total - gest_honoraire.total_payer = 0";
+            $req = ConnexionBdd::Connecter()->prepare($sql);
             $req->execute(array($annee_acad));
 
             $pdf->SetFont('Arial','',7);
@@ -1138,7 +1476,31 @@
             $pdf->cell(15, 5,'Solde',1,0,'C');
             $pdf->Ln(5);
 
-            $req = ConnexionBdd::Connecter()->prepare("SELECT * FROM gest_honoraire WHERE faculte = ? AND annee_acad = ? HAVING total-total_payer=0");
+            $sql = "SELECT
+                    gest_honoraire.id,
+                    gest_honoraire.noms_ens,
+                    gest_honoraire.grade_ens,
+                    gest_honoraire.cours,
+                    gest_honoraire.heure_th,
+                    gest_honoraire.montant_ht,
+                    gest_honoraire.heure_pr,
+                    gest_honoraire.montant_hp,
+                    gest_honoraire.taux,
+                    gest_honoraire.total,
+                    gest_honoraire.total_payer,
+                    gest_honoraire.type_enseig,
+                    gest_honoraire.prestation,
+                    annee_acad.annee_acad,
+                    sections.section as faculte
+                FROM
+                    gest_honoraire
+                LEFT JOIN annee_acad ON gest_honoraire.id_annee = annee_acad.id_annee
+                LEFT JOIN sections ON gest_honoraire.id_section = sections.id_section
+                WHERE
+                    gest_honoraire.id_section  = ? AND gest_honoraire.id_annee = ?
+                HAVING
+                    gest_honoraire.total - gest_honoraire.total_payer = 0";
+            $req = ConnexionBdd::Connecter()->prepare($sql);
             $req->execute(array($_POST['faculte'], $annee_acad));
 
             $pdf->SetFont('Arial','',7);
@@ -1180,7 +1542,7 @@
         footer($pdf);
     }
 
-    //btn_encours btn_cours_payer
+    //btn_encours btn_cours_payer [ok]
     if(isset($_POST['btn_encours'])){
         $pdf = new FPDF('L', 'mm', 'A4');
         $annee_acad = $_POST['annee_acad'];
@@ -1202,7 +1564,31 @@
             $pdf->cell(15, 5,'Solde',1,0,'C');
             $pdf->Ln(5);
 
-            $req = ConnexionBdd::Connecter()->prepare("SELECT * FROM gest_honoraire WHERE annee_acad = ? HAVING total-total_payer > 0");
+            $sql = "SELECT
+                        gest_honoraire.id,
+                        gest_honoraire.noms_ens,
+                        gest_honoraire.grade_ens,
+                        gest_honoraire.cours,
+                        gest_honoraire.heure_th,
+                        gest_honoraire.montant_ht,
+                        gest_honoraire.heure_pr,
+                        gest_honoraire.montant_hp,
+                        gest_honoraire.taux,
+                        gest_honoraire.total,
+                        gest_honoraire.total_payer,
+                        gest_honoraire.type_enseig,
+                        gest_honoraire.prestation,
+                        annee_acad.annee_acad,
+                        sections.section as faculte
+                    FROM
+                        gest_honoraire
+                    LEFT JOIN annee_acad ON gest_honoraire.id_annee = annee_acad.id_annee
+                    LEFT JOIN sections ON gest_honoraire.id_section = sections.id_section
+                    WHERE
+                        gest_honoraire.id_annee = ?
+                    HAVING
+                        gest_honoraire.total - gest_honoraire.total_payer > 0";
+            $req = ConnexionBdd::Connecter()->prepare($sql);
             $req->execute(array($annee_acad));
 
             $pdf->SetFont('Arial','',7);
@@ -1251,8 +1637,32 @@
             $pdf->cell(15, 5,'Solde',1,0,'C');
             $pdf->Ln(5);
 
-            $req = ConnexionBdd::Connecter()->prepare("SELECT * FROM gest_honoraire WHERE faculte = ? AND annee_acad = ? HAVING total-total_payer > 0");
-            $req->execute(array($_POST['faculte'], $annee_acad));
+            $sql = "SELECT
+                        gest_honoraire.id,
+                        gest_honoraire.noms_ens,
+                        gest_honoraire.grade_ens,
+                        gest_honoraire.cours,
+                        gest_honoraire.heure_th,
+                        gest_honoraire.montant_ht,
+                        gest_honoraire.heure_pr,
+                        gest_honoraire.montant_hp,
+                        gest_honoraire.taux,
+                        gest_honoraire.total,
+                        gest_honoraire.total_payer,
+                        gest_honoraire.type_enseig,
+                        gest_honoraire.prestation,
+                        annee_acad.annee_acad,
+                        sections.section as faculte
+                    FROM
+                        gest_honoraire
+                    LEFT JOIN annee_acad ON gest_honoraire.id_annee = annee_acad.id_annee
+                    LEFT JOIN sections ON gest_honoraire.id_section = sections.id_section
+                    WHERE
+                        gest_honoraire.id_annee = ? AND gest_honoraire.id_section = ?
+                    HAVING
+                        gest_honoraire.total - gest_honoraire.total_payer > 0";
+            $req = ConnexionBdd::Connecter()->prepare($sql);
+            $req->execute(array($annee_acad, $_POST['faculte']));
 
             $pdf->SetFont('Arial','',7);
             while ($res1=$req->fetch()) {
@@ -1417,7 +1827,7 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Rapport Getion Honoraire</h5>
+                    <h5 class="modal-title">Rapport Gestion Honoraire</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>

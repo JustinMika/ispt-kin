@@ -36,7 +36,7 @@
     $pdf->cell(60, 5,'Enseignants',1,0,'C');
     $pdf->cell(15, 5,'Grade',1,0,'C');
     $pdf->cell(70, 5,'Cours',1,0,'C');
-    $pdf->cell(50, 5,'Faculte',1,0,'C');
+    $pdf->cell(50, 5,'Section',1,0,'C');
     $pdf->cell(18, 5,'V. Horaire',1,0,'C');
     $pdf->cell(15, 5,'Taux',1,0,'C');
     $pdf->cell(15, 5,'Total',1,0,'C');
@@ -44,7 +44,27 @@
     $pdf->cell(15, 5,'Solde',1,0,'C');
     $pdf->Ln(5);
 
-    $req = ConnexionBdd::Connecter()->query("SELECT * FROM gest_honoraire ORDER BY noms_ens, faculte ASC");
+    $sql = "SELECT
+                gest_honoraire.id,
+                gest_honoraire.noms_ens,
+                gest_honoraire.grade_ens,
+                gest_honoraire.cours,
+                gest_honoraire.heure_th,
+                gest_honoraire.montant_ht,
+                gest_honoraire.heure_pr,
+                gest_honoraire.montant_hp,
+                gest_honoraire.taux,
+                gest_honoraire.total,
+                gest_honoraire.total_payer,
+                gest_honoraire.type_enseig,
+                gest_honoraire.prestation,
+                annee_acad.annee_acad,
+                sections.section as faculte
+            FROM
+                gest_honoraire
+            LEFT JOIN annee_acad ON gest_honoraire.id_annee = annee_acad.id_annee
+            LEFT JOIN sections ON gest_honoraire.id_section = sections.id_section";
+    $req = ConnexionBdd::Connecter()->query($sql);
 
     $pdf->SetFont('Arial','',7);
     while ($res1=$req->fetch()) {
