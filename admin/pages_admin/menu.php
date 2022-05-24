@@ -256,12 +256,12 @@
         </div>
     </li>
 
-    <li class="nav-item"  style="<?=rr()?>">
+    <!-- <li class="nav-item"  style="<?=rr()?>">
         <a class="nav-link" href="rap_fac.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>">
         <i class="fa fa-calculator" aria-hidden="true"></i>
         <span>Rapport de section </span>
         </a>
-    </li>
+    </li> -->
 
     <li class="nav-item"  style="<?=rrrr()?>">
         <a class="nav-link" href="GestionHonoraire.php?Ff=<?=VerificationUser::verif($_SESSION['data']['fonction'])?>&i=<?=VerificationUser::verif($_SESSION['data']['id'])?>">
