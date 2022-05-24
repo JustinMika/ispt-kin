@@ -94,7 +94,7 @@
                                                             ?>
                                                                 <tr>
                                                                     <td class="m-3"><?=$data['id']?></td>
-                                                                    <td class="m-3"><?=$data['date_']?></td>
+                                                                    <td class="m-3"><?=date("d/m/Y", strtotime($data['date_']))?></td>
                                                                     <td><?=$data['liebelle']?></td>
                                                                     <td><?=$data['num_cheque']?></td>
                                                                     <td><?='$'.$data['montant']?></td>
