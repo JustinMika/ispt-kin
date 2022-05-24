@@ -6,7 +6,7 @@
     //verification des sessions
     require_once './sessions.php';
     require './fpdf/fpdf.php';
-    $p = "Dépense Facultaire";
+    $p = "Dépenses Des sections";
 
     function get_annee($id){
         $d = ConnexionBdd::Connecter()->query("SELECT annee_acad from annee_acad where id_annee  = {$id}");
@@ -258,7 +258,7 @@
                                         <div class="">
                                             <div class="row mt-1" >
                                                 <div class="col-sm-12 col-md-4 col-lg-4">
-                                                    <label for="">Faculté</label>
+                                                    <label for="">Section</label>
                                                 </div>
                                                 <div class="col-sm-12 col-md-9 col-lg-7">
                                                     <select class="form-control" name="fac_etudiant" id="fac_etudiant">
