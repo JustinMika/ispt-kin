@@ -7,11 +7,11 @@
     // $faculte = $_POST['fac'];
     if(isset($_POST['id_payement']) && !empty($_POST['id_payement'])){
         $id_payement =  htmlentities(htmlspecialchars($_POST['id_payement']));
-        $del  = ConnexionBdd::Connecter()->prepare("DELETE FROM payement WHERE id = ?");
+        $del  = ConnexionBdd::Connecter()->prepare("DELETE FROM payement WHERE id_payement = ?");
         $ok = $del->execute(array($id_payement));
         if($ok){
             echo "ok";
-            LogUser::addlog(VerificationUser::verif($_SESSION['data']['noms']), "a supprimé(e) un payement");
+            LogUser::addlog(VerificationUser::verif($_SESSION['data']['id_user']), "a supprimé(e) un payement");
         }else{
             echo("Erreur interne du serveur : les donnees ne sont pas enregister");
             // header("Erreur interne du serveur", true, 500);

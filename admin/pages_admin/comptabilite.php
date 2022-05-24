@@ -296,14 +296,6 @@
                                 <input type="hidden" name="id_payement_etud" id="id_payement_etud" class="form-control" placeholder="Matricule" aria-describedby="helpId">
                                 <input type="text" name="mat_update" id="mat_update" class="form-control" placeholder="Matricule" aria-describedby="helpId">
                             </div>
-                            <!--  -->
-                            <div class="form-group">
-                                <input type="text" name="promotion_update" id="promotion_update" class="form-control" placeholder="Promotion" aria-describedby="helpId">
-                            </div>
-                            <!-- fac -->
-                            <div class="form-group">
-                                <input type="text" name="fac_update" id="fac_update" class="form-control" placeholder="Faculte" aria-describedby="helpId">
-                            </div>
                             <!-- type de frais -->
                             <div class="form-group">
                                 <input type="text" name="type_frais_update" id="type_frais_update" class="form-control" placeholder="Type de frais" aria-describedby="helpId">

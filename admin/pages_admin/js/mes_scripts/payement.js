@@ -108,11 +108,6 @@ $(document).ready(function() {
     $("#update_payement_etud").submit(function(e) {
         e.preventDefault();
         const data = {
-            mat_update: $("#mat_update").val(),
-            promotion_update: $("#promotion_update").val(),
-            fac_update: $("#fac_update").val(),
-            type_frais_update: $("#type_frais_update").val(),
-            annee_acad_update: $("#annee_acad_update").val(),
             num_b_update: $("#num_b_update").val(),
             date_p_update: $("#date_p_update").val(),
             montant_update: $("#montant_update").val(),
