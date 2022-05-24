@@ -315,11 +315,11 @@
                             <select name="poste_depense" id="poste_depense" class="form-control">
                                 <option value="Tous">Tous</option>
                                 <?php
-                                    $pdh = ConnexionBdd::Connecter()->prepare("SELECT DISTINCT poste FROM depense_facultaire WHERE id_sections = ?");
+                                    $pdh = ConnexionBdd::Connecter()->prepare("SELECT DISTINCT id_pdf, poste FROM depense_facultaire WHERE id_section = ?");
                                     $pdh->execute(array($_SESSION['data']['access']));
                                     while($data = $pdh->fetch()){
                                         echo '
-                                        <option value="'.$data['poste'].'">'.$data['poste'].'</option>';
+                                        <option value="'.$data['id_pdf'].'">'.$data['poste'].'</option>';
                                     }
                                 ?>
                             </select>
