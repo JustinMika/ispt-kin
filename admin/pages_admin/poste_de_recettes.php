@@ -82,7 +82,7 @@
                                                     ?>
                                                         <tr>
                                                             <td id="id_post"><?=$data['id']?></td>
-                                                            <td id="post_pru"><?=$data['poste']?></td>
+                                                            <td id="post_pru"><?=utf8_decode(ucfirst($data['poste']))?></td>
                                                             <td id="montant_pru"><?=$data['montant']?></td>
                                                             <td id="annee_acad"><?=$data['annee_acad']?></td>
                                                             <td>
@@ -105,7 +105,7 @@
                         <div class="col-sm-12 col-md-12 col-lg-12 mt-4">
                             <div class="card">
                                 <div class="card-header d-flex p-1 bg-gray-200" style="justify-content:space-between">
-                                    <h1 class="h3 mb-3 text-gray-800 ml-5 text-center">Prevision des frais</h1>
+                                    <h1 class="h3 mb-3 text-gray-800 ml-5 text-center">Prévision des frais</h1>
                                     <div class="dropdown open">
                                         <button class="btn btn-primary dropdown-toggle m-2" type="button" id="triggerId" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Actions</button>
                                         <div class="dropdown-menu" aria-labelledby="triggerId">
@@ -165,7 +165,7 @@
                                                     ?>
                                                         <tr>
                                                             <td id="id_type_frais_"><?=$data['id']?></td>
-                                                            <td id="type_frais_"><?=$data['type_frais']?></td>
+                                                            <td id="type_frais_"><?=utf8_decode(ucfirst($data['type_frais']))?></td>
                                                             <td id="montant_a"><?=$data['montant'].'$'?></td>
                                                             <td id="faculte_"><?=$data['faculte']?></td>
                                                             <td id="promotion_"><?=$data['promotion']?></td>
