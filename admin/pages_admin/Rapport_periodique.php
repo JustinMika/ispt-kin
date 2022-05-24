@@ -18,9 +18,7 @@
         if($f == "Tous"){
             return $f;
         }else{
-            $d = ConnexionBdd::Connecter()->query("SELECT section from sections where id_section  = {$f}");
-            $data = $d->fetch();
-            return $data['section'];
+            return $f;
         }
     }
 
@@ -83,126 +81,68 @@
         $pp = $_POST['promotion_etud'];
         $dd = $_POST['date_debit'];
         $df = $_POST['date_fin'];
+        // die($df);
         if($annee_acad_deb == $annee_acad_fin){
             $t_fac = array();
             $t_promotion = array();
             $ff = $_POST['fac_etudiant'];
             $pp = $_POST['promotion_etud'];
-            // selection des toutes les facultes
-            $f = ConnexionBdd::Connecter()->query("SELECT DISTINCT fac FROM etudiants_inscrits GROUP BY fac");
-            while($df = $f->fetch()){
-                $t_fac[] = $df['fac'];
-            }
-            // selection des toutes les promotions
-            $f = ConnexionBdd::Connecter()->query("SELECT DISTINCT promotion FROM etudiants_inscrits GROUP BY promotion");
-            while($df = $f->fetch()){
-                $t_promotion[] = $df['promotion'];
-            }
 
+            // selection des toutes les facultes
+            $f = ConnexionBdd::Connecter()->query("SELECT etudiants_inscrits.id_section, sections.section, annee_acad.id_annee FROM etudiants_inscrits LEFT JOIN sections ON etudiants_inscrits.id_section = sections.id_section LEFT JOIN annee_acad ON etudiants_inscrits.id_annee = annee_acad.id_annee WHERE etudiants_inscrits.id_annee = {$annee_acad_fin}");
+            while($df = $f->fetch()){
+                $t_fac[] = $df['section'];
+            }
 
             if($_POST['fac_etudiant'] == "Tous" && $_POST['promotion_etud'] == "Tous"){
                 foreach($t_fac as $ff){
+                    $f = ConnexionBdd::Connecter()->query("SELECT DISTINCT etudiants_inscrits.promotion, options.id_option, sections.section FROM etudiants_inscrits LEFT JOIN options ON etudiants_inscrits.id_option = options.id_option LEFT JOIN sections ON etudiants_inscrits.id_section = sections.id_section WHERE sections.section = '{$ff}' GROUP BY etudiants_inscrits.promotion");
+                    while($df = $f->fetch()){
+                        $t_promotion[] = $df['promotion'];
+                    }
                     foreach($t_promotion as $pp){
                         if(!empty($_POST['date_debit']) && !empty($_POST['date_fin'])){
                             // la tables etudiants
-                            $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT promotion, annee_academique FROM etudiants_inscrits WHERE annee_academique = ? GROUP BY annee_academique");
-                            $sel_etud->execute(array($annee_acad_fin));
-            
-                            if($sel_etud->rowCount() > 0){
-                                while ($data_student = $sel_etud->fetch()){
-                                    $pdf->cell(190, 5, decode_fr('Annee Acad. : '.$annee_acad_fin), 0, 1, 'L');
-                                    $pdf->cell(190, 5, decode_fr('Faculte : '.$ff), 0, 1, 'L');
-                                    $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
-                                    $pdf->Ln(3);
-                                    $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
-                                    $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
-                                    $pdf->Ln(1);
-            
-                                    // tableau
-                                    $a = array();
-                                    $b = array();
-            
-                                    // on verifie le type de frais
-                                    if($_POST['type_frais'] != "Tous"){
-                                        $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ? AND type_frais = ? AND faculte = ? AND promotion = ? AND date_payement BETWEEN ? AND ? GROUP BY type_frais";
-                                        $sql_2_a = array($annee_acad_deb, $_POST['type_frais'], $ff, $pp, $_POST['date_debit'], $_POST['date_fin']);
-                                        $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
-                                        $sql_2->execute($sql_2_a);
-            
-                                        while($d = $sql_2->fetch()){
-                                            $sql = "SELECT type_frais, SUM(montant) as mt FROM affectation_frais WHERE annee_acad = ? AND type_frais = ?";
-                                            $sq_array = array($annee_acad_deb, $d['type_frais']);
-                                            $data_ = ConnexionBdd::Connecter()->prepare($sql);
-                                            $data_->execute($sq_array);
-            
-                                            while($data = $data_->fetch()){
-                                                $pdf->SetFont('Arial','i',8);
-                                                $pdf->Ln(4);
-                                                $pdf->cell(60, 5, decode_fr($data['type_frais']), 1, 0, 'L');
-                                                $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
-                                                $pdf->Ln(1);
-                                                $a[] = $d['mp'];
-                                                // $b[] = $d['mp'];
-                                            }
-                                        }
-                                        if(array_sum($b) <= 0){$pdf->Ln(4);}else{$pdf->Ln(3);}
-                                        $pdf->SetFont('Arial','',9);
-                                        $pdf->cell(60, 5, 'Total', 1, 0, 'L');
-                                        $pdf->cell(30, 5, '$ '.array_sum($a), 1, 0, 'L');
-                                        $pdf->Ln(6);
-                                        $a = array();
-                                        $b = array();
-                                        // le type de frais n est pas selectionner
-                                    }else{
-                                        $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ? AND faculte = ? AND promotion = ? AND  date_payement BETWEEN ? AND ? GROUP BY type_frais";
-                                        $sql_2_a = array($annee_acad_deb, $ff, $pp, $_POST['date_debit'], $_POST['date_fin']);
-                                        $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
-                                        $sql_2->execute($sql_2_a);
-            
-                                        while($data = $sql_2->fetch()){
-                                            $pdf->SetFont('Arial','i',8);
-                                            $pdf->Ln(4);
-                                            $pdf->cell(60, 5, decode_fr($data['type_frais']), 1, 0, 'L');
-                                            $pdf->cell(30, 5, '$ '.mm($data['mp']), 1, 0, 'L');
-                                            $pdf->Ln(1);
-                                            $b[] = $data['mp'];
-                                        }
-                                        if(array_sum($b) <= 0){$pdf->Ln(4);}else{$pdf->Ln(4);}
-                                        $pdf->SetFont('Arial','',9);
-                                        $pdf->cell(60, 5, 'Total', 1, 0, 'L');
-                                        $pdf->cell(30, 5, '$ '.array_sum($b), 1, 0, 'L');
-                                        $pdf->Ln(8);
-                                        $a = array();
-                                        $b = array();
-                                    }
-                                }
-                            }
-                        }else if(empty($_POST['date_debit']) && empty($_POST['date_fin'])){
                             // selection des l etudiant
-                            $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT annee_academique FROM etudiants_inscrits WHERE annee_academique = ? GROUP BY annee_academique");
+                            $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
                             $sel_etud->execute(array($annee_acad_fin));
-            
+                
                             if($sel_etud->rowCount() > 0){
-                                while ($data_student = $sel_etud->fetch()){
+                                // while ($data_student = $sel_etud->fetch()){
                                     $pdf->Ln(5);
-                                    $pdf->cell(190, 5, decode_fr('Annee Acad. : '.$annee_acad_fin), 0, 1, 'L');
-                                    $pdf->cell(190, 5, decode_fr('Faculte : '.$ff), 0, 1, 'L');
+                                    $pdf->cell(190, 5, decode_fr('Annee Acad. : '.get_annee($annee_acad_fin)), 0, 1, 'L');
+                                    $pdf->cell(190, 5, decode_fr('Section : '.$ff), 0, 1, 'L');
                                     $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
                                     $pdf->Ln(2);
                                     $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
                                     $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
                                     $pdf->Ln(1);
-            
+                
                                     // tableau
                                     $a = array();
                                     $b = array();
-            
+                
                                     if($_POST['type_frais'] != "Tous"){
-                                        $sql_2 = "SELECT ,SUM(montant) as mp FROM payement WHERE type_frais = ? AND annee_acad = ? AND faculte = ? AND promotion = ? GROUP BY type_frais";
-                                        $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $ff, $pp);
+                                        $sql_2 = "SELECT
+                                                payement.id_payement,
+                                                SUM(payement.montant) AS mp,
+                                                payement.id_frais,
+                                                prevision_frais.type_frais,
+                                                annee_acad.annee_acad,
+                                                sections.section,
+                                                options.id_option,
+                                                options.option_
+                                            FROM
+                                                payement
+                                            LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                            LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                            LEFT JOIN sections ON payement.id_section = sections.id_section
+                                            LEFT JOIN options ON payement.id_section = options.id_option
+                                            WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                        $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp, $dd, $_POST['date_fin']);
                                         $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                         $sql_2->execute($sql_2_a);
-
+                
                                         while($d = $sql_2->fetch()){
                                             $pdf->SetFont('Arial','i',8);
                                             $pdf->Ln(4);
@@ -218,11 +158,27 @@
                                         $pdf->Ln(2);
                                         $b = array();
                                     } else {
-                                        $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ?  AND faculte = ? AND promotion = ? GROUP BY type_frais";
-                                        $sql_2_a = array($annee_acad_deb, $ff, $pp);
+                                        $sql_2 = "SELECT
+                                            payement.id_payement,
+                                            SUM(payement.montant) AS mp,
+                                            payement.id_frais,
+                                            prevision_frais.type_frais,
+                                            annee_acad.annee_acad,
+                                            sections.section,
+                                            options.id_option,
+                                            options.option_
+                                        FROM
+                                            payement
+                                        LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                        LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                        LEFT JOIN sections ON payement.id_section = sections.id_section
+                                        LEFT JOIN options ON payement.id_section = options.id_option
+                                        WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                        // die($dd);
+                                        $sql_2_a = array($annee_acad_deb, trim($ff), $pp, $dd, $_POST['date_fin']);
                                         $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                         $sql_2->execute($sql_2_a);
-            
+                
                                         while($d = $sql_2->fetch()){
                                             $pdf->SetFont('Arial','i',8);
                                             $pdf->Ln(4);
@@ -231,7 +187,104 @@
                                             $pdf->Ln(1);
                                             $a[] = $d['mp'];
                                         }
-            
+                
+                                        $pdf->Ln(4);
+                                        $pdf->SetFont('Arial','',9);
+                                        $pdf->cell(60, 5, 'Total', 1, 0, 'L');
+                                        $pdf->cell(30, 5, '$ '.array_sum($a), 1, 0, 'L');
+                                        // $pdf->cell(15, 5, '#', 1, 0, 'L');
+                                        $pdf->Ln(2);
+                                        $a = array();
+                                        $b = array();
+                                    }
+                                // }
+                            }
+                        }else if(empty($_POST['date_debit']) && empty($_POST['date_fin'])){
+                            // selection des l etudiant
+                            $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
+                            $sel_etud->execute(array($annee_acad_fin));
+                
+                            if($sel_etud->rowCount() > 0){
+                                while ($data_student = $sel_etud->fetch()){
+                                    $pdf->Ln(5);
+                                    $pdf->cell(190, 5, decode_fr('Annee Acad. : '.get_annee($annee_acad_fin)), 0, 1, 'L');
+                                    $pdf->cell(190, 5, decode_fr('Section : '.$ff), 0, 1, 'L');
+                                    $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
+                                    $pdf->Ln(2);
+                                    $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
+                                    $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
+                                    $pdf->Ln(1);
+                
+                                    // tableau
+                                    $a = array();
+                                    $b = array();
+                
+                                    if($_POST['type_frais'] != "Tous"){
+                                        $sql_2 = "SELECT
+                                                payement.id_payement,
+                                                SUM(payement.montant) AS mp,
+                                                payement.id_frais,
+                                                prevision_frais.type_frais,
+                                                annee_acad.annee_acad,
+                                                sections.section,
+                                                options.id_option,
+                                                options.option_
+                                            FROM
+                                                payement
+                                            LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                            LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                            LEFT JOIN sections ON payement.id_section = sections.id_section
+                                            LEFT JOIN options ON payement.id_section = options.id_option
+                                            WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                        $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp);
+                                        $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
+                                        $sql_2->execute($sql_2_a);
+                
+                                        while($d = $sql_2->fetch()){
+                                            $pdf->SetFont('Arial','i',8);
+                                            $pdf->Ln(4);
+                                            $pdf->cell(60, 5, utf8_decode(decode_fr($d['type_frais'])), 1, 0, 'L');
+                                            $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
+                                            $pdf->Ln(1);
+                                            $b[] = $d['mp'];
+                                        }
+                                        $pdf->Ln(4);
+                                        $pdf->SetFont('Arial','',9);
+                                        $pdf->cell(60, 5, 'Total', 1, 0, 'L');
+                                        $pdf->cell(30, 5, '$ '.array_sum($b), 1, 0, 'L');
+                                        $pdf->Ln(2);
+                                        $b = array();
+                                    } else {
+                                        $sql_2 = "SELECT
+                                            payement.id_payement,
+                                            SUM(payement.montant) AS mp,
+                                            payement.id_frais,
+                                            prevision_frais.type_frais,
+                                            annee_acad.annee_acad,
+                                            sections.section,
+                                            options.id_option,
+                                            options.option_
+                                        FROM
+                                            payement
+                                        LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                        LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                        LEFT JOIN sections ON payement.id_section = sections.id_section
+                                        LEFT JOIN options ON payement.id_section = options.id_option
+                                        WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                        // die($pp);
+                                        $sql_2_a = array($annee_acad_deb, trim($ff), $pp);
+                                        $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
+                                        $sql_2->execute($sql_2_a);
+                
+                                        while($d = $sql_2->fetch()){
+                                            $pdf->SetFont('Arial','i',8);
+                                            $pdf->Ln(4);
+                                            $pdf->cell(60, 5, utf8_decode(decode_fr($d['type_frais'])), 1, 0, 'L');
+                                            $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
+                                            $pdf->Ln(1);
+                                            $a[] = $d['mp'];
+                                        }
+                
                                         $pdf->Ln(4);
                                         $pdf->SetFont('Arial','',9);
                                         $pdf->cell(60, 5, 'Total', 1, 0, 'L');
@@ -247,107 +300,53 @@
                     }
                 }
             }else if($_POST['fac_etudiant'] != "Tous" && $_POST['promotion_etud'] == "Tous"){
+                $f = ConnexionBdd::Connecter()->query("SELECT DISTINCT etudiants_inscrits.promotion, options.id_option, sections.section FROM etudiants_inscrits LEFT JOIN options ON etudiants_inscrits.id_option = options.id_option LEFT JOIN sections ON etudiants_inscrits.id_section = sections.id_section WHERE sections.section = '{$_POST['fac_etudiant']}' GROUP BY etudiants_inscrits.promotion");
+                while($df = $f->fetch()){
+                    $t_promotion[] = $df['promotion'];
+                }
                 foreach($t_promotion as $pp){
                     if(!empty($_POST['date_debit']) && !empty($_POST['date_fin'])){
                         // la tables etudiants
-                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT promotion, annee_academique FROM etudiants_inscrits WHERE annee_academique = ? GROUP BY annee_academique");
-                        $sel_etud->execute(array($annee_acad_fin));
-        
-                        if($sel_etud->rowCount() > 0){
-                            while ($data_student = $sel_etud->fetch()){
-                                $pdf->cell(190, 10, decode_fr('Annee Acad. : '.$annee_acad_fin), 0, 1, 'L');
-                                $pdf->cell(190, 10, decode_fr('Faculte : '.$ff), 0, 1, 'L');
-                                $pdf->cell(190, 10, decode_fr('Promotion : '.$pp), 0, 1, 'L');
-                                $pdf->Ln(2);
-                                $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
-                                $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
-                                $pdf->Ln(1);
-        
-                                // tableau
-                                $a = array();
-                                $b = array();
-        
-                                // on verifie le type de frais
-                                if($_POST['type_frais'] != "Tous"){
-                                    $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ? AND type_frais = ? AND faculte = ? AND promotion = ? AND date_payement BETWEEN ? AND ? GROUP BY type_frais";
-                                    $sql_2_a = array($annee_acad_deb, $_POST['type_frais'], $ff, $pp, $_POST['date_debit'], $_POST['date_fin']);
-                                    $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
-                                    $sql_2->execute($sql_2_a);
-        
-                                    while($d = $sql_2->fetch()){
-                                        $sql = "SELECT type_frais, SUM(montant) as mt FROM affectation_frais WHERE annee_acad = ? AND type_frais = ?";
-                                        $sq_array = array($annee_acad_deb, $d['type_frais']);
-                                        $data_ = ConnexionBdd::Connecter()->prepare($sql);
-                                        $data_->execute($sq_array);
-        
-                                        while($data = $data_->fetch()){
-                                            $pdf->SetFont('Arial','i',8);
-                                            $pdf->Ln(4);
-                                            $pdf->cell(60, 5, decode_fr($data['type_frais']), 1, 0, 'L');
-                                            $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
-                                            $pdf->Ln(4);
-                                            $a[] = $d['mp'];
-                                            // $b[] = $d['mp'];
-                                        }
-                                    }
-                                    if(array_sum($b) <= 0){$pdf->Ln(4);}else{$pdf->Ln(3);}
-                                    $pdf->SetFont('Arial','',9);
-                                    $pdf->cell(60, 5, 'Total', 1, 0, 'L');
-                                    $pdf->cell(30, 5, '$ '.array_sum($a), 1, 0, 'L');
-                                    $pdf->Ln(2);
-                                    $a = array();
-                                    $b = array();
-                                    // le type de frais n est pas selectionner
-                                }else{
-                                    $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ? AND faculte = ? AND promotion = ? AND  date_payement BETWEEN ? AND ? GROUP BY type_frais";
-                                    $sql_2_a = array($annee_acad_deb, $ff, $pp, $_POST['date_debit'], $_POST['date_fin']);
-                                    $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
-                                    $sql_2->execute($sql_2_a);
-        
-                                    while($data = $sql_2->fetch()){
-                                        $pdf->SetFont('Arial','i',8);
-                                        $pdf->Ln(4);
-                                        $pdf->cell(60, 5, decode_fr($data['type_frais']), 1, 0, 'L');
-                                        $pdf->cell(30, 5, '$ '.mm($data['mp']), 1, 0, 'L');
-                                        $pdf->Ln(1);
-                                        $b[] = $data['mp'];
-                                    }
-                                    if(array_sum($b) <= 0){$pdf->Ln(1);}else{$pdf->Ln(4);}
-                                    $pdf->SetFont('Arial','',9);
-                                    $pdf->cell(60, 5, 'Total', 1, 0, 'L');
-                                    $pdf->cell(30, 5, '$ '.array_sum($b), 1, 0, 'L');
-                                    $pdf->Ln(2);
-                                    $a = array();
-                                    $b = array();
-                                }
-                            }
-                        }
-                    }else if(empty($_POST['date_debit']) && empty($_POST['date_fin'])){
                         // selection des l etudiant
-                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT annee_academique FROM etudiants_inscrits WHERE annee_academique = ? GROUP BY annee_academique");
+                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
                         $sel_etud->execute(array($annee_acad_fin));
-        
+            
                         if($sel_etud->rowCount() > 0){
-                            while ($data_student = $sel_etud->fetch()){
+                            // while ($data_student = $sel_etud->fetch()){
                                 $pdf->Ln(5);
-                                $pdf->cell(190, 5, decode_fr('Annee Acad. : '.$annee_acad_fin), 0, 1, 'L');
-                                $pdf->cell(190, 5, decode_fr('Faculte : '.$ff), 0, 1, 'L');
+                                $pdf->cell(190, 5, decode_fr('Annee Acad. : '.get_annee($annee_acad_fin)), 0, 1, 'L');
+                                $pdf->cell(190, 5, decode_fr('Section : '.$ff), 0, 1, 'L');
                                 $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
                                 $pdf->Ln(2);
                                 $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
                                 $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
                                 $pdf->Ln(1);
-        
+            
                                 // tableau
                                 $a = array();
                                 $b = array();
-        
+            
                                 if($_POST['type_frais'] != "Tous"){
-                                    $sql_2 = "SELECT ,SUM(montant) as mp FROM payement WHERE type_frais = ? AND annee_acad = ? AND faculte = ? AND promotion = ?";
-                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $ff, $pp);
+                                    $sql_2 = "SELECT
+                                            payement.id_payement,
+                                            SUM(payement.montant) AS mp,
+                                            payement.id_frais,
+                                            prevision_frais.type_frais,
+                                            annee_acad.annee_acad,
+                                            sections.section,
+                                            options.id_option,
+                                            options.option_
+                                        FROM
+                                            payement
+                                        LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                        LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                        LEFT JOIN sections ON payement.id_section = sections.id_section
+                                        LEFT JOIN options ON payement.id_section = options.id_option
+                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp, $dd, $_POST['date_fin']);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
-
+            
                                     while($d = $sql_2->fetch()){
                                         $pdf->SetFont('Arial','i',8);
                                         $pdf->Ln(4);
@@ -363,11 +362,27 @@
                                     $pdf->Ln(2);
                                     $b = array();
                                 } else {
-                                    $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ?  AND faculte = ? AND promotion = ?  GROUP BY type_frais";
-                                    $sql_2_a = array($annee_acad_deb, $ff, $pp);
+                                    $sql_2 = "SELECT
+                                        payement.id_payement,
+                                        SUM(payement.montant) AS mp,
+                                        payement.id_frais,
+                                        prevision_frais.type_frais,
+                                        annee_acad.annee_acad,
+                                        sections.section,
+                                        options.id_option,
+                                        options.option_
+                                    FROM
+                                        payement
+                                    LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                    LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                    LEFT JOIN sections ON payement.id_section = sections.id_section
+                                    LEFT JOIN options ON payement.id_section = options.id_option
+                                    WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                    // die($dd);
+                                    $sql_2_a = array($annee_acad_deb, trim($ff), $pp, $dd, $_POST['date_fin']);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
-        
+            
                                     while($d = $sql_2->fetch()){
                                         $pdf->SetFont('Arial','i',8);
                                         $pdf->Ln(4);
@@ -376,7 +391,104 @@
                                         $pdf->Ln(1);
                                         $a[] = $d['mp'];
                                     }
-        
+            
+                                    $pdf->Ln(4);
+                                    $pdf->SetFont('Arial','',9);
+                                    $pdf->cell(60, 5, 'Total', 1, 0, 'L');
+                                    $pdf->cell(30, 5, '$ '.array_sum($a), 1, 0, 'L');
+                                    // $pdf->cell(15, 5, '#', 1, 0, 'L');
+                                    $pdf->Ln(2);
+                                    $a = array();
+                                    $b = array();
+                                }
+                            // }
+                        }
+                    }else if(empty($_POST['date_debit']) && empty($_POST['date_fin'])){
+                        // selection des l etudiant
+                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
+                        $sel_etud->execute(array($annee_acad_fin));
+            
+                        if($sel_etud->rowCount() > 0){
+                            while ($data_student = $sel_etud->fetch()){
+                                $pdf->Ln(5);
+                                $pdf->cell(190, 5, decode_fr('Annee Acad. : '.get_annee($annee_acad_fin)), 0, 1, 'L');
+                                $pdf->cell(190, 5, decode_fr('Section : '.$ff), 0, 1, 'L');
+                                $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
+                                $pdf->Ln(2);
+                                $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
+                                $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
+                                $pdf->Ln(1);
+            
+                                // tableau
+                                $a = array();
+                                $b = array();
+            
+                                if($_POST['type_frais'] != "Tous"){
+                                    $sql_2 = "SELECT
+                                            payement.id_payement,
+                                            SUM(payement.montant) AS mp,
+                                            payement.id_frais,
+                                            prevision_frais.type_frais,
+                                            annee_acad.annee_acad,
+                                            sections.section,
+                                            options.id_option,
+                                            options.option_
+                                        FROM
+                                            payement
+                                        LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                        LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                        LEFT JOIN sections ON payement.id_section = sections.id_section
+                                        LEFT JOIN options ON payement.id_section = options.id_option
+                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp);
+                                    $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
+                                    $sql_2->execute($sql_2_a);
+            
+                                    while($d = $sql_2->fetch()){
+                                        $pdf->SetFont('Arial','i',8);
+                                        $pdf->Ln(4);
+                                        $pdf->cell(60, 5, utf8_decode(decode_fr($d['type_frais'])), 1, 0, 'L');
+                                        $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
+                                        $pdf->Ln(1);
+                                        $b[] = $d['mp'];
+                                    }
+                                    $pdf->Ln(4);
+                                    $pdf->SetFont('Arial','',9);
+                                    $pdf->cell(60, 5, 'Total', 1, 0, 'L');
+                                    $pdf->cell(30, 5, '$ '.array_sum($b), 1, 0, 'L');
+                                    $pdf->Ln(2);
+                                    $b = array();
+                                } else {
+                                    $sql_2 = "SELECT
+                                        payement.id_payement,
+                                        SUM(payement.montant) AS mp,
+                                        payement.id_frais,
+                                        prevision_frais.type_frais,
+                                        annee_acad.annee_acad,
+                                        sections.section,
+                                        options.id_option,
+                                        options.option_
+                                    FROM
+                                        payement
+                                    LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                    LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                    LEFT JOIN sections ON payement.id_section = sections.id_section
+                                    LEFT JOIN options ON payement.id_section = options.id_option
+                                    WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                    // die($pp);
+                                    $sql_2_a = array($annee_acad_deb, trim($ff), $pp);
+                                    $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
+                                    $sql_2->execute($sql_2_a);
+            
+                                    while($d = $sql_2->fetch()){
+                                        $pdf->SetFont('Arial','i',8);
+                                        $pdf->Ln(4);
+                                        $pdf->cell(60, 5, utf8_decode(decode_fr($d['type_frais'])), 1, 0, 'L');
+                                        $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
+                                        $pdf->Ln(1);
+                                        $a[] = $d['mp'];
+                                    }
+            
                                     $pdf->Ln(4);
                                     $pdf->SetFont('Arial','',9);
                                     $pdf->cell(60, 5, 'Total', 1, 0, 'L');
@@ -393,104 +505,46 @@
             }else if($_POST['fac_etudiant'] != "Tous" && $_POST['promotion_etud'] != "Tous"){
                 if(!empty($_POST['date_debit']) && !empty($_POST['date_fin'])){
                     // la tables etudiants
-                    $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT promotion, annee_academique FROM etudiants_inscrits WHERE annee_academique = ? GROUP BY annee_academique");
-                    $sel_etud->execute(array($annee_acad_fin));
-
-                    if($sel_etud->rowCount() > 0){
-                        while ($data_student = $sel_etud->fetch()){
-                            $pdf->cell(190, 10, decode_fr('Annee Acad. : '.$annee_acad_fin), 0, 1, 'L');
-                            $pdf->cell(190, 10, decode_fr('Faculte : '.$ff), 0, 1, 'L');
-                            $pdf->cell(190, 10, decode_fr('Promotion : '.$pp), 0, 1, 'L');
-                            $pdf->Ln(2);
-                            $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
-                            $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
-                            $pdf->Ln(1);
-
-                            // tableau
-                            $a = array();
-                            $b = array();
-
-                            // on verifie le type de frais
-                            if($_POST['type_frais'] != "Tous"){
-                                $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ? AND type_frais = ? AND faculte = ? AND promotion = ? AND date_payement BETWEEN ? AND ? GROUP BY type_frais";
-                                $sql_2_a = array($annee_acad_deb, $_POST['type_frais'], $ff, $pp, $_POST['date_debit'], $_POST['date_fin']);
-                                $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
-                                $sql_2->execute($sql_2_a);
-
-                                while($d = $sql_2->fetch()){
-                                    $sql = "SELECT type_frais, SUM(montant) as mt FROM affectation_frais WHERE annee_acad = ? AND type_frais = ?";
-                                    $sq_array = array($annee_acad_deb, $d['type_frais']);
-                                    $data_ = ConnexionBdd::Connecter()->prepare($sql);
-                                    $data_->execute($sq_array);
-
-                                    while($data = $data_->fetch()){
-                                        $pdf->SetFont('Arial','i',8);
-                                        $pdf->Ln(4);
-                                        $pdf->cell(60, 5, decode_fr($data['type_frais']), 1, 0, 'L');
-                                        $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
-                                        $pdf->Ln(4);
-                                        $a[] = $d['mp'];
-                                        // $b[] = $d['mp'];
-                                    }
-                                }
-                                if(array_sum($b) <= 0){$pdf->Ln(4);}else{$pdf->Ln(3);}
-                                $pdf->SetFont('Arial','',9);
-                                $pdf->cell(60, 5, 'Total', 1, 0, 'L');
-                                $pdf->cell(30, 5, '$ '.array_sum($a), 1, 0, 'L');
-                                $pdf->Ln(2);
-                                $a = array();
-                                $b = array();
-                                // le type de frais n est pas selectionner
-                            }else{
-                                $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ? AND faculte = ? AND promotion = ? AND  date_payement BETWEEN ? AND ? GROUP BY type_frais";
-                                $sql_2_a = array($annee_acad_deb, $ff, $pp, $_POST['date_debit'], $_POST['date_fin']);
-                                $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
-                                $sql_2->execute($sql_2_a);
-
-                                while($data = $sql_2->fetch()){
-                                    $pdf->SetFont('Arial','i',8);
-                                    $pdf->Ln(4);
-                                    $pdf->cell(60, 5, decode_fr($data['type_frais']), 1, 0, 'L');
-                                    $pdf->cell(30, 5, '$ '.mm($data['mp']), 1, 0, 'L');
-                                    $pdf->Ln(1);
-                                    $b[] = $data['mp'];
-                                }
-                                if(array_sum($b) <= 0){$pdf->Ln(1);}else{$pdf->Ln(4);}
-                                $pdf->SetFont('Arial','',9);
-                                $pdf->cell(60, 5, 'Total', 1, 0, 'L');
-                                $pdf->cell(30, 5, '$ '.array_sum($b), 1, 0, 'L');
-                                $pdf->Ln(2);
-                                $a = array();
-                                $b = array();
-                            }
-                        }
-                    }
-                }else if(empty($_POST['date_debit']) && empty($_POST['date_fin'])){
                     // selection des l etudiant
-                    $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT annee_academique FROM etudiants_inscrits WHERE annee_academique = ? GROUP BY annee_academique");
+                    $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
                     $sel_etud->execute(array($annee_acad_fin));
-
+        
                     if($sel_etud->rowCount() > 0){
-                        while ($data_student = $sel_etud->fetch()){
+                        // while ($data_student = $sel_etud->fetch()){
                             $pdf->Ln(5);
-                            $pdf->cell(190, 5, decode_fr('Annee Acad. : '.$annee_acad_fin), 0, 1, 'L');
-                            $pdf->cell(190, 5, decode_fr('Faculte : '.$ff), 0, 1, 'L');
+                            $pdf->cell(190, 5, decode_fr('Annee Acad. : '.get_annee($annee_acad_fin)), 0, 1, 'L');
+                            $pdf->cell(190, 5, decode_fr('Section : '.$ff), 0, 1, 'L');
                             $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
                             $pdf->Ln(2);
                             $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
                             $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
                             $pdf->Ln(1);
-
+        
                             // tableau
                             $a = array();
                             $b = array();
-
+        
                             if($_POST['type_frais'] != "Tous"){
-                                $sql_2 = "SELECT ,SUM(montant) as mp FROM payement WHERE type_frais = ? AND annee_acad = ? AND faculte = ? AND promotion = ?";
-                                $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $ff, $pp);
+                                $sql_2 = "SELECT
+                                        payement.id_payement,
+                                        SUM(payement.montant) AS mp,
+                                        payement.id_frais,
+                                        prevision_frais.type_frais,
+                                        annee_acad.annee_acad,
+                                        sections.section,
+                                        options.id_option,
+                                        options.option_
+                                    FROM
+                                        payement
+                                    LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                    LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                    LEFT JOIN sections ON payement.id_section = sections.id_section
+                                    LEFT JOIN options ON payement.id_section = options.id_option
+                                    WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp, $dd, $_POST['date_fin']);
                                 $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                 $sql_2->execute($sql_2_a);
-
+        
                                 while($d = $sql_2->fetch()){
                                     $pdf->SetFont('Arial','i',8);
                                     $pdf->Ln(4);
@@ -506,11 +560,27 @@
                                 $pdf->Ln(2);
                                 $b = array();
                             } else {
-                                $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ?  AND faculte = ? AND promotion = ?  GROUP BY type_frais";
-                                $sql_2_a = array($annee_acad_deb, $ff, $pp);
+                                $sql_2 = "SELECT
+                                    payement.id_payement,
+                                    SUM(payement.montant) AS mp,
+                                    payement.id_frais,
+                                    prevision_frais.type_frais,
+                                    annee_acad.annee_acad,
+                                    sections.section,
+                                    options.id_option,
+                                    options.option_
+                                FROM
+                                    payement
+                                LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                LEFT JOIN sections ON payement.id_section = sections.id_section
+                                LEFT JOIN options ON payement.id_section = options.id_option
+                                WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                // die($dd);
+                                $sql_2_a = array($annee_acad_deb, trim($ff), $pp, $dd, $_POST['date_fin']);
                                 $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                 $sql_2->execute($sql_2_a);
-
+        
                                 while($d = $sql_2->fetch()){
                                     $pdf->SetFont('Arial','i',8);
                                     $pdf->Ln(4);
@@ -519,7 +589,104 @@
                                     $pdf->Ln(1);
                                     $a[] = $d['mp'];
                                 }
-
+        
+                                $pdf->Ln(4);
+                                $pdf->SetFont('Arial','',9);
+                                $pdf->cell(60, 5, 'Total', 1, 0, 'L');
+                                $pdf->cell(30, 5, '$ '.array_sum($a), 1, 0, 'L');
+                                // $pdf->cell(15, 5, '#', 1, 0, 'L');
+                                $pdf->Ln(2);
+                                $a = array();
+                                $b = array();
+                            }
+                        // }
+                    }
+                }else if(empty($_POST['date_debit']) && empty($_POST['date_fin'])){
+                    // selection des l etudiant
+                    $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
+                    $sel_etud->execute(array($annee_acad_fin));
+        
+                    if($sel_etud->rowCount() > 0){
+                        while ($data_student = $sel_etud->fetch()){
+                            $pdf->Ln(5);
+                            $pdf->cell(190, 5, decode_fr('Annee Acad. : '.get_annee($annee_acad_fin)), 0, 1, 'L');
+                            $pdf->cell(190, 5, decode_fr('Section : '.$ff), 0, 1, 'L');
+                            $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
+                            $pdf->Ln(2);
+                            $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
+                            $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
+                            $pdf->Ln(1);
+        
+                            // tableau
+                            $a = array();
+                            $b = array();
+        
+                            if($_POST['type_frais'] != "Tous"){
+                                $sql_2 = "SELECT
+                                        payement.id_payement,
+                                        SUM(payement.montant) AS mp,
+                                        payement.id_frais,
+                                        prevision_frais.type_frais,
+                                        annee_acad.annee_acad,
+                                        sections.section,
+                                        options.id_option,
+                                        options.option_
+                                    FROM
+                                        payement
+                                    LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                    LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                    LEFT JOIN sections ON payement.id_section = sections.id_section
+                                    LEFT JOIN options ON payement.id_section = options.id_option
+                                    WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp);
+                                $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
+                                $sql_2->execute($sql_2_a);
+        
+                                while($d = $sql_2->fetch()){
+                                    $pdf->SetFont('Arial','i',8);
+                                    $pdf->Ln(4);
+                                    $pdf->cell(60, 5, utf8_decode(decode_fr($d['type_frais'])), 1, 0, 'L');
+                                    $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
+                                    $pdf->Ln(1);
+                                    $b[] = $d['mp'];
+                                }
+                                $pdf->Ln(4);
+                                $pdf->SetFont('Arial','',9);
+                                $pdf->cell(60, 5, 'Total', 1, 0, 'L');
+                                $pdf->cell(30, 5, '$ '.array_sum($b), 1, 0, 'L');
+                                $pdf->Ln(2);
+                                $b = array();
+                            } else {
+                                $sql_2 = "SELECT
+                                    payement.id_payement,
+                                    SUM(payement.montant) AS mp,
+                                    payement.id_frais,
+                                    prevision_frais.type_frais,
+                                    annee_acad.annee_acad,
+                                    sections.section,
+                                    options.id_option,
+                                    options.option_
+                                FROM
+                                    payement
+                                LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                LEFT JOIN sections ON payement.id_section = sections.id_section
+                                LEFT JOIN options ON payement.id_section = options.id_option
+                                WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                // die($pp);
+                                $sql_2_a = array($annee_acad_deb, trim($ff), $pp);
+                                $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
+                                $sql_2->execute($sql_2_a);
+        
+                                while($d = $sql_2->fetch()){
+                                    $pdf->SetFont('Arial','i',8);
+                                    $pdf->Ln(4);
+                                    $pdf->cell(60, 5, utf8_decode(decode_fr($d['type_frais'])), 1, 0, 'L');
+                                    $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
+                                    $pdf->Ln(1);
+                                    $a[] = $d['mp'];
+                                }
+        
                                 $pdf->Ln(4);
                                 $pdf->SetFont('Arial','',9);
                                 $pdf->cell(60, 5, 'Total', 1, 0, 'L');
@@ -536,104 +703,46 @@
                 foreach($t_fac as $ff){
                     if(!empty($_POST['date_debit']) && !empty($_POST['date_fin'])){
                         // la tables etudiants
-                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT promotion, annee_academique FROM etudiants_inscrits WHERE annee_academique = ? GROUP BY annee_academique");
-                        $sel_etud->execute(array($annee_acad_fin));
-        
-                        if($sel_etud->rowCount() > 0){
-                            while ($data_student = $sel_etud->fetch()){
-                                $pdf->cell(190, 10, decode_fr('Annee Acad. : '.$annee_acad_fin), 0, 1, 'L');
-                                $pdf->cell(190, 10, decode_fr('Faculte : '.$ff), 0, 1, 'L');
-                                $pdf->cell(190, 10, decode_fr('Promotion : '.$pp), 0, 1, 'L');
-                                $pdf->Ln(2);
-                                $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
-                                $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
-                                $pdf->Ln(1);
-        
-                                // tableau
-                                $a = array();
-                                $b = array();
-        
-                                // on verifie le type de frais
-                                if($_POST['type_frais'] != "Tous"){
-                                    $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ? AND type_frais = ? AND faculte = ? AND promotion = ? AND date_payement BETWEEN ? AND ? GROUP BY type_frais";
-                                    $sql_2_a = array($annee_acad_deb, $_POST['type_frais'], $ff, $pp, $_POST['date_debit'], $_POST['date_fin']);
-                                    $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
-                                    $sql_2->execute($sql_2_a);
-        
-                                    while($d = $sql_2->fetch()){
-                                        $sql = "SELECT type_frais, SUM(montant) as mt FROM affectation_frais WHERE annee_acad = ? AND type_frais = ?";
-                                        $sq_array = array($annee_acad_deb, $d['type_frais']);
-                                        $data_ = ConnexionBdd::Connecter()->prepare($sql);
-                                        $data_->execute($sq_array);
-        
-                                        while($data = $data_->fetch()){
-                                            $pdf->SetFont('Arial','i',8);
-                                            $pdf->Ln(4);
-                                            $pdf->cell(60, 5, decode_fr($data['type_frais']), 1, 0, 'L');
-                                            $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
-                                            $pdf->Ln(4);
-                                            $a[] = $d['mp'];
-                                            // $b[] = $d['mp'];
-                                        }
-                                    }
-                                    if(array_sum($b) <= 0){$pdf->Ln(4);}else{$pdf->Ln(3);}
-                                    $pdf->SetFont('Arial','',9);
-                                    $pdf->cell(60, 5, 'Total', 1, 0, 'L');
-                                    $pdf->cell(30, 5, '$ '.array_sum($a), 1, 0, 'L');
-                                    $pdf->Ln(2);
-                                    $a = array();
-                                    $b = array();
-                                    // le type de frais n est pas selectionner
-                                }else{
-                                    $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ? AND faculte = ? AND promotion = ? AND  date_payement BETWEEN ? AND ? GROUP BY type_frais";
-                                    $sql_2_a = array($annee_acad_deb, $ff, $pp, $_POST['date_debit'], $_POST['date_fin']);
-                                    $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
-                                    $sql_2->execute($sql_2_a);
-        
-                                    while($data = $sql_2->fetch()){
-                                        $pdf->SetFont('Arial','i',8);
-                                        $pdf->Ln(4);
-                                        $pdf->cell(60, 5, decode_fr($data['type_frais']), 1, 0, 'L');
-                                        $pdf->cell(30, 5, '$ '.mm($data['mp']), 1, 0, 'L');
-                                        $pdf->Ln(1);
-                                        $b[] = $data['mp'];
-                                    }
-                                    if(array_sum($b) <= 0){$pdf->Ln(1);}else{$pdf->Ln(4);}
-                                    $pdf->SetFont('Arial','',9);
-                                    $pdf->cell(60, 5, 'Total', 1, 0, 'L');
-                                    $pdf->cell(30, 5, '$ '.array_sum($b), 1, 0, 'L');
-                                    $pdf->Ln(2);
-                                    $a = array();
-                                    $b = array();
-                                }
-                            }
-                        }
-                    }else if(empty($_POST['date_debit']) && empty($_POST['date_fin'])){
                         // selection des l etudiant
-                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT annee_academique FROM etudiants_inscrits WHERE annee_academique = ? GROUP BY annee_academique");
+                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
                         $sel_etud->execute(array($annee_acad_fin));
-        
+            
                         if($sel_etud->rowCount() > 0){
-                            while ($data_student = $sel_etud->fetch()){
+                            // while ($data_student = $sel_etud->fetch()){
                                 $pdf->Ln(5);
-                                $pdf->cell(190, 5, decode_fr('Annee Acad. : '.$annee_acad_fin), 0, 1, 'L');
-                                $pdf->cell(190, 5, decode_fr('Faculte : '.$ff), 0, 1, 'L');
+                                $pdf->cell(190, 5, decode_fr('Annee Acad. : '.get_annee($annee_acad_fin)), 0, 1, 'L');
+                                $pdf->cell(190, 5, decode_fr('Section : '.$ff), 0, 1, 'L');
                                 $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
                                 $pdf->Ln(2);
                                 $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
                                 $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
                                 $pdf->Ln(1);
-        
+            
                                 // tableau
                                 $a = array();
                                 $b = array();
-        
+            
                                 if($_POST['type_frais'] != "Tous"){
-                                    $sql_2 = "SELECT SUM(montant) as mp FROM payement WHERE type_frais = ? AND annee_acad = ? AND faculte = ? AND promotion = ?";
-                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $ff, $pp);
+                                    $sql_2 = "SELECT
+                                            payement.id_payement,
+                                            SUM(payement.montant) AS mp,
+                                            payement.id_frais,
+                                            prevision_frais.type_frais,
+                                            annee_acad.annee_acad,
+                                            sections.section,
+                                            options.id_option,
+                                            options.option_
+                                        FROM
+                                            payement
+                                        LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                        LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                        LEFT JOIN sections ON payement.id_section = sections.id_section
+                                        LEFT JOIN options ON payement.id_section = options.id_option
+                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp, $dd, $_POST['date_fin']);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
-
+            
                                     while($d = $sql_2->fetch()){
                                         $pdf->SetFont('Arial','i',8);
                                         $pdf->Ln(4);
@@ -649,11 +758,27 @@
                                     $pdf->Ln(2);
                                     $b = array();
                                 } else {
-                                    $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ?  AND faculte = ? AND promotion = ?  GROUP BY type_frais";
-                                    $sql_2_a = array($annee_acad_deb, $ff, $pp);
+                                    $sql_2 = "SELECT
+                                        payement.id_payement,
+                                        SUM(payement.montant) AS mp,
+                                        payement.id_frais,
+                                        prevision_frais.type_frais,
+                                        annee_acad.annee_acad,
+                                        sections.section,
+                                        options.id_option,
+                                        options.option_
+                                    FROM
+                                        payement
+                                    LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                    LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                    LEFT JOIN sections ON payement.id_section = sections.id_section
+                                    LEFT JOIN options ON payement.id_section = options.id_option
+                                    WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                    // die($dd);
+                                    $sql_2_a = array($annee_acad_deb, trim($ff), $pp, $dd, $_POST['date_fin']);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
-        
+            
                                     while($d = $sql_2->fetch()){
                                         $pdf->SetFont('Arial','i',8);
                                         $pdf->Ln(4);
@@ -662,7 +787,104 @@
                                         $pdf->Ln(1);
                                         $a[] = $d['mp'];
                                     }
-        
+            
+                                    $pdf->Ln(4);
+                                    $pdf->SetFont('Arial','',9);
+                                    $pdf->cell(60, 5, 'Total', 1, 0, 'L');
+                                    $pdf->cell(30, 5, '$ '.array_sum($a), 1, 0, 'L');
+                                    // $pdf->cell(15, 5, '#', 1, 0, 'L');
+                                    $pdf->Ln(2);
+                                    $a = array();
+                                    $b = array();
+                                }
+                            // }
+                        }
+                    }else if(empty($_POST['date_debit']) && empty($_POST['date_fin'])){
+                        // selection des l etudiant
+                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
+                        $sel_etud->execute(array($annee_acad_fin));
+            
+                        if($sel_etud->rowCount() > 0){
+                            while ($data_student = $sel_etud->fetch()){
+                                $pdf->Ln(5);
+                                $pdf->cell(190, 5, decode_fr('Annee Acad. : '.get_annee($annee_acad_fin)), 0, 1, 'L');
+                                $pdf->cell(190, 5, decode_fr('Section : '.$ff), 0, 1, 'L');
+                                $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
+                                $pdf->Ln(2);
+                                $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
+                                $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
+                                $pdf->Ln(1);
+            
+                                // tableau
+                                $a = array();
+                                $b = array();
+            
+                                if($_POST['type_frais'] != "Tous"){
+                                    $sql_2 = "SELECT
+                                            payement.id_payement,
+                                            SUM(payement.montant) AS mp,
+                                            payement.id_frais,
+                                            prevision_frais.type_frais,
+                                            annee_acad.annee_acad,
+                                            sections.section,
+                                            options.id_option,
+                                            options.option_
+                                        FROM
+                                            payement
+                                        LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                        LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                        LEFT JOIN sections ON payement.id_section = sections.id_section
+                                        LEFT JOIN options ON payement.id_section = options.id_option
+                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp);
+                                    $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
+                                    $sql_2->execute($sql_2_a);
+            
+                                    while($d = $sql_2->fetch()){
+                                        $pdf->SetFont('Arial','i',8);
+                                        $pdf->Ln(4);
+                                        $pdf->cell(60, 5, utf8_decode(decode_fr($d['type_frais'])), 1, 0, 'L');
+                                        $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
+                                        $pdf->Ln(1);
+                                        $b[] = $d['mp'];
+                                    }
+                                    $pdf->Ln(4);
+                                    $pdf->SetFont('Arial','',9);
+                                    $pdf->cell(60, 5, 'Total', 1, 0, 'L');
+                                    $pdf->cell(30, 5, '$ '.array_sum($b), 1, 0, 'L');
+                                    $pdf->Ln(2);
+                                    $b = array();
+                                } else {
+                                    $sql_2 = "SELECT
+                                        payement.id_payement,
+                                        SUM(payement.montant) AS mp,
+                                        payement.id_frais,
+                                        prevision_frais.type_frais,
+                                        annee_acad.annee_acad,
+                                        sections.section,
+                                        options.id_option,
+                                        options.option_
+                                    FROM
+                                        payement
+                                    LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                    LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                    LEFT JOIN sections ON payement.id_section = sections.id_section
+                                    LEFT JOIN options ON payement.id_section = options.id_option
+                                    WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                    // die($pp);
+                                    $sql_2_a = array($annee_acad_deb, trim($ff), $pp);
+                                    $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
+                                    $sql_2->execute($sql_2_a);
+            
+                                    while($d = $sql_2->fetch()){
+                                        $pdf->SetFont('Arial','i',8);
+                                        $pdf->Ln(4);
+                                        $pdf->cell(60, 5, utf8_decode(decode_fr($d['type_frais'])), 1, 0, 'L');
+                                        $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
+                                        $pdf->Ln(1);
+                                        $a[] = $d['mp'];
+                                    }
+            
                                     $pdf->Ln(4);
                                     $pdf->SetFont('Arial','',9);
                                     $pdf->cell(60, 5, 'Total', 1, 0, 'L');
@@ -707,7 +929,7 @@
 
         all($pdf);
         $pdf->SetFont('Arial','BU',10);
-        $pdf->cell(190, 10, decode_fr('SYNTHÈSE DES FRAIS PAR FACULTE'), 0, 1, 'C');
+        $pdf->cell(190, 10, decode_fr('SYNTHÈSE DES FRAIS PAR SECTION'), 0, 1, 'C');
         $pdf->SetFont('Arial','',10);
 
         $annee_acad_deb = $_POST['annee_acad_deb'];
@@ -722,9 +944,9 @@
             $ff = $_POST['fac_etudiant'];
             $pp = $_POST['promotion_etud'];
             // selection des toutes les facultes
-            $f = ConnexionBdd::Connecter()->query("SELECT DISTINCT fac FROM etudiants_inscrits GROUP BY fac");
+            $f = ConnexionBdd::Connecter()->query("SELECT etudiants_inscrits.id_section, sections.section, annee_acad.id_annee FROM etudiants_inscrits LEFT JOIN sections ON etudiants_inscrits.id_section = sections.id_section LEFT JOIN annee_acad ON etudiants_inscrits.id_annee = annee_acad.id_annee WHERE etudiants_inscrits.id_annee = {$annee_acad_fin}");
             while($df = $f->fetch()){
-                $t_fac[] = $df['fac'];
+                $t_fac[] = $df['section'];
             }
             // selection des toutes les promotions
             $f = ConnexionBdd::Connecter()->query("SELECT DISTINCT promotion FROM etudiants_inscrits GROUP BY promotion");
@@ -737,88 +959,15 @@
                 foreach($t_fac as $ff){
                     if(!empty($_POST['date_debit']) && !empty($_POST['date_fin'])){
                         // la tables etudiants
-                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT promotion, annee_academique FROM etudiants_inscrits WHERE annee_academique = ? GROUP BY annee_academique");
-                        $sel_etud->execute(array($annee_acad_fin));
-        
-                        if($sel_etud->rowCount() > 0){
-                            while ($data_student = $sel_etud->fetch()){
-                                $pdf->cell(190, 5, decode_fr('Annee Acad. : '.$annee_acad_fin), 0, 1, 'L');
-                                $pdf->cell(190, 5, decode_fr('Faculté : '.$ff), 0, 1, 'L');
-                                $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
-                                $pdf->Ln(2);
-                                $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
-                                $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
-                                $pdf->Ln(1);
-        
-                                // tableau
-                                $a = array();
-                                $b = array();
-        
-                                // on verifie le type de frais
-                                if($_POST['type_frais'] != "Tous"){
-                                    $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ? AND type_frais = ? AND faculte = ? AND date_payement BETWEEN ? AND ? GROUP BY type_frais";
-                                    $sql_2_a = array($annee_acad_deb, $_POST['type_frais'], $ff, $_POST['date_debit'], $_POST['date_fin']);
-                                    $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
-                                    $sql_2->execute($sql_2_a);
-        
-                                    while($d = $sql_2->fetch()){
-                                        $sql = "SELECT type_frais, SUM(montant) as mt FROM affectation_frais WHERE annee_acad = ? AND type_frais = ?";
-                                        $sq_array = array($annee_acad_deb, $d['type_frais']);
-                                        $data_ = ConnexionBdd::Connecter()->prepare($sql);
-                                        $data_->execute($sq_array);
-        
-                                        while($data = $data_->fetch()){
-                                            $pdf->SetFont('Arial','i',8);
-                                            $pdf->Ln(4);
-                                            $pdf->cell(60, 5, decode_fr($data['type_frais']), 1, 0, 'L');
-                                            $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
-                                            $pdf->Ln(4);
-                                            $a[] = $d['mp'];
-                                            // $b[] = $d['mp'];
-                                        }
-                                    }
-                                    if(array_sum($b) <= 0){$pdf->Ln(4);}else{$pdf->Ln(3);}
-                                    $pdf->SetFont('Arial','',9);
-                                    $pdf->cell(60, 5, 'Total', 1, 0, 'L');
-                                    $pdf->cell(30, 5, '$ '.array_sum($a), 1, 0, 'L');
-                                    $pdf->Ln(6);
-                                    $a = array();
-                                    $b = array();
-                                    // le type de frais n est pas selectionner
-                                }else{
-                                    $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ? AND faculte = ? AND date_payement BETWEEN ? AND ? GROUP BY type_frais";
-                                    $sql_2_a = array($annee_acad_deb, $ff, $_POST['date_debit'], $_POST['date_fin']);
-                                    $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
-                                    $sql_2->execute($sql_2_a);
-        
-                                    while($data = $sql_2->fetch()){
-                                        $pdf->SetFont('Arial','i',8);
-                                        $pdf->Ln(4);
-                                        $pdf->cell(60, 5, decode_fr($data['type_frais']), 1, 0, 'L');
-                                        $pdf->cell(30, 5, '$ '.mm($data['mp']), 1, 0, 'L');
-                                        $pdf->Ln(1);
-                                        $b[] = $data['mp'];
-                                    }
-                                    if(array_sum($b) <= 0){$pdf->Ln(3);}else{$pdf->Ln(4);}
-                                    $pdf->SetFont('Arial','',9);
-                                    $pdf->cell(60, 5, 'Total', 1, 0, 'L');
-                                    $pdf->cell(30, 5, '$ '.array_sum($b), 1, 0, 'L');
-                                    $pdf->Ln(8);
-                                    $a = array();
-                                    $b = array();
-                                }
-                            }
-                        }
-                    }else if(empty($_POST['date_debit']) && empty($_POST['date_fin'])){
                         // selection des l etudiant
-                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT annee_academique FROM etudiants_inscrits WHERE annee_academique = ? GROUP BY annee_academique");
+                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
                         $sel_etud->execute(array($annee_acad_fin));
         
                         if($sel_etud->rowCount() > 0){
-                            while ($data_student = $sel_etud->fetch()){
+                            // while ($data_student = $sel_etud->fetch()){
                                 $pdf->Ln(5);
-                                $pdf->cell(190, 5, decode_fr('Annee Acad. : '.$annee_acad_fin), 0, 1, 'L');
-                                $pdf->cell(190, 5, decode_fr('Faculté : '.$ff), 0, 1, 'L');
+                                $pdf->cell(190, 5, decode_fr('Annee Acad. : '.get_annee($annee_acad_fin)), 0, 1, 'L');
+                                $pdf->cell(190, 5, decode_fr('Section : '.$ff), 0, 1, 'L');
                                 $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
                                 $pdf->Ln(2);
                                 $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
@@ -830,11 +979,26 @@
                                 $b = array();
         
                                 if($_POST['type_frais'] != "Tous"){
-                                    $sql_2 = "SELECT ,SUM(montant) as mp FROM payement WHERE type_frais = ? AND annee_acad = ? AND faculte = ? GROUP BY type_frais";
-                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $ff);
+                                    $sql_2 = "SELECT
+                                            payement.id_payement,
+                                            SUM(payement.montant) AS mp,
+                                            payement.id_frais,
+                                            prevision_frais.type_frais,
+                                            annee_acad.annee_acad,
+                                            sections.section,
+                                            options.id_option,
+                                            options.option_
+                                        FROM
+                                            payement
+                                        LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                        LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                        LEFT JOIN sections ON payement.id_section = sections.id_section
+                                        LEFT JOIN options ON payement.id_section = options.id_option
+                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND payement.date_payement BETWEEN ? AND ?";
+                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $ff, $dd, $_POST['date_fin']);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
-
+    
                                     while($d = $sql_2->fetch()){
                                         $pdf->SetFont('Arial','i',8);
                                         $pdf->Ln(4);
@@ -843,15 +1007,31 @@
                                         $pdf->Ln(1);
                                         $b[] = $d['mp'];
                                     }
-                                    if(array_sum($b) <= 0){$pdf->Ln(3);}else{$pdf->Ln(4);}
+                                    $pdf->Ln(4);
                                     $pdf->SetFont('Arial','',9);
                                     $pdf->cell(60, 5, 'Total', 1, 0, 'L');
                                     $pdf->cell(30, 5, '$ '.array_sum($b), 1, 0, 'L');
                                     $pdf->Ln(2);
                                     $b = array();
                                 } else {
-                                    $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ?  AND faculte = ? GROUP BY type_frais";
-                                    $sql_2_a = array($annee_acad_deb, $ff);
+                                    $sql_2 = "SELECT
+                                        payement.id_payement,
+                                        SUM(payement.montant) AS mp,
+                                        payement.id_frais,
+                                        prevision_frais.type_frais,
+                                        annee_acad.annee_acad,
+                                        sections.section,
+                                        options.id_option,
+                                        options.option_
+                                    FROM
+                                        payement
+                                    LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                    LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                    LEFT JOIN sections ON payement.id_section = sections.id_section
+                                    LEFT JOIN options ON payement.id_section = options.id_option
+                                    WHERE annee_acad.id_annee = ? AND sections.section = ? AND payement.date_payement BETWEEN ? AND ?";
+                                    // die($dd);
+                                    $sql_2_a = array($annee_acad_deb, trim($ff), $dd, $_POST['date_fin']);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
         
@@ -864,7 +1044,104 @@
                                         $a[] = $d['mp'];
                                     }
         
-                                    if(array_sum($a) <= 0){$pdf->Ln(3);}else{$pdf->Ln(4);}
+                                    $pdf->Ln(4);
+                                    $pdf->SetFont('Arial','',9);
+                                    $pdf->cell(60, 5, 'Total', 1, 0, 'L');
+                                    $pdf->cell(30, 5, '$ '.array_sum($a), 1, 0, 'L');
+                                    // $pdf->cell(15, 5, '#', 1, 0, 'L');
+                                    $pdf->Ln(2);
+                                    $a = array();
+                                    $b = array();
+                                }
+                            // }
+                        }
+                    }else if(empty($_POST['date_debit']) && empty($_POST['date_fin'])){
+                        // selection des l etudiant
+                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
+                        $sel_etud->execute(array($annee_acad_fin));
+        
+                        if($sel_etud->rowCount() > 0){
+                            while ($data_student = $sel_etud->fetch()){
+                                $pdf->Ln(5);
+                                $pdf->cell(190, 5, decode_fr('Annee Acad. : '.get_annee($annee_acad_fin)), 0, 1, 'L');
+                                $pdf->cell(190, 5, decode_fr('Section : '.$ff), 0, 1, 'L');
+                                $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
+                                $pdf->Ln(2);
+                                $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
+                                $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
+                                $pdf->Ln(1);
+        
+                                // tableau
+                                $a = array();
+                                $b = array();
+        
+                                if($_POST['type_frais'] != "Tous"){
+                                    $sql_2 = "SELECT
+                                            payement.id_payement,
+                                            SUM(payement.montant) AS mp,
+                                            payement.id_frais,
+                                            prevision_frais.type_frais,
+                                            annee_acad.annee_acad,
+                                            sections.section,
+                                            options.id_option,
+                                            options.option_
+                                        FROM
+                                            payement
+                                        LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                        LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                        LEFT JOIN sections ON payement.id_section = sections.id_section
+                                        LEFT JOIN options ON payement.id_section = options.id_option
+                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ?";
+                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $ff);
+                                    $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
+                                    $sql_2->execute($sql_2_a);
+    
+                                    while($d = $sql_2->fetch()){
+                                        $pdf->SetFont('Arial','i',8);
+                                        $pdf->Ln(4);
+                                        $pdf->cell(60, 5, utf8_decode(decode_fr($d['type_frais'])), 1, 0, 'L');
+                                        $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
+                                        $pdf->Ln(1);
+                                        $b[] = $d['mp'];
+                                    }
+                                    $pdf->Ln(4);
+                                    $pdf->SetFont('Arial','',9);
+                                    $pdf->cell(60, 5, 'Total', 1, 0, 'L');
+                                    $pdf->cell(30, 5, '$ '.array_sum($b), 1, 0, 'L');
+                                    $pdf->Ln(2);
+                                    $b = array();
+                                } else {
+                                    $sql_2 = "SELECT
+                                        payement.id_payement,
+                                        SUM(payement.montant) AS mp,
+                                        payement.id_frais,
+                                        prevision_frais.type_frais,
+                                        annee_acad.annee_acad,
+                                        sections.section,
+                                        options.id_option,
+                                        options.option_
+                                    FROM
+                                        payement
+                                    LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                    LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                    LEFT JOIN sections ON payement.id_section = sections.id_section
+                                    LEFT JOIN options ON payement.id_section = options.id_option
+                                    WHERE annee_acad.id_annee = ? AND sections.section = ?";
+                                    // die($pp);
+                                    $sql_2_a = array($annee_acad_deb, trim($ff));
+                                    $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
+                                    $sql_2->execute($sql_2_a);
+        
+                                    while($d = $sql_2->fetch()){
+                                        $pdf->SetFont('Arial','i',8);
+                                        $pdf->Ln(4);
+                                        $pdf->cell(60, 5, utf8_decode(decode_fr($d['type_frais'])), 1, 0, 'L');
+                                        $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
+                                        $pdf->Ln(1);
+                                        $a[] = $d['mp'];
+                                    }
+        
+                                    $pdf->Ln(4);
                                     $pdf->SetFont('Arial','',9);
                                     $pdf->cell(60, 5, 'Total', 1, 0, 'L');
                                     $pdf->cell(30, 5, '$ '.array_sum($a), 1, 0, 'L');
@@ -878,108 +1155,53 @@
                     }
                 }
             }else if($_POST['fac_etudiant'] != "Tous" && $_POST['promotion_etud'] == "Tous"){
+                $f = ConnexionBdd::Connecter()->query("SELECT DISTINCT etudiants_inscrits.promotion, options.id_option, sections.section FROM etudiants_inscrits LEFT JOIN options ON etudiants_inscrits.id_option = options.id_option LEFT JOIN sections ON etudiants_inscrits.id_section = sections.id_section WHERE sections.section = '{$_POST['fac_etudiant']}' GROUP BY etudiants_inscrits.promotion");
+                while($df = $f->fetch()){
+                    $t_promotion[] = $df['promotion'];
+                }
                 foreach($t_promotion as $pp){
                     if(!empty($_POST['date_debit']) && !empty($_POST['date_fin'])){
                         // la tables etudiants
-                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT promotion, annee_academique FROM etudiants_inscrits WHERE annee_academique = ? GROUP BY annee_academique");
-                        $sel_etud->execute(array($annee_acad_fin));
-        
-                        if($sel_etud->rowCount() > 0){
-                            while ($data_student = $sel_etud->fetch()){
-                                $pdf->cell(190, 10, decode_fr('Annee Acad. : '.$annee_acad_fin), 0, 1, 'L');
-                                $pdf->cell(190, 10, decode_fr('Faculte : '.$ff), 0, 1, 'L');
-                                $pdf->cell(190, 10, decode_fr('Promotion : '.$pp), 0, 1, 'L');
-                                $pdf->Ln(2);
-                                $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
-                                $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
-                                $pdf->Ln(1);
-        
-                                // tableau
-                                $a = array();
-                                $b = array();
-        
-                                // on verifie le type de frais
-                                if($_POST['type_frais'] != "Tous"){
-                                    $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ? AND type_frais = ? AND faculte = ? AND promotion = ? AND date_payement BETWEEN ? AND ? GROUP BY type_frais";
-                                    $sql_2_a = array($annee_acad_deb, $_POST['type_frais'], $ff, $pp, $_POST['date_debit'], $_POST['date_fin']);
-                                    $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
-                                    $sql_2->execute($sql_2_a);
-        
-                                    while($d = $sql_2->fetch()){
-                                        $sql = "SELECT type_frais, SUM(montant) as mt FROM affectation_frais WHERE annee_acad = ? AND type_frais = ?";
-                                        $sq_array = array($annee_acad_deb, $d['type_frais']);
-                                        $data_ = ConnexionBdd::Connecter()->prepare($sql);
-                                        $data_->execute($sq_array);
-        
-                                        while($data = $data_->fetch()){
-                                            $pdf->SetFont('Arial','i',8);
-                                            $pdf->Ln(4);
-                                            $pdf->cell(60, 5, decode_fr($data['type_frais']), 1, 0, 'L');
-                                            $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
-                                            $pdf->Ln(4);
-                                            $a[] = $d['mp'];
-                                            // $b[] = $d['mp'];
-                                        }
-                                    }
-                                    if(array_sum($b) <= 0){$pdf->Ln(4);}else{$pdf->Ln(3);}
-                                    $pdf->SetFont('Arial','',9);
-                                    $pdf->cell(60, 5, 'Total', 1, 0, 'L');
-                                    $pdf->cell(30, 5, '$ '.array_sum($a), 1, 0, 'L');
-                                    $pdf->Ln(2);
-                                    $a = array();
-                                    $b = array();
-                                    // le type de frais n est pas selectionner
-                                }else{
-                                    $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ? AND faculte = ? AND promotion = ? AND  date_payement BETWEEN ? AND ? GROUP BY type_frais";
-                                    $sql_2_a = array($annee_acad_deb, $ff, $pp, $_POST['date_debit'], $_POST['date_fin']);
-                                    $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
-                                    $sql_2->execute($sql_2_a);
-        
-                                    while($data = $sql_2->fetch()){
-                                        $pdf->SetFont('Arial','i',8);
-                                        $pdf->Ln(4);
-                                        $pdf->cell(60, 5, decode_fr($data['type_frais']), 1, 0, 'L');
-                                        $pdf->cell(30, 5, '$ '.mm($data['mp']), 1, 0, 'L');
-                                        $pdf->Ln(1);
-                                        $b[] = $data['mp'];
-                                    }
-                                    // $pdf->Ln(2);
-                                    if(array_sum($b) <= 0){$pdf->Ln(4);}else{$pdf->Ln(4);}
-                                    $pdf->SetFont('Arial','',9);
-                                    $pdf->cell(60, 5, 'Total', 1, 0, 'L');
-                                    $pdf->cell(30, 5, '$ '.array_sum($b), 1, 0, 'L');
-                                    $pdf->Ln(2);
-                                    $a = array();
-                                    $b = array();
-                                }
-                            }
-                        }
-                    }else if(empty($_POST['date_debit']) && empty($_POST['date_fin'])){
                         // selection des l etudiant
-                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT annee_academique FROM etudiants_inscrits WHERE annee_academique = ? GROUP BY annee_academique");
+                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
                         $sel_etud->execute(array($annee_acad_fin));
-        
+            
                         if($sel_etud->rowCount() > 0){
-                            while ($data_student = $sel_etud->fetch()){
+                            // while ($data_student = $sel_etud->fetch()){
                                 $pdf->Ln(5);
-                                $pdf->cell(190, 5, decode_fr('Annee Acad. : '.$annee_acad_fin), 0, 1, 'L');
-                                $pdf->cell(190, 5, decode_fr('Faculte : '.$ff), 0, 1, 'L');
+                                $pdf->cell(190, 5, decode_fr('Annee Acad. : '.get_annee($annee_acad_fin)), 0, 1, 'L');
+                                $pdf->cell(190, 5, decode_fr('Section : '.$ff), 0, 1, 'L');
                                 $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
                                 $pdf->Ln(2);
                                 $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
                                 $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
                                 $pdf->Ln(1);
-        
+            
                                 // tableau
                                 $a = array();
                                 $b = array();
-        
+            
                                 if($_POST['type_frais'] != "Tous"){
-                                    $sql_2 = "SELECT ,SUM(montant) as mp FROM payement WHERE type_frais = ? AND annee_acad = ? AND faculte = ? AND promotion = ?";
-                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $ff, $pp);
+                                    $sql_2 = "SELECT
+                                            payement.id_payement,
+                                            SUM(payement.montant) AS mp,
+                                            payement.id_frais,
+                                            prevision_frais.type_frais,
+                                            annee_acad.annee_acad,
+                                            sections.section,
+                                            options.id_option,
+                                            options.option_
+                                        FROM
+                                            payement
+                                        LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                        LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                        LEFT JOIN sections ON payement.id_section = sections.id_section
+                                        LEFT JOIN options ON payement.id_section = options.id_option
+                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp, $dd, $_POST['date_fin']);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
-
+            
                                     while($d = $sql_2->fetch()){
                                         $pdf->SetFont('Arial','i',8);
                                         $pdf->Ln(4);
@@ -988,18 +1210,34 @@
                                         $pdf->Ln(1);
                                         $b[] = $d['mp'];
                                     }
-                                    if(array_sum($b) <= 0){$pdf->Ln(3);}else{$pdf->Ln(4);}
+                                    $pdf->Ln(4);
                                     $pdf->SetFont('Arial','',9);
                                     $pdf->cell(60, 5, 'Total', 1, 0, 'L');
                                     $pdf->cell(30, 5, '$ '.array_sum($b), 1, 0, 'L');
                                     $pdf->Ln(2);
                                     $b = array();
                                 } else {
-                                    $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ?  AND faculte = ? AND promotion = ?  GROUP BY type_frais";
-                                    $sql_2_a = array($annee_acad_deb, $ff, $pp);
+                                    $sql_2 = "SELECT
+                                        payement.id_payement,
+                                        SUM(payement.montant) AS mp,
+                                        payement.id_frais,
+                                        prevision_frais.type_frais,
+                                        annee_acad.annee_acad,
+                                        sections.section,
+                                        options.id_option,
+                                        options.option_
+                                    FROM
+                                        payement
+                                    LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                    LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                    LEFT JOIN sections ON payement.id_section = sections.id_section
+                                    LEFT JOIN options ON payement.id_section = options.id_option
+                                    WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                    // die($dd);
+                                    $sql_2_a = array($annee_acad_deb, trim($ff), $pp, $dd, $_POST['date_fin']);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
-        
+            
                                     while($d = $sql_2->fetch()){
                                         $pdf->SetFont('Arial','i',8);
                                         $pdf->Ln(4);
@@ -1008,11 +1246,109 @@
                                         $pdf->Ln(1);
                                         $a[] = $d['mp'];
                                     }
-        
-                                    if(array_sum($b) <= 0){$pdf->Ln(4);}else{$pdf->Ln(4);}
+            
+                                    $pdf->Ln(4);
                                     $pdf->SetFont('Arial','',9);
                                     $pdf->cell(60, 5, 'Total', 1, 0, 'L');
                                     $pdf->cell(30, 5, '$ '.array_sum($a), 1, 0, 'L');
+                                    // $pdf->cell(15, 5, '#', 1, 0, 'L');
+                                    $pdf->Ln(2);
+                                    $a = array();
+                                    $b = array();
+                                }
+                            // }
+                        }
+                    }else if(empty($_POST['date_debit']) && empty($_POST['date_fin'])){
+                        // selection des l etudiant
+                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
+                        $sel_etud->execute(array($annee_acad_fin));
+            
+                        if($sel_etud->rowCount() > 0){
+                            while ($data_student = $sel_etud->fetch()){
+                                $pdf->Ln(5);
+                                $pdf->cell(190, 5, decode_fr('Annee Acad. : '.get_annee($annee_acad_fin)), 0, 1, 'L');
+                                $pdf->cell(190, 5, decode_fr('Section : '.$ff), 0, 1, 'L');
+                                $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
+                                $pdf->Ln(2);
+                                $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
+                                $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
+                                $pdf->Ln(1);
+            
+                                // tableau
+                                $a = array();
+                                $b = array();
+            
+                                if($_POST['type_frais'] != "Tous"){
+                                    $sql_2 = "SELECT
+                                            payement.id_payement,
+                                            SUM(payement.montant) AS mp,
+                                            payement.id_frais,
+                                            prevision_frais.type_frais,
+                                            annee_acad.annee_acad,
+                                            sections.section,
+                                            options.id_option,
+                                            options.option_
+                                        FROM
+                                            payement
+                                        LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                        LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                        LEFT JOIN sections ON payement.id_section = sections.id_section
+                                        LEFT JOIN options ON payement.id_section = options.id_option
+                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp);
+                                    $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
+                                    $sql_2->execute($sql_2_a);
+            
+                                    while($d = $sql_2->fetch()){
+                                        $pdf->SetFont('Arial','i',8);
+                                        $pdf->Ln(4);
+                                        $pdf->cell(60, 5, utf8_decode(decode_fr($d['type_frais'])), 1, 0, 'L');
+                                        $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
+                                        $pdf->Ln(1);
+                                        $b[] = $d['mp'];
+                                    }
+                                    $pdf->Ln(4);
+                                    $pdf->SetFont('Arial','',9);
+                                    $pdf->cell(60, 5, 'Total', 1, 0, 'L');
+                                    $pdf->cell(30, 5, '$ '.array_sum($b), 1, 0, 'L');
+                                    $pdf->Ln(2);
+                                    $b = array();
+                                } else {
+                                    $sql_2 = "SELECT
+                                        payement.id_payement,
+                                        SUM(payement.montant) AS mp,
+                                        payement.id_frais,
+                                        prevision_frais.type_frais,
+                                        annee_acad.annee_acad,
+                                        sections.section,
+                                        options.id_option,
+                                        options.option_
+                                    FROM
+                                        payement
+                                    LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                    LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                    LEFT JOIN sections ON payement.id_section = sections.id_section
+                                    LEFT JOIN options ON payement.id_section = options.id_option
+                                    WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                    // die($pp);
+                                    $sql_2_a = array($annee_acad_deb, trim($ff), $pp);
+                                    $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
+                                    $sql_2->execute($sql_2_a);
+            
+                                    while($d = $sql_2->fetch()){
+                                        $pdf->SetFont('Arial','i',8);
+                                        $pdf->Ln(4);
+                                        $pdf->cell(60, 5, utf8_decode(decode_fr($d['type_frais'])), 1, 0, 'L');
+                                        $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
+                                        $pdf->Ln(1);
+                                        $a[] = $d['mp'];
+                                    }
+            
+                                    $pdf->Ln(4);
+                                    $pdf->SetFont('Arial','',9);
+                                    $pdf->cell(60, 5, 'Total', 1, 0, 'L');
+                                    $pdf->cell(30, 5, '$ '.array_sum($a), 1, 0, 'L');
+                                    // $pdf->cell(15, 5, '#', 1, 0, 'L');
                                     $pdf->Ln(2);
                                     $a = array();
                                     $b = array();
@@ -1024,104 +1360,46 @@
             }else if($_POST['fac_etudiant'] != "Tous" && $_POST['promotion_etud'] != "Tous"){
                 if(!empty($_POST['date_debit']) && !empty($_POST['date_fin'])){
                     // la tables etudiants
-                    $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT promotion, annee_academique FROM etudiants_inscrits WHERE annee_academique = ? GROUP BY annee_academique");
-                    $sel_etud->execute(array($annee_acad_fin));
-
-                    if($sel_etud->rowCount() > 0){
-                        while ($data_student = $sel_etud->fetch()){
-                            $pdf->cell(190, 5, decode_fr('Annee Acad. : '.$annee_acad_fin), 0, 1, 'L');
-                            $pdf->cell(190, 5, decode_fr('Faculte : '.$ff), 0, 1, 'L');
-                            $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
-                            $pdf->Ln(2);
-                            $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
-                            $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
-                            $pdf->Ln(1);
-
-                            // tableau
-                            $a = array();
-                            $b = array();
-
-                            // on verifie le type de frais
-                            if($_POST['type_frais'] != "Tous"){
-                                $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ? AND type_frais = ? AND faculte = ? AND promotion = ? AND date_payement BETWEEN ? AND ? GROUP BY type_frais";
-                                $sql_2_a = array($annee_acad_deb, $_POST['type_frais'], $ff, $pp, $_POST['date_debit'], $_POST['date_fin']);
-                                $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
-                                $sql_2->execute($sql_2_a);
-
-                                while($d = $sql_2->fetch()){
-                                    $sql = "SELECT type_frais, SUM(montant) as mt FROM affectation_frais WHERE annee_acad = ? AND type_frais = ?";
-                                    $sq_array = array($annee_acad_deb, $d['type_frais']);
-                                    $data_ = ConnexionBdd::Connecter()->prepare($sql);
-                                    $data_->execute($sq_array);
-
-                                    while($data = $data_->fetch()){
-                                        $pdf->SetFont('Arial','i',8);
-                                        $pdf->Ln(4);
-                                        $pdf->cell(60, 5, decode_fr($data['type_frais']), 1, 0, 'L');
-                                        $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
-                                        $pdf->Ln(4);
-                                        $a[] = $d['mp'];
-                                        // $b[] = $d['mp'];
-                                    }
-                                }
-                                if(array_sum($b) <= 0){$pdf->Ln(4);}else{$pdf->Ln(3);}
-                                $pdf->SetFont('Arial','',9);
-                                $pdf->cell(60, 5, 'Total', 1, 0, 'L');
-                                $pdf->cell(30, 5, '$ '.array_sum($a), 1, 0, 'L');
-                                $pdf->Ln(2);
-                                $a = array();
-                                $b = array();
-                                // le type de frais n est pas selectionner
-                            }else{
-                                $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ? AND faculte = ? AND promotion = ? AND  date_payement BETWEEN ? AND ? GROUP BY type_frais";
-                                $sql_2_a = array($annee_acad_deb, $ff, $pp, $_POST['date_debit'], $_POST['date_fin']);
-                                $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
-                                $sql_2->execute($sql_2_a);
-
-                                while($data = $sql_2->fetch()){
-                                    $pdf->SetFont('Arial','i',8);
-                                    $pdf->Ln(4);
-                                    $pdf->cell(60, 5, decode_fr($data['type_frais']), 1, 0, 'L');
-                                    $pdf->cell(30, 5, '$ '.mm($data['mp']), 1, 0, 'L');
-                                    $pdf->Ln(1);
-                                    $b[] = $data['mp'];
-                                }
-                                if(array_sum($b) <= 0){$pdf->Ln(3);}else{$pdf->Ln(4);}
-                                $pdf->SetFont('Arial','',9);
-                                $pdf->cell(60, 5, 'Total', 1, 0, 'L');
-                                $pdf->cell(30, 5, '$ '.array_sum($b), 1, 0, 'L');
-                                $pdf->Ln(2);
-                                $a = array();
-                                $b = array();
-                            }
-                        }
-                    }
-                }else if(empty($_POST['date_debit']) && empty($_POST['date_fin'])){
                     // selection des l etudiant
-                    $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT annee_academique FROM etudiants_inscrits WHERE annee_academique = ? GROUP BY annee_academique");
+                    $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
                     $sel_etud->execute(array($annee_acad_fin));
-
+        
                     if($sel_etud->rowCount() > 0){
-                        while ($data_student = $sel_etud->fetch()){
+                        // while ($data_student = $sel_etud->fetch()){
                             $pdf->Ln(5);
-                            $pdf->cell(190, 5, decode_fr('Annee Acad. : '.$annee_acad_fin), 0, 1, 'L');
-                            $pdf->cell(190, 5, decode_fr('Faculte : '.$ff), 0, 1, 'L');
+                            $pdf->cell(190, 5, decode_fr('Annee Acad. : '.get_annee($annee_acad_fin)), 0, 1, 'L');
+                            $pdf->cell(190, 5, decode_fr('Section : '.$ff), 0, 1, 'L');
                             $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
                             $pdf->Ln(2);
                             $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
                             $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
                             $pdf->Ln(1);
-
+        
                             // tableau
                             $a = array();
                             $b = array();
-
+        
                             if($_POST['type_frais'] != "Tous"){
-                                $sql_2 = "SELECT ,SUM(montant) as mp FROM payement WHERE type_frais = ? AND annee_acad = ? AND faculte = ? AND promotion = ?";
-                                $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $ff, $pp);
+                                $sql_2 = "SELECT
+                                        payement.id_payement,
+                                        SUM(payement.montant) AS mp,
+                                        payement.id_frais,
+                                        prevision_frais.type_frais,
+                                        annee_acad.annee_acad,
+                                        sections.section,
+                                        options.id_option,
+                                        options.option_
+                                    FROM
+                                        payement
+                                    LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                    LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                    LEFT JOIN sections ON payement.id_section = sections.id_section
+                                    LEFT JOIN options ON payement.id_section = options.id_option
+                                    WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp, $dd, $_POST['date_fin']);
                                 $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                 $sql_2->execute($sql_2_a);
-
+        
                                 while($d = $sql_2->fetch()){
                                     $pdf->SetFont('Arial','i',8);
                                     $pdf->Ln(4);
@@ -1130,18 +1408,34 @@
                                     $pdf->Ln(1);
                                     $b[] = $d['mp'];
                                 }
-                                if(array_sum($b) <= 0){$pdf->Ln(3);}else{$pdf->Ln(4);}
+                                $pdf->Ln(4);
                                 $pdf->SetFont('Arial','',9);
                                 $pdf->cell(60, 5, 'Total', 1, 0, 'L');
                                 $pdf->cell(30, 5, '$ '.array_sum($b), 1, 0, 'L');
                                 $pdf->Ln(2);
                                 $b = array();
                             } else {
-                                $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ?  AND faculte = ? AND promotion = ?  GROUP BY type_frais";
-                                $sql_2_a = array($annee_acad_deb, $ff, $pp);
+                                $sql_2 = "SELECT
+                                    payement.id_payement,
+                                    SUM(payement.montant) AS mp,
+                                    payement.id_frais,
+                                    prevision_frais.type_frais,
+                                    annee_acad.annee_acad,
+                                    sections.section,
+                                    options.id_option,
+                                    options.option_
+                                FROM
+                                    payement
+                                LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                LEFT JOIN sections ON payement.id_section = sections.id_section
+                                LEFT JOIN options ON payement.id_section = options.id_option
+                                WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                // die($dd);
+                                $sql_2_a = array($annee_acad_deb, trim($ff), $pp, $dd, $_POST['date_fin']);
                                 $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                 $sql_2->execute($sql_2_a);
-
+        
                                 while($d = $sql_2->fetch()){
                                     $pdf->SetFont('Arial','i',8);
                                     $pdf->Ln(4);
@@ -1150,8 +1444,105 @@
                                     $pdf->Ln(1);
                                     $a[] = $d['mp'];
                                 }
-
-                                if(array_sum($b) <= 0){$pdf->Ln(3);}else{$pdf->Ln(4);}
+        
+                                $pdf->Ln(4);
+                                $pdf->SetFont('Arial','',9);
+                                $pdf->cell(60, 5, 'Total', 1, 0, 'L');
+                                $pdf->cell(30, 5, '$ '.array_sum($a), 1, 0, 'L');
+                                // $pdf->cell(15, 5, '#', 1, 0, 'L');
+                                $pdf->Ln(2);
+                                $a = array();
+                                $b = array();
+                            }
+                        // }
+                    }
+                }else if(empty($_POST['date_debit']) && empty($_POST['date_fin'])){
+                    // selection des l etudiant
+                    $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
+                    $sel_etud->execute(array($annee_acad_fin));
+        
+                    if($sel_etud->rowCount() > 0){
+                        while ($data_student = $sel_etud->fetch()){
+                            $pdf->Ln(5);
+                            $pdf->cell(190, 5, decode_fr('Annee Acad. : '.get_annee($annee_acad_fin)), 0, 1, 'L');
+                            $pdf->cell(190, 5, decode_fr('Section : '.$ff), 0, 1, 'L');
+                            $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
+                            $pdf->Ln(2);
+                            $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
+                            $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
+                            $pdf->Ln(1);
+        
+                            // tableau
+                            $a = array();
+                            $b = array();
+        
+                            if($_POST['type_frais'] != "Tous"){
+                                $sql_2 = "SELECT
+                                        payement.id_payement,
+                                        SUM(payement.montant) AS mp,
+                                        payement.id_frais,
+                                        prevision_frais.type_frais,
+                                        annee_acad.annee_acad,
+                                        sections.section,
+                                        options.id_option,
+                                        options.option_
+                                    FROM
+                                        payement
+                                    LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                    LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                    LEFT JOIN sections ON payement.id_section = sections.id_section
+                                    LEFT JOIN options ON payement.id_section = options.id_option
+                                    WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp);
+                                $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
+                                $sql_2->execute($sql_2_a);
+        
+                                while($d = $sql_2->fetch()){
+                                    $pdf->SetFont('Arial','i',8);
+                                    $pdf->Ln(4);
+                                    $pdf->cell(60, 5, utf8_decode(decode_fr($d['type_frais'])), 1, 0, 'L');
+                                    $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
+                                    $pdf->Ln(1);
+                                    $b[] = $d['mp'];
+                                }
+                                $pdf->Ln(4);
+                                $pdf->SetFont('Arial','',9);
+                                $pdf->cell(60, 5, 'Total', 1, 0, 'L');
+                                $pdf->cell(30, 5, '$ '.array_sum($b), 1, 0, 'L');
+                                $pdf->Ln(2);
+                                $b = array();
+                            } else {
+                                $sql_2 = "SELECT
+                                    payement.id_payement,
+                                    SUM(payement.montant) AS mp,
+                                    payement.id_frais,
+                                    prevision_frais.type_frais,
+                                    annee_acad.annee_acad,
+                                    sections.section,
+                                    options.id_option,
+                                    options.option_
+                                FROM
+                                    payement
+                                LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                LEFT JOIN sections ON payement.id_section = sections.id_section
+                                LEFT JOIN options ON payement.id_section = options.id_option
+                                WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                // die($pp);
+                                $sql_2_a = array($annee_acad_deb, trim($ff), $pp);
+                                $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
+                                $sql_2->execute($sql_2_a);
+        
+                                while($d = $sql_2->fetch()){
+                                    $pdf->SetFont('Arial','i',8);
+                                    $pdf->Ln(4);
+                                    $pdf->cell(60, 5, utf8_decode(decode_fr($d['type_frais'])), 1, 0, 'L');
+                                    $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
+                                    $pdf->Ln(1);
+                                    $a[] = $d['mp'];
+                                }
+        
+                                $pdf->Ln(4);
                                 $pdf->SetFont('Arial','',9);
                                 $pdf->cell(60, 5, 'Total', 1, 0, 'L');
                                 $pdf->cell(30, 5, '$ '.array_sum($a), 1, 0, 'L');
@@ -1167,104 +1558,46 @@
                 foreach($t_fac as $ff){
                     if(!empty($_POST['date_debit']) && !empty($_POST['date_fin'])){
                         // la tables etudiants
-                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT promotion, annee_academique FROM etudiants_inscrits WHERE annee_academique = ? GROUP BY annee_academique");
-                        $sel_etud->execute(array($annee_acad_fin));
-        
-                        if($sel_etud->rowCount() > 0){
-                            while ($data_student = $sel_etud->fetch()){
-                                $pdf->cell(190, 5, decode_fr('Annee Acad. : '.$annee_acad_fin), 0, 1, 'L');
-                                $pdf->cell(190, 5, decode_fr('Faculte : '.$ff), 0, 1, 'L');
-                                $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
-                                $pdf->Ln(2);
-                                $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
-                                $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
-                                $pdf->Ln(1);
-        
-                                // tableau
-                                $a = array();
-                                $b = array();
-        
-                                // on verifie le type de frais
-                                if($_POST['type_frais'] != "Tous"){
-                                    $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ? AND type_frais = ? AND faculte = ? AND promotion = ? AND date_payement BETWEEN ? AND ? GROUP BY type_frais";
-                                    $sql_2_a = array($annee_acad_deb, $_POST['type_frais'], $ff, $pp, $_POST['date_debit'], $_POST['date_fin']);
-                                    $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
-                                    $sql_2->execute($sql_2_a);
-        
-                                    while($d = $sql_2->fetch()){
-                                        $sql = "SELECT type_frais, SUM(montant) as mt FROM affectation_frais WHERE annee_acad = ? AND type_frais = ?";
-                                        $sq_array = array($annee_acad_deb, $d['type_frais']);
-                                        $data_ = ConnexionBdd::Connecter()->prepare($sql);
-                                        $data_->execute($sq_array);
-        
-                                        while($data = $data_->fetch()){
-                                            $pdf->SetFont('Arial','i',8);
-                                            $pdf->Ln(4);
-                                            $pdf->cell(60, 5, decode_fr($data['type_frais']), 1, 0, 'L');
-                                            $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
-                                            $pdf->Ln(4);
-                                            $a[] = $d['mp'];
-                                            // $b[] = $d['mp'];
-                                        }
-                                    }
-                                    if(array_sum($b) <= 0){$pdf->Ln(4);}else{$pdf->Ln(3);}
-                                    $pdf->SetFont('Arial','',9);
-                                    $pdf->cell(60, 5, 'Total', 1, 0, 'L');
-                                    $pdf->cell(30, 5, '$ '.array_sum($a), 1, 0, 'L');
-                                    $pdf->Ln(8);
-                                    $a = array();
-                                    $b = array();
-                                    // le type de frais n est pas selectionner
-                                }else{
-                                    $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ? AND faculte = ? AND promotion = ? AND  date_payement BETWEEN ? AND ? GROUP BY type_frais";
-                                    $sql_2_a = array($annee_acad_deb, $ff, $pp, $_POST['date_debit'], $_POST['date_fin']);
-                                    $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
-                                    $sql_2->execute($sql_2_a);
-        
-                                    while($data = $sql_2->fetch()){
-                                        $pdf->SetFont('Arial','i',8);
-                                        $pdf->Ln(4);
-                                        $pdf->cell(60, 5, decode_fr($data['type_frais']), 1, 0, 'L');
-                                        $pdf->cell(30, 5, '$ '.mm($data['mp']), 1, 0, 'L');
-                                        $pdf->Ln(1);
-                                        $b[] = $data['mp'];
-                                    }
-                                    if(array_sum($b) <= 0){$pdf->Ln(3);}else{$pdf->Ln(4);}
-                                    $pdf->SetFont('Arial','',9);
-                                    $pdf->cell(60, 5, 'Total', 1, 0, 'L');
-                                    $pdf->cell(30, 5, '$ '.array_sum($b), 1, 0, 'L');
-                                    $pdf->Ln(8);
-                                    $a = array();
-                                    $b = array();
-                                }
-                            }
-                        }
-                    }else if(empty($_POST['date_debit']) && empty($_POST['date_fin'])){
                         // selection des l etudiant
-                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT annee_academique FROM etudiants_inscrits WHERE annee_academique = ? GROUP BY annee_academique");
+                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
                         $sel_etud->execute(array($annee_acad_fin));
-        
+            
                         if($sel_etud->rowCount() > 0){
-                            while ($data_student = $sel_etud->fetch()){
+                            // while ($data_student = $sel_etud->fetch()){
                                 $pdf->Ln(5);
-                                $pdf->cell(190, 5, decode_fr('Annee Acad. : '.$annee_acad_fin), 0, 1, 'L');
-                                $pdf->cell(190, 5, decode_fr('Faculte : '.$ff), 0, 1, 'L');
+                                $pdf->cell(190, 5, decode_fr('Annee Acad. : '.get_annee($annee_acad_fin)), 0, 1, 'L');
+                                $pdf->cell(190, 5, decode_fr('Section : '.$ff), 0, 1, 'L');
                                 $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
                                 $pdf->Ln(2);
                                 $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
                                 $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
                                 $pdf->Ln(1);
-        
+            
                                 // tableau
                                 $a = array();
                                 $b = array();
-        
+            
                                 if($_POST['type_frais'] != "Tous"){
-                                    $sql_2 = "SELECT SUM(montant) as mp FROM payement WHERE type_frais = ? AND annee_acad = ? AND faculte = ? AND promotion = ?";
-                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $ff, $pp);
+                                    $sql_2 = "SELECT
+                                            payement.id_payement,
+                                            SUM(payement.montant) AS mp,
+                                            payement.id_frais,
+                                            prevision_frais.type_frais,
+                                            annee_acad.annee_acad,
+                                            sections.section,
+                                            options.id_option,
+                                            options.option_
+                                        FROM
+                                            payement
+                                        LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                        LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                        LEFT JOIN sections ON payement.id_section = sections.id_section
+                                        LEFT JOIN options ON payement.id_section = options.id_option
+                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp, $dd, $_POST['date_fin']);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
-
+            
                                     while($d = $sql_2->fetch()){
                                         $pdf->SetFont('Arial','i',8);
                                         $pdf->Ln(4);
@@ -1273,18 +1606,34 @@
                                         $pdf->Ln(1);
                                         $b[] = $d['mp'];
                                     }
-                                    if(array_sum($b) <= 0){$pdf->Ln(3);}else{$pdf->Ln(4);}
+                                    $pdf->Ln(4);
                                     $pdf->SetFont('Arial','',9);
                                     $pdf->cell(60, 5, 'Total', 1, 0, 'L');
                                     $pdf->cell(30, 5, '$ '.array_sum($b), 1, 0, 'L');
                                     $pdf->Ln(2);
                                     $b = array();
                                 } else {
-                                    $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ?  AND faculte = ? AND promotion = ?  GROUP BY type_frais";
-                                    $sql_2_a = array($annee_acad_deb, $ff, $pp);
+                                    $sql_2 = "SELECT
+                                        payement.id_payement,
+                                        SUM(payement.montant) AS mp,
+                                        payement.id_frais,
+                                        prevision_frais.type_frais,
+                                        annee_acad.annee_acad,
+                                        sections.section,
+                                        options.id_option,
+                                        options.option_
+                                    FROM
+                                        payement
+                                    LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                    LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                    LEFT JOIN sections ON payement.id_section = sections.id_section
+                                    LEFT JOIN options ON payement.id_section = options.id_option
+                                    WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                    // die($dd);
+                                    $sql_2_a = array($annee_acad_deb, trim($ff), $pp, $dd, $_POST['date_fin']);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
-        
+            
                                     while($d = $sql_2->fetch()){
                                         $pdf->SetFont('Arial','i',8);
                                         $pdf->Ln(4);
@@ -1293,8 +1642,105 @@
                                         $pdf->Ln(1);
                                         $a[] = $d['mp'];
                                     }
-        
-                                    if(array_sum($a) <= 0){$pdf->Ln(3);}else{$pdf->Ln(4);}
+            
+                                    $pdf->Ln(4);
+                                    $pdf->SetFont('Arial','',9);
+                                    $pdf->cell(60, 5, 'Total', 1, 0, 'L');
+                                    $pdf->cell(30, 5, '$ '.array_sum($a), 1, 0, 'L');
+                                    // $pdf->cell(15, 5, '#', 1, 0, 'L');
+                                    $pdf->Ln(2);
+                                    $a = array();
+                                    $b = array();
+                                }
+                            // }
+                        }
+                    }else if(empty($_POST['date_debit']) && empty($_POST['date_fin'])){
+                        // selection des l etudiant
+                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
+                        $sel_etud->execute(array($annee_acad_fin));
+            
+                        if($sel_etud->rowCount() > 0){
+                            while ($data_student = $sel_etud->fetch()){
+                                $pdf->Ln(5);
+                                $pdf->cell(190, 5, decode_fr('Annee Acad. : '.get_annee($annee_acad_fin)), 0, 1, 'L');
+                                $pdf->cell(190, 5, decode_fr('Section : '.$ff), 0, 1, 'L');
+                                $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
+                                $pdf->Ln(2);
+                                $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
+                                $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
+                                $pdf->Ln(1);
+            
+                                // tableau
+                                $a = array();
+                                $b = array();
+            
+                                if($_POST['type_frais'] != "Tous"){
+                                    $sql_2 = "SELECT
+                                            payement.id_payement,
+                                            SUM(payement.montant) AS mp,
+                                            payement.id_frais,
+                                            prevision_frais.type_frais,
+                                            annee_acad.annee_acad,
+                                            sections.section,
+                                            options.id_option,
+                                            options.option_
+                                        FROM
+                                            payement
+                                        LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                        LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                        LEFT JOIN sections ON payement.id_section = sections.id_section
+                                        LEFT JOIN options ON payement.id_section = options.id_option
+                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp);
+                                    $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
+                                    $sql_2->execute($sql_2_a);
+            
+                                    while($d = $sql_2->fetch()){
+                                        $pdf->SetFont('Arial','i',8);
+                                        $pdf->Ln(4);
+                                        $pdf->cell(60, 5, utf8_decode(decode_fr($d['type_frais'])), 1, 0, 'L');
+                                        $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
+                                        $pdf->Ln(1);
+                                        $b[] = $d['mp'];
+                                    }
+                                    $pdf->Ln(4);
+                                    $pdf->SetFont('Arial','',9);
+                                    $pdf->cell(60, 5, 'Total', 1, 0, 'L');
+                                    $pdf->cell(30, 5, '$ '.array_sum($b), 1, 0, 'L');
+                                    $pdf->Ln(2);
+                                    $b = array();
+                                } else {
+                                    $sql_2 = "SELECT
+                                        payement.id_payement,
+                                        SUM(payement.montant) AS mp,
+                                        payement.id_frais,
+                                        prevision_frais.type_frais,
+                                        annee_acad.annee_acad,
+                                        sections.section,
+                                        options.id_option,
+                                        options.option_
+                                    FROM
+                                        payement
+                                    LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                    LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                    LEFT JOIN sections ON payement.id_section = sections.id_section
+                                    LEFT JOIN options ON payement.id_section = options.id_option
+                                    WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                    // die($pp);
+                                    $sql_2_a = array($annee_acad_deb, trim($ff), $pp);
+                                    $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
+                                    $sql_2->execute($sql_2_a);
+            
+                                    while($d = $sql_2->fetch()){
+                                        $pdf->SetFont('Arial','i',8);
+                                        $pdf->Ln(4);
+                                        $pdf->cell(60, 5, utf8_decode(decode_fr($d['type_frais'])), 1, 0, 'L');
+                                        $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
+                                        $pdf->Ln(1);
+                                        $a[] = $d['mp'];
+                                    }
+            
+                                    $pdf->Ln(4);
                                     $pdf->SetFont('Arial','',9);
                                     $pdf->cell(60, 5, 'Total', 1, 0, 'L');
                                     $pdf->cell(30, 5, '$ '.array_sum($a), 1, 0, 'L');
@@ -1316,7 +1762,7 @@
         $pdf->Output();
     }
 
-    // filtre par annee acaemique
+    // filtre par annee academique
     if(isset($_POST['acad_f'])){
         $pdf = new FPDF('P', 'mm', 'A4');
         all($pdf);
@@ -1355,18 +1801,17 @@
             while($df = $f->fetch()){
                 $t_promotion[] = $df['promotion'];
             }
-
-
             if($_POST['fac_etudiant'] == "Tous" && $_POST['promotion_etud'] == "Tous"){
                 if(!empty($_POST['date_debit']) && !empty($_POST['date_fin'])){
                     // la tables etudiants
-                    $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT promotion, annee_academique FROM etudiants_inscrits WHERE annee_academique = ? GROUP BY annee_academique");
+                    $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT promotion, id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
                     $sel_etud->execute(array($annee_acad_fin));
     
                     if($sel_etud->rowCount() > 0){
+                        // die($_POST['type_frais']);
                         while ($data_student = $sel_etud->fetch()){
-                            $pdf->cell(190, 5, decode_fr('Annee Acad. : '.$annee_acad_fin), 0, 1, 'L');
-                            $pdf->cell(190, 5, decode_fr('Faculte : '.$ff), 0, 1, 'L');
+                            $pdf->cell(190, 5, decode_fr('Annee Acad. : '.get_annee($annee_acad_fin)), 0, 1, 'L');
+                            $pdf->cell(190, 5, decode_fr('Faculte : '.get_fac($ff)), 0, 1, 'L');
                             $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
                             $pdf->Ln(2);
                             $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
@@ -1376,10 +1821,19 @@
                             // tableau
                             $a = array();
                             $b = array();
-    
-                            // on verifie le type de frais
                             if($_POST['type_frais'] != "Tous"){
-                                $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ? AND type_frais = ? AND date_payement BETWEEN ? AND ? GROUP BY type_frais";
+                                $sql_2 = "SELECT
+                                            payement.id_payement,
+                                            SUM(payement.montant) AS montant,
+                                            payement.id_frais,
+                                            prevision_frais.type_frais,
+                                            annee_acad.annee_acad
+                                        FROM
+                                            payement
+                                        LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                        LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                        WHERE payement.id_annee  = ? AND prevision_frais.type_frais = ? AND payement.date_payement BETWEEN ? AND ? GROUP BY prevision_frais.type_frais";
+                                
                                 $sql_2_a = array($annee_acad_deb, $_POST['type_frais'], $_POST['date_debit'], $_POST['date_fin']);
                                 $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                 $sql_2->execute($sql_2_a);
@@ -1409,15 +1863,26 @@
                                 $b = array();
                                 // le type de frais n est pas selectionner
                             }else{
-                                $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE date_payement BETWEEN ? AND ? AND annee_acad = ? GROUP BY type_frais";
-                                $sql_2_a = array($_POST['date_debit'], $_POST['date_fin'], $annee_acad_fin);
+                                $sql_2 = "SELECT
+                                            payement.id_payement,
+                                            SUM(payement.montant) AS mp,
+                                            payement.id_frais,
+                                            prevision_frais.type_frais,
+                                            annee_acad.annee_acad
+                                        FROM
+                                            payement
+                                        LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                        LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                        WHERE payement.id_annee  = ? AND payement.date_payement BETWEEN ? AND ? GROUP BY prevision_frais.type_frais";
+
+                                $sql_2_a = array($annee_acad_fin, $_POST['date_debit'], $_POST['date_fin']);
                                 $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                 $sql_2->execute($sql_2_a);
     
                                 while($data = $sql_2->fetch()){
                                     $pdf->SetFont('Arial','i',8);
                                     $pdf->Ln(4);
-                                    $pdf->cell(60, 5, decode_fr($data['type_frais']), 1, 0, 'L');
+                                    $pdf->cell(60, 5, decode_fr(utf8_decode($data['type_frais'])), 1, 0, 'L');
                                     $pdf->cell(30, 5, '$ '.mm($data['mp']), 1, 0, 'L');
                                     $pdf->Ln(1);
                                     $b[] = $data['mp'];
@@ -1434,14 +1899,14 @@
                     }
                 }else if(empty($_POST['date_debit']) && empty($_POST['date_fin'])){
                     // selection des l etudiant
-                    $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT annee_academique FROM etudiants_inscrits WHERE annee_academique = ? GROUP BY annee_academique");
+                    $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
                     $sel_etud->execute(array($annee_acad_fin));
     
                     if($sel_etud->rowCount() > 0){
                         while ($data_student = $sel_etud->fetch()){
                             $pdf->Ln(5);
-                            $pdf->cell(190, 5, decode_fr('Annee Acad. : '.$annee_acad_fin), 0, 1, 'L');
-                            $pdf->cell(190, 5, decode_fr('Faculte : '.$ff), 0, 1, 'L');
+                            $pdf->cell(190, 5, decode_fr('Annee Acad. : '.get_annee($annee_acad_fin)), 0, 1, 'L');
+                            $pdf->cell(190, 5, decode_fr('Faculte : '.get_fac($ff)), 0, 1, 'L');
                             $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
                             $pdf->Ln(2);
                             $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
@@ -1453,7 +1918,18 @@
                             $b = array();
     
                             if($_POST['type_frais'] != "Tous"){
-                                $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE type_frais = ? AND annee_acad = ? GROUP BY type_frais";
+                                $sql_2 = "SELECT
+                                            payement.id_payement,
+                                            SUM(payement.montant) AS mp,
+                                            payement.id_frais,
+                                            prevision_frais.type_frais,
+                                            annee_acad.annee_acad
+                                        FROM
+                                            payement
+                                        LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                        LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                        WHERE prevision_frais.type_frais  = ? AND payement.id_annee  = ? GROUP BY prevision_frais.type_frais";
+
                                 $sql_2_a = array($_POST['type_frais'], $annee_acad_deb);
                                 $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                 $sql_2->execute($sql_2_a);
@@ -1473,7 +1949,17 @@
                                 $pdf->Ln(2);
                                 $b = array();
                             } else {
-                                $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ? GROUP BY type_frais";
+                                $sql_2 = "SELECT
+                                            payement.id_payement,
+                                            SUM(payement.montant) AS mp,
+                                            payement.id_frais,
+                                            prevision_frais.type_frais,
+                                            annee_acad.annee_acad
+                                        FROM
+                                            payement
+                                        LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                        LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                        WHERE payement.id_annee  = ? GROUP BY prevision_frais.type_frais";
                                 $sql_2_a = array($annee_acad_deb);
                                 $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                 $sql_2->execute($sql_2_a);
@@ -1500,91 +1986,22 @@
                     }
                 }
             }else if($_POST['fac_etudiant'] != "Tous" && $_POST['promotion_etud'] == "Tous"){
+                $f = ConnexionBdd::Connecter()->query("SELECT DISTINCT etudiants_inscrits.promotion, options.id_option, sections.section FROM etudiants_inscrits LEFT JOIN options ON etudiants_inscrits.id_option = options.id_option LEFT JOIN sections ON etudiants_inscrits.id_section = sections.id_section WHERE sections.section = '{$_POST['fac_etudiant']}' GROUP BY etudiants_inscrits.promotion");
+                while($df = $f->fetch()){
+                    $t_promotion[] = $df['promotion'];
+                }
                 foreach($t_promotion as $pp){
                     if(!empty($_POST['date_debit']) && !empty($_POST['date_fin'])){
                         // la tables etudiants
-                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT promotion, annee_academique FROM etudiants_inscrits WHERE annee_academique = ? GROUP BY annee_academique");
-                        $sel_etud->execute(array($annee_acad_fin));
-        
-                        if($sel_etud->rowCount() > 0){
-                            while ($data_student = $sel_etud->fetch()){
-                                $pdf->cell(190, 10, decode_fr('Annee Acad. : '.$annee_acad_fin), 0, 1, 'L');
-                                $pdf->cell(190, 10, decode_fr('Faculte : '.$ff), 0, 1, 'L');
-                                $pdf->cell(190, 10, decode_fr('Promotion : '.$pp), 0, 1, 'L');
-                                $pdf->Ln(2);
-                                $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
-                                $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
-                                $pdf->Ln(1);
-        
-                                // tableau
-                                $a = array();
-                                $b = array();
-        
-                                // on verifie le type de frais
-                                if($_POST['type_frais'] != "Tous"){
-                                    $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ? AND type_frais = ? AND faculte = ? AND promotion = ? AND date_payement BETWEEN ? AND ? GROUP BY type_frais";
-                                    $sql_2_a = array($annee_acad_deb, $_POST['type_frais'], $ff, $pp, $_POST['date_debit'], $_POST['date_fin']);
-                                    $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
-                                    $sql_2->execute($sql_2_a);
-        
-                                    while($d = $sql_2->fetch()){
-                                        $sql = "SELECT type_frais, SUM(montant) as mt FROM affectation_frais WHERE annee_acad = ? AND type_frais = ?";
-                                        $sq_array = array($annee_acad_deb, $d['type_frais']);
-                                        $data_ = ConnexionBdd::Connecter()->prepare($sql);
-                                        $data_->execute($sq_array);
-        
-                                        while($data = $data_->fetch()){
-                                            $pdf->SetFont('Arial','i',8);
-                                            $pdf->Ln(4);
-                                            $pdf->cell(60, 5, decode_fr($data['type_frais']), 1, 0, 'L');
-                                            $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
-                                            $pdf->Ln(4);
-                                            $a[] = $d['mp'];
-                                            // $b[] = $d['mp'];
-                                        }
-                                    }
-                                    if(array_sum($b) <= 0){$pdf->Ln(4);}else{$pdf->Ln(3);}
-                                    $pdf->SetFont('Arial','',9);
-                                    $pdf->cell(60, 5, 'Total', 1, 0, 'L');
-                                    $pdf->cell(30, 5, '$ '.array_sum($a), 1, 0, 'L');
-                                    $pdf->Ln(2);
-                                    $a = array();
-                                    $b = array();
-                                    // le type de frais n est pas selectionner
-                                }else{
-                                    $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ? AND faculte = ? AND promotion = ? AND  date_payement BETWEEN ? AND ? GROUP BY type_frais";
-                                    $sql_2_a = array($annee_acad_deb, $ff, $pp, $_POST['date_debit'], $_POST['date_fin']);
-                                    $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
-                                    $sql_2->execute($sql_2_a);
-        
-                                    while($data = $sql_2->fetch()){
-                                        $pdf->SetFont('Arial','i',8);
-                                        $pdf->Ln(4);
-                                        $pdf->cell(60, 5, decode_fr($data['type_frais']), 1, 0, 'L');
-                                        $pdf->cell(30, 5, '$ '.mm($data['mp']), 1, 0, 'L');
-                                        $pdf->Ln(1);
-                                        $b[] = $data['mp'];
-                                    }
-                                    if(array_sum($b) <= 0){$pdf->Ln(1);}else{$pdf->Ln(4);}
-                                    $pdf->SetFont('Arial','',9);
-                                    $pdf->cell(60, 5, 'Total', 1, 0, 'L');
-                                    $pdf->cell(30, 5, '$ '.array_sum($b), 1, 0, 'L');
-                                    $pdf->Ln(2);
-                                    $a = array();
-                                    $b = array();
-                                }
-                            }
-                        }
-                    }else if(empty($_POST['date_debit']) && empty($_POST['date_fin'])){
                         // selection des l etudiant
-                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT annee_academique FROM etudiants_inscrits WHERE annee_academique = ? GROUP BY annee_academique");
+                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
                         $sel_etud->execute(array($annee_acad_fin));
         
                         if($sel_etud->rowCount() > 0){
-                            while ($data_student = $sel_etud->fetch()){
+                            // while ($data_student = $sel_etud->fetch()){
                                 $pdf->Ln(5);
-                                $pdf->cell(190, 5, decode_fr('Annee Acad. : '.$annee_acad_fin), 0, 1, 'L');
-                                $pdf->cell(190, 5, decode_fr('Faculte : '.$ff), 0, 1, 'L');
+                                $pdf->cell(190, 5, decode_fr('Annee Acad. : '.get_annee($annee_acad_fin)), 0, 1, 'L');
+                                $pdf->cell(190, 5, decode_fr('Section : '.$ff), 0, 1, 'L');
                                 $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
                                 $pdf->Ln(2);
                                 $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
@@ -1596,8 +2013,23 @@
                                 $b = array();
         
                                 if($_POST['type_frais'] != "Tous"){
-                                    $sql_2 = "SELECT ,SUM(montant) as mp FROM payement WHERE type_frais = ? AND annee_acad = ? AND faculte = ? AND promotion = ?";
-                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $ff, $pp);
+                                    $sql_2 = "SELECT
+                                            payement.id_payement,
+                                            SUM(payement.montant) AS mp,
+                                            payement.id_frais,
+                                            prevision_frais.type_frais,
+                                            annee_acad.annee_acad,
+                                            sections.section,
+                                            options.id_option,
+                                            options.option_
+                                        FROM
+                                            payement
+                                        LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                        LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                        LEFT JOIN sections ON payement.id_section = sections.id_section
+                                        LEFT JOIN options ON payement.id_section = options.id_option
+                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp, $dd, $_POST['date_fin']);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
 
@@ -1616,8 +2048,121 @@
                                     $pdf->Ln(2);
                                     $b = array();
                                 } else {
-                                    $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ?  AND faculte = ? AND promotion = ?  GROUP BY type_frais";
-                                    $sql_2_a = array($annee_acad_deb, $ff, $pp);
+                                    $sql_2 = "SELECT
+                                        payement.id_payement,
+                                        SUM(payement.montant) AS mp,
+                                        payement.id_frais,
+                                        prevision_frais.type_frais,
+                                        annee_acad.annee_acad,
+                                        sections.section,
+                                        options.id_option,
+                                        options.option_
+                                    FROM
+                                        payement
+                                    LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                    LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                    LEFT JOIN sections ON payement.id_section = sections.id_section
+                                    LEFT JOIN options ON payement.id_section = options.id_option
+                                    WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                    // die($dd);
+                                    $sql_2_a = array($annee_acad_deb, trim($ff), $pp, $dd, $_POST['date_fin']);
+                                    $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
+                                    $sql_2->execute($sql_2_a);
+        
+                                    while($d = $sql_2->fetch()){
+                                        $pdf->SetFont('Arial','i',8);
+                                        $pdf->Ln(4);
+                                        $pdf->cell(60, 5, utf8_decode(decode_fr($d['type_frais'])), 1, 0, 'L');
+                                        $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
+                                        $pdf->Ln(1);
+                                        $a[] = $d['mp'];
+                                    }
+        
+                                    $pdf->Ln(4);
+                                    $pdf->SetFont('Arial','',9);
+                                    $pdf->cell(60, 5, 'Total', 1, 0, 'L');
+                                    $pdf->cell(30, 5, '$ '.array_sum($a), 1, 0, 'L');
+                                    // $pdf->cell(15, 5, '#', 1, 0, 'L');
+                                    $pdf->Ln(2);
+                                    $a = array();
+                                    $b = array();
+                                }
+                            // }
+                        }
+                    }else if(empty($_POST['date_debit']) && empty($_POST['date_fin'])){
+                        // selection des l etudiant
+                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
+                        $sel_etud->execute(array($annee_acad_fin));
+        
+                        if($sel_etud->rowCount() > 0){
+                            while ($data_student = $sel_etud->fetch()){
+                                $pdf->Ln(5);
+                                $pdf->cell(190, 5, decode_fr('Annee Acad. : '.get_annee($annee_acad_fin)), 0, 1, 'L');
+                                $pdf->cell(190, 5, decode_fr('Section : '.$ff), 0, 1, 'L');
+                                $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
+                                $pdf->Ln(2);
+                                $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
+                                $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
+                                $pdf->Ln(1);
+        
+                                // tableau
+                                $a = array();
+                                $b = array();
+        
+                                if($_POST['type_frais'] != "Tous"){
+                                    $sql_2 = "SELECT
+                                            payement.id_payement,
+                                            SUM(payement.montant) AS mp,
+                                            payement.id_frais,
+                                            prevision_frais.type_frais,
+                                            annee_acad.annee_acad,
+                                            sections.section,
+                                            options.id_option,
+                                            options.option_
+                                        FROM
+                                            payement
+                                        LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                        LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                        LEFT JOIN sections ON payement.id_section = sections.id_section
+                                        LEFT JOIN options ON payement.id_section = options.id_option
+                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp);
+                                    $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
+                                    $sql_2->execute($sql_2_a);
+
+                                    while($d = $sql_2->fetch()){
+                                        $pdf->SetFont('Arial','i',8);
+                                        $pdf->Ln(4);
+                                        $pdf->cell(60, 5, utf8_decode(decode_fr($d['type_frais'])), 1, 0, 'L');
+                                        $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
+                                        $pdf->Ln(1);
+                                        $b[] = $d['mp'];
+                                    }
+                                    $pdf->Ln(4);
+                                    $pdf->SetFont('Arial','',9);
+                                    $pdf->cell(60, 5, 'Total', 1, 0, 'L');
+                                    $pdf->cell(30, 5, '$ '.array_sum($b), 1, 0, 'L');
+                                    $pdf->Ln(2);
+                                    $b = array();
+                                } else {
+                                    $sql_2 = "SELECT
+                                        payement.id_payement,
+                                        SUM(payement.montant) AS mp,
+                                        payement.id_frais,
+                                        prevision_frais.type_frais,
+                                        annee_acad.annee_acad,
+                                        sections.section,
+                                        options.id_option,
+                                        options.option_
+                                    FROM
+                                        payement
+                                    LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                    LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                    LEFT JOIN sections ON payement.id_section = sections.id_section
+                                    LEFT JOIN options ON payement.id_section = options.id_option
+                                    WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                    // die($pp);
+                                    $sql_2_a = array($annee_acad_deb, trim($ff), $pp);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
         
@@ -1646,101 +2191,43 @@
             }else if($_POST['fac_etudiant'] != "Tous" && $_POST['promotion_etud'] != "Tous"){
                 if(!empty($_POST['date_debit']) && !empty($_POST['date_fin'])){
                     // la tables etudiants
-                    $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT promotion, annee_academique FROM etudiants_inscrits WHERE annee_academique = ? GROUP BY annee_academique");
-                    $sel_etud->execute(array($annee_acad_fin));
-
-                    if($sel_etud->rowCount() > 0){
-                        while ($data_student = $sel_etud->fetch()){
-                            $pdf->cell(190, 10, decode_fr('Annee Acad. : '.$annee_acad_fin), 0, 1, 'L');
-                            $pdf->cell(190, 10, decode_fr('Faculte : '.$ff), 0, 1, 'L');
-                            $pdf->cell(190, 10, decode_fr('Promotion : '.$pp), 0, 1, 'L');
-                            $pdf->Ln(2);
-                            $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
-                            $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
-                            $pdf->Ln(1);
-
-                            // tableau
-                            $a = array();
-                            $b = array();
-
-                            // on verifie le type de frais
-                            if($_POST['type_frais'] != "Tous"){
-                                $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ? AND type_frais = ? AND faculte = ? AND promotion = ? AND date_payement BETWEEN ? AND ? GROUP BY type_frais";
-                                $sql_2_a = array($annee_acad_deb, $_POST['type_frais'], $ff, $pp, $$_POST['date_debit'], $_POST['date_fin']);
-                                $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
-                                $sql_2->execute($sql_2_a);
-
-                                while($d = $sql_2->fetch()){
-                                    $sql = "SELECT type_frais, SUM(montant) as mt FROM affectation_frais WHERE annee_acad = ? AND type_frais = ?";
-                                    $sq_array = array($annee_acad_deb, $d['type_frais']);
-                                    $data_ = ConnexionBdd::Connecter()->prepare($sql);
-                                    $data_->execute($sq_array);
-
-                                    while($data = $data_->fetch()){
-                                        $pdf->SetFont('Arial','i',8);
-                                        $pdf->Ln(4);
-                                        $pdf->cell(60, 5, decode_fr($data['type_frais']), 1, 0, 'L');
-                                        $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
-                                        $pdf->Ln(4);
-                                        $a[] = $d['mp'];
-                                        // $b[] = $d['mp'];
-                                    }
-                                }
-                                if(array_sum($b) <= 0){$pdf->Ln(4);}else{$pdf->Ln(3);}
-                                $pdf->SetFont('Arial','',9);
-                                $pdf->cell(60, 5, 'Total', 1, 0, 'L');
-                                $pdf->cell(30, 5, '$ '.array_sum($a), 1, 0, 'L');
-                                $pdf->Ln(2);
-                                $a = array();
-                                $b = array();
-                                // le type de frais n est pas selectionner
-                            }else{
-                                $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ? AND faculte = ? AND promotion = ? AND  date_payement BETWEEN ? AND ? GROUP BY type_frais";
-                                $sql_2_a = array($annee_acad_deb, $ff, $pp, $_POST['date_debit'], $_POST['date_fin']);
-                                $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
-                                $sql_2->execute($sql_2_a);
-
-                                while($data = $sql_2->fetch()){
-                                    $pdf->SetFont('Arial','i',8);
-                                    $pdf->Ln(4);
-                                    $pdf->cell(60, 5, decode_fr($data['type_frais']), 1, 0, 'L');
-                                    $pdf->cell(30, 5, '$ '.mm($data['mp']), 1, 0, 'L');
-                                    $pdf->Ln(1);
-                                    $b[] = $data['mp'];
-                                }
-                                if(array_sum($b) <= 0){$pdf->Ln(1);}else{$pdf->Ln(4);}
-                                $pdf->SetFont('Arial','',9);
-                                $pdf->cell(60, 5, 'Total', 1, 0, 'L');
-                                $pdf->cell(30, 5, '$ '.array_sum($b), 1, 0, 'L');
-                                $pdf->Ln(2);
-                                $a = array();
-                                $b = array();
-                            }
-                        }
-                    }
-                }else if(empty($_POST['date_debit']) && empty($_POST['date_fin'])){
                     // selection des l etudiant
-                    $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT annee_academique FROM etudiants_inscrits WHERE annee_academique = ? GROUP BY annee_academique");
+                    $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
                     $sel_etud->execute(array($annee_acad_fin));
-
+    
                     if($sel_etud->rowCount() > 0){
-                        while ($data_student = $sel_etud->fetch()){
+                        // while ($data_student = $sel_etud->fetch()){
                             $pdf->Ln(5);
-                            $pdf->cell(190, 5, decode_fr('Annee Acad. : '.$annee_acad_fin), 0, 1, 'L');
-                            $pdf->cell(190, 5, decode_fr('Faculte : '.$ff), 0, 1, 'L');
+                            $pdf->cell(190, 5, decode_fr('Annee Acad. : '.get_annee($annee_acad_fin)), 0, 1, 'L');
+                            $pdf->cell(190, 5, decode_fr('Section : '.$ff), 0, 1, 'L');
                             $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
                             $pdf->Ln(2);
                             $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
                             $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
                             $pdf->Ln(1);
-
+    
                             // tableau
                             $a = array();
                             $b = array();
-
+    
                             if($_POST['type_frais'] != "Tous"){
-                                $sql_2 = "SELECT ,SUM(montant) as mp FROM payement WHERE type_frais = ? AND annee_acad = ? AND faculte = ? AND promotion = ?";
-                                $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $ff, $pp);
+                                $sql_2 = "SELECT
+                                        payement.id_payement,
+                                        SUM(payement.montant) AS mp,
+                                        payement.id_frais,
+                                        prevision_frais.type_frais,
+                                        annee_acad.annee_acad,
+                                        sections.section,
+                                        options.id_option,
+                                        options.option_
+                                    FROM
+                                        payement
+                                    LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                    LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                    LEFT JOIN sections ON payement.id_section = sections.id_section
+                                    LEFT JOIN options ON payement.id_section = options.id_option
+                                    WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp, $dd, $_POST['date_fin']);
                                 $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                 $sql_2->execute($sql_2_a);
 
@@ -1759,8 +2246,85 @@
                                 $pdf->Ln(2);
                                 $b = array();
                             } else {
-                                $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ?  AND faculte = ? AND promotion = ?  GROUP BY type_frais";
-                                $sql_2_a = array($annee_acad_deb, $ff, $pp);
+                                $sql_2 = "SELECT
+                                    payement.id_payement,
+                                    SUM(payement.montant) AS mp,
+                                    payement.id_frais,
+                                    prevision_frais.type_frais,
+                                    annee_acad.annee_acad,
+                                    sections.section,
+                                    options.id_option,
+                                    options.option_
+                                FROM
+                                    payement
+                                LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                LEFT JOIN sections ON payement.id_section = sections.id_section
+                                LEFT JOIN options ON payement.id_section = options.id_option
+                                WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                // die($dd);
+                                $sql_2_a = array($annee_acad_deb, trim($ff), $pp, $dd, $_POST['date_fin']);
+                                $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
+                                $sql_2->execute($sql_2_a);
+    
+                                while($d = $sql_2->fetch()){
+                                    $pdf->SetFont('Arial','i',8);
+                                    $pdf->Ln(4);
+                                    $pdf->cell(60, 5, utf8_decode(decode_fr($d['type_frais'])), 1, 0, 'L');
+                                    $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
+                                    $pdf->Ln(1);
+                                    $a[] = $d['mp'];
+                                }
+    
+                                $pdf->Ln(4);
+                                $pdf->SetFont('Arial','',9);
+                                $pdf->cell(60, 5, 'Total', 1, 0, 'L');
+                                $pdf->cell(30, 5, '$ '.array_sum($a), 1, 0, 'L');
+                                // $pdf->cell(15, 5, '#', 1, 0, 'L');
+                                $pdf->Ln(2);
+                                $a = array();
+                                $b = array();
+                            }
+                        // }
+                    }
+                }else if(empty($_POST['date_debit']) && empty($_POST['date_fin'])){
+                    // selection des l etudiant
+                    $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
+                    $sel_etud->execute(array($annee_acad_fin));
+    
+                    if($sel_etud->rowCount() > 0){
+                        while ($data_student = $sel_etud->fetch()){
+                            $pdf->Ln(5);
+                            $pdf->cell(190, 5, decode_fr('Annee Acad. : '.get_annee($annee_acad_fin)), 0, 1, 'L');
+                            $pdf->cell(190, 5, decode_fr('Section : '.$ff), 0, 1, 'L');
+                            $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
+                            $pdf->Ln(2);
+                            $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
+                            $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
+                            $pdf->Ln(1);
+    
+                            // tableau
+                            $a = array();
+                            $b = array();
+    
+                            if($_POST['type_frais'] != "Tous"){
+                                $sql_2 = "SELECT
+                                        payement.id_payement,
+                                        SUM(payement.montant) AS mp,
+                                        payement.id_frais,
+                                        prevision_frais.type_frais,
+                                        annee_acad.annee_acad,
+                                        sections.section,
+                                        options.id_option,
+                                        options.option_
+                                    FROM
+                                        payement
+                                    LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                    LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                    LEFT JOIN sections ON payement.id_section = sections.id_section
+                                    LEFT JOIN options ON payement.id_section = options.id_option
+                                    WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp);
                                 $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                 $sql_2->execute($sql_2_a);
 
@@ -1770,9 +2334,45 @@
                                     $pdf->cell(60, 5, utf8_decode(decode_fr($d['type_frais'])), 1, 0, 'L');
                                     $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
                                     $pdf->Ln(1);
+                                    $b[] = $d['mp'];
+                                }
+                                $pdf->Ln(4);
+                                $pdf->SetFont('Arial','',9);
+                                $pdf->cell(60, 5, 'Total', 1, 0, 'L');
+                                $pdf->cell(30, 5, '$ '.array_sum($b), 1, 0, 'L');
+                                $pdf->Ln(2);
+                                $b = array();
+                            } else {
+                                $sql_2 = "SELECT
+                                    payement.id_payement,
+                                    SUM(payement.montant) AS mp,
+                                    payement.id_frais,
+                                    prevision_frais.type_frais,
+                                    annee_acad.annee_acad,
+                                    sections.section,
+                                    options.id_option,
+                                    options.option_
+                                FROM
+                                    payement
+                                LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                LEFT JOIN sections ON payement.id_section = sections.id_section
+                                LEFT JOIN options ON payement.id_section = options.id_option
+                                WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                // die($pp);
+                                $sql_2_a = array($annee_acad_deb, trim($ff), $pp);
+                                $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
+                                $sql_2->execute($sql_2_a);
+    
+                                while($d = $sql_2->fetch()){
+                                    $pdf->SetFont('Arial','i',8);
+                                    $pdf->Ln(4);
+                                    $pdf->cell(60, 5, utf8_decode(decode_fr($d['type_frais'])), 1, 0, 'L');
+                                    $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
+                                    $pdf->Ln(1);
                                     $a[] = $d['mp'];
                                 }
-
+    
                                 $pdf->Ln(4);
                                 $pdf->SetFont('Arial','',9);
                                 $pdf->cell(60, 5, 'Total', 1, 0, 'L');
@@ -1789,88 +2389,15 @@
                 foreach($t_fac as $ff){
                     if(!empty($_POST['date_debit']) && !empty($_POST['date_fin'])){
                         // la tables etudiants
-                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT promotion, annee_academique FROM etudiants_inscrits WHERE annee_academique = ? GROUP BY annee_academique");
-                        $sel_etud->execute(array($annee_acad_fin));
-        
-                        if($sel_etud->rowCount() > 0){
-                            while ($data_student = $sel_etud->fetch()){
-                                $pdf->cell(190, 10, decode_fr('Annee Acad. : '.$annee_acad_fin), 0, 1, 'L');
-                                $pdf->cell(190, 10, decode_fr('Faculte : '.$ff), 0, 1, 'L');
-                                $pdf->cell(190, 10, decode_fr('Promotion : '.$pp), 0, 1, 'L');
-                                $pdf->Ln(2);
-                                $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
-                                $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
-                                $pdf->Ln(1);
-        
-                                // tableau
-                                $a = array();
-                                $b = array();
-        
-                                // on verifie le type de frais
-                                if($_POST['type_frais'] != "Tous"){
-                                    $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ? AND type_frais = ? AND faculte = ? AND promotion = ? AND date_payement BETWEEN ? AND ? GROUP BY type_frais";
-                                    $sql_2_a = array($annee_acad_deb, $_POST['type_frais'], $ff, $pp, $_POST['date_debit'], $_POST['date_fin']);
-                                    $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
-                                    $sql_2->execute($sql_2_a);
-        
-                                    while($d = $sql_2->fetch()){
-                                        $sql = "SELECT type_frais, SUM(montant) as mt FROM affectation_frais WHERE annee_acad = ? AND type_frais = ?";
-                                        $sq_array = array($annee_acad_deb, $d['type_frais']);
-                                        $data_ = ConnexionBdd::Connecter()->prepare($sql);
-                                        $data_->execute($sq_array);
-        
-                                        while($data = $data_->fetch()){
-                                            $pdf->SetFont('Arial','i',8);
-                                            $pdf->Ln(4);
-                                            $pdf->cell(60, 5, decode_fr($data['type_frais']), 1, 0, 'L');
-                                            $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
-                                            $pdf->Ln(4);
-                                            $a[] = $d['mp'];
-                                            // $b[] = $d['mp'];
-                                        }
-                                    }
-                                    if(array_sum($b) <= 0){$pdf->Ln(4);}else{$pdf->Ln(3);}
-                                    $pdf->SetFont('Arial','',9);
-                                    $pdf->cell(60, 5, 'Total', 1, 0, 'L');
-                                    $pdf->cell(30, 5, '$ '.array_sum($a), 1, 0, 'L');
-                                    $pdf->Ln(2);
-                                    $a = array();
-                                    $b = array();
-                                    // le type de frais n est pas selectionner
-                                }else{
-                                    $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ? AND faculte = ? AND promotion = ? AND  date_payement BETWEEN ? AND ? GROUP BY type_frais";
-                                    $sql_2_a = array($annee_acad_deb, $ff, $pp, $_POST['date_debit'], $_POST['date_fin']);
-                                    $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
-                                    $sql_2->execute($sql_2_a);
-        
-                                    while($data = $sql_2->fetch()){
-                                        $pdf->SetFont('Arial','i',8);
-                                        $pdf->Ln(4);
-                                        $pdf->cell(60, 5, decode_fr($data['type_frais']), 1, 0, 'L');
-                                        $pdf->cell(30, 5, '$ '.mm($data['mp']), 1, 0, 'L');
-                                        $pdf->Ln(1);
-                                        $b[] = $data['mp'];
-                                    }
-                                    if(array_sum($b) <= 0){$pdf->Ln(1);}else{$pdf->Ln(4);}
-                                    $pdf->SetFont('Arial','',9);
-                                    $pdf->cell(60, 5, 'Total', 1, 0, 'L');
-                                    $pdf->cell(30, 5, '$ '.array_sum($b), 1, 0, 'L');
-                                    $pdf->Ln(2);
-                                    $a = array();
-                                    $b = array();
-                                }
-                            }
-                        }
-                    }else if(empty($_POST['date_debit']) && empty($_POST['date_fin'])){
                         // selection des l etudiant
-                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT annee_academique FROM etudiants_inscrits WHERE annee_academique = ? GROUP BY annee_academique");
+                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
                         $sel_etud->execute(array($annee_acad_fin));
         
                         if($sel_etud->rowCount() > 0){
-                            while ($data_student = $sel_etud->fetch()){
+                            // while ($data_student = $sel_etud->fetch()){
                                 $pdf->Ln(5);
-                                $pdf->cell(190, 5, decode_fr('Annee Acad. : '.$annee_acad_fin), 0, 1, 'L');
-                                $pdf->cell(190, 5, decode_fr('Faculte : '.$ff), 0, 1, 'L');
+                                $pdf->cell(190, 5, decode_fr('Annee Acad. : '.get_annee($annee_acad_fin)), 0, 1, 'L');
+                                $pdf->cell(190, 5, decode_fr('Section : '.$ff), 0, 1, 'L');
                                 $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
                                 $pdf->Ln(2);
                                 $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
@@ -1882,11 +2409,26 @@
                                 $b = array();
         
                                 if($_POST['type_frais'] != "Tous"){
-                                    $sql_2 = "SELECT SUM(montant) as mp FROM payement WHERE type_frais = ? AND annee_acad = ? AND faculte = ? AND promotion = ?";
-                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $ff, $pp);
+                                    $sql_2 = "SELECT
+                                            payement.id_payement,
+                                            SUM(payement.montant) AS mp,
+                                            payement.id_frais,
+                                            prevision_frais.type_frais,
+                                            annee_acad.annee_acad,
+                                            sections.section,
+                                            options.id_option,
+                                            options.option_
+                                        FROM
+                                            payement
+                                        LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                        LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                        LEFT JOIN sections ON payement.id_section = sections.id_section
+                                        LEFT JOIN options ON payement.id_section = options.id_option
+                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND  payement.date_payement BETWEEN ? AND ?";
+                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $ff, $dd, $_POST['date_fin']);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
-
+    
                                     while($d = $sql_2->fetch()){
                                         $pdf->SetFont('Arial','i',8);
                                         $pdf->Ln(4);
@@ -1902,8 +2444,121 @@
                                     $pdf->Ln(2);
                                     $b = array();
                                 } else {
-                                    $sql_2 = "SELECT type_frais, SUM(montant) as mp FROM payement WHERE annee_acad = ?  AND faculte = ? AND promotion = ?  GROUP BY type_frais";
-                                    $sql_2_a = array($annee_acad_deb, $ff, $pp);
+                                    $sql_2 = "SELECT
+                                        payement.id_payement,
+                                        SUM(payement.montant) AS mp,
+                                        payement.id_frais,
+                                        prevision_frais.type_frais,
+                                        annee_acad.annee_acad,
+                                        sections.section,
+                                        options.id_option,
+                                        options.option_
+                                    FROM
+                                        payement
+                                    LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                    LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                    LEFT JOIN sections ON payement.id_section = sections.id_section
+                                    LEFT JOIN options ON payement.id_section = options.id_option
+                                    WHERE annee_acad.id_annee = ? AND sections.section = ? AND payement.date_payement BETWEEN ? AND ?";
+                                    // die($dd);
+                                    $sql_2_a = array($annee_acad_deb, trim($ff), $dd, $_POST['date_fin']);
+                                    $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
+                                    $sql_2->execute($sql_2_a);
+        
+                                    while($d = $sql_2->fetch()){
+                                        $pdf->SetFont('Arial','i',8);
+                                        $pdf->Ln(4);
+                                        $pdf->cell(60, 5, utf8_decode(decode_fr($d['type_frais'])), 1, 0, 'L');
+                                        $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
+                                        $pdf->Ln(1);
+                                        $a[] = $d['mp'];
+                                    }
+        
+                                    $pdf->Ln(4);
+                                    $pdf->SetFont('Arial','',9);
+                                    $pdf->cell(60, 5, 'Total', 1, 0, 'L');
+                                    $pdf->cell(30, 5, '$ '.array_sum($a), 1, 0, 'L');
+                                    // $pdf->cell(15, 5, '#', 1, 0, 'L');
+                                    $pdf->Ln(2);
+                                    $a = array();
+                                    $b = array();
+                                }
+                            // }
+                        }
+                    }else if(empty($_POST['date_debit']) && empty($_POST['date_fin'])){
+                        // selection des l etudiant
+                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
+                        $sel_etud->execute(array($annee_acad_fin));
+        
+                        if($sel_etud->rowCount() > 0){
+                            while ($data_student = $sel_etud->fetch()){
+                                $pdf->Ln(5);
+                                $pdf->cell(190, 5, decode_fr('Annee Acad. : '.get_annee($annee_acad_fin)), 0, 1, 'L');
+                                $pdf->cell(190, 5, decode_fr('Section : '.$ff), 0, 1, 'L');
+                                $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
+                                $pdf->Ln(2);
+                                $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
+                                $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
+                                $pdf->Ln(1);
+        
+                                // tableau
+                                $a = array();
+                                $b = array();
+        
+                                if($_POST['type_frais'] != "Tous"){
+                                    $sql_2 = "SELECT
+                                            payement.id_payement,
+                                            SUM(payement.montant) AS mp,
+                                            payement.id_frais,
+                                            prevision_frais.type_frais,
+                                            annee_acad.annee_acad,
+                                            sections.section,
+                                            options.id_option,
+                                            options.option_
+                                        FROM
+                                            payement
+                                        LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                        LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                        LEFT JOIN sections ON payement.id_section = sections.id_section
+                                        LEFT JOIN options ON payement.id_section = options.id_option
+                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $ff);
+                                    $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
+                                    $sql_2->execute($sql_2_a);
+    
+                                    while($d = $sql_2->fetch()){
+                                        $pdf->SetFont('Arial','i',8);
+                                        $pdf->Ln(4);
+                                        $pdf->cell(60, 5, utf8_decode(decode_fr($d['type_frais'])), 1, 0, 'L');
+                                        $pdf->cell(30, 5, '$ '.mm($d['mp']), 1, 0, 'L');
+                                        $pdf->Ln(1);
+                                        $b[] = $d['mp'];
+                                    }
+                                    $pdf->Ln(4);
+                                    $pdf->SetFont('Arial','',9);
+                                    $pdf->cell(60, 5, 'Total', 1, 0, 'L');
+                                    $pdf->cell(30, 5, '$ '.array_sum($b), 1, 0, 'L');
+                                    $pdf->Ln(2);
+                                    $b = array();
+                                } else {
+                                    $sql_2 = "SELECT
+                                        payement.id_payement,
+                                        SUM(payement.montant) AS mp,
+                                        payement.id_frais,
+                                        prevision_frais.type_frais,
+                                        annee_acad.annee_acad,
+                                        sections.section,
+                                        options.id_option,
+                                        options.option_
+                                    FROM
+                                        payement
+                                    LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                    LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                    LEFT JOIN sections ON payement.id_section = sections.id_section
+                                    LEFT JOIN options ON payement.id_section = options.id_option
+                                    WHERE annee_acad.id_annee = ? AND sections.section = ?";
+                                    // die($pp);
+                                    $sql_2_a = array($annee_acad_deb, trim($ff));
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
         
@@ -1942,7 +2597,7 @@
     if(isset($_POST['btn_rap_mensuel'])){
         $pdf = new FPDF('L', 'mm', 'A4');
         $annee_acad_deb = $_POST['annee_acad_deb'];
-        $annee_acad_fin = $_POST['annee_acad_fin'];
+        $annee_acad_fin = $_POST['annee_acad_deb'];
 
         $pdf->AddPage();
         $pdf->SetFont('Arial','B',12);
@@ -1969,8 +2624,7 @@
 
         $pdf->SetFont('Arial','',10);
         $pdf->SetTextColor(0,0,0);
-        $pdf->cell(60, 5, decode_fr('Année Academique Debut : '.verify($_POST['annee_acad_deb'])), 0, 1, 'L');
-        $pdf->cell(60, 5, decode_fr('Année Academique  Fin: '.verify($_POST['annee_acad_fin'])), 0, 1, 'L');
+        $pdf->cell(60, 5, decode_fr('Année Academique : '.verify(get_annee($_POST['annee_acad_deb']))), 0, 1, 'L');
         $pdf->Ln(3);
 
         $pdf->SetFont('Arial','BU',10);
@@ -1991,10 +2645,12 @@
         }
         $pdf->SetFont('Arial','',8);
 
+        $an = get_annee($annee_acad_deb);
         // annee academique moins un
-        $year_below = $annee_acad_deb[0].''.$annee_acad_deb[1].''.$annee_acad_deb[2].''.$annee_acad_deb[3];
-        $sel_m = ConnexionBdd::Connecter()->prepare("SELECT SUM(montant) as montant FROM `payement` WHERE YEAR(date_payement) = ? AND annee_acad = ?");
-        $sel_m->execute(array($year_below, $annee_acad_deb));
+        $year_below = $an[5].''.$an[6].''.$an[7].''.$an[8];
+        // die($year_below);
+        $sel_m = ConnexionBdd::Connecter()->prepare("SELECT * FROM `payement` WHERE  id_annee = ?");
+        $sel_m->execute(array( $annee_acad_deb));
         if($sel_m->rowCount() > 0){
             $pdf->cell(250, 10, decode_fr('RAPPORT MENSUEL DES PAYENMETS '.$annee_acad_deb.' de '.$year_below), 0, 1, 'C');
             $pdf->cell(60, 5, "Type de frais", 1, 0, 'L');
@@ -2007,19 +2663,34 @@
             // liste de frais enregistrer dans la base de donnees
             $list_f = array();
 
-            $f = ConnexionBdd::Connecter()->prepare("SELECT DISTINCT type_frais FROM `payement` WHERE annee_acad = ?");
+            $f = ConnexionBdd::Connecter()->prepare("SELECT DISTINCT prevision_frais.id_frais, prevision_frais.type_frais FROM prevision_frais WHERE prevision_frais.id_annee = ?");
             $f->execute(array($annee_acad_deb));
             while($d = $f->fetch()){
-                $list_f[] = $d['type_frais'];
+                $list_f[] = utf8_decode($d['type_frais']);
             }
 
             foreach($list_f as $frais){
                 $pdf->cell(60, 5, decode_fr($frais), 1, 0, 'L');
                 foreach($n_mois as $n){
                     // $pdf->cell(20, 5, decode_fr($n), 1, 0, 'L');
-                    
-                    $sel_m = ConnexionBdd::Connecter()->prepare("SELECT SUM(montant) as montant FROM `payement` WHERE MONTH(date_payement) = ? AND YEAR(date_payement) = ? AND annee_acad = ? AND type_frais = ? GROUP BY type_frais");
-                    $year_below = $annee_acad_deb[0].''.$annee_acad_deb[1].''.$annee_acad_deb[2].''.$annee_acad_deb[3];
+                    $sql = "SELECT
+                                payement.id_payement,
+                                SUM(payement.montant) AS montant,
+                                prevision_frais.id_frais,
+                                annee_acad.id_annee
+                            FROM
+                                payement
+                            LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                            LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                            WHERE
+                                MONTH(payement.date_payement) = ? AND YEAR(payement.date_payement) = ? AND payement.id_annee = ? AND prevision_frais.type_frais = ?
+                            GROUP BY
+                                prevision_frais.type_frais";
+                    $sel_m = ConnexionBdd::Connecter()->prepare($sql);
+
+                    $an = get_annee($annee_acad_deb);
+                    $year_below = $an[5].''.$an[6].''.$an[7].''.$an[8];
+                    // die($year_below);
                     $sel_m->execute(array($n, $year_below, $annee_acad_deb, $frais));
 
                     if($sel_m->rowCount() >= 1){
@@ -2035,59 +2706,11 @@
                 }
                 $pdf->Ln(5);
             }
-            $pdf->Ln(10);
-            $year = $annee_acad_deb[5].''.$annee_acad_deb[6].''.$annee_acad_deb[7].''.$annee_acad_deb[8];
-            $pdf->cell(250, 10, decode_fr('RAPPORT MENSUEL DES PAYENMETS '.$annee_acad_deb.' de '.$year), 0, 1, 'C');
-        }
-
-        
-
-
-        // -------------------------------------------------
-        $pdf->cell(60, 5, "Type de frais", 1, 0, 'L');
-        
-        foreach($mois as $m){
-            $pdf->cell(17, 5, $m, 1, 0, 'L');
-        }
-        // $pdf->cell(20, 5, "Tot", 1, 0, 'L');
-        $pdf->Ln(5);
-        
-        // liste de frais enregistrer dans la base de donnees
-        $list_f = array();
-
-        $f = ConnexionBdd::Connecter()->prepare("SELECT DISTINCT type_frais FROM `payement` WHERE annee_acad = ?");
-        $f->execute(array($annee_acad_deb));
-        while($d = $f->fetch()){
-            $list_f[] = $d['type_frais'];
-        }
-
-        foreach($list_f as $frais){
-            $pdf->cell(60, 5, decode_fr($frais), 1, 0, 'L');
-            foreach($n_mois as $n){
-                // $pdf->cell(20, 5, decode_fr($n), 1, 0, 'L');
-
-                $year = $annee_acad_deb[5].''.$annee_acad_deb[6].''.$annee_acad_deb[7].''.$annee_acad_deb[8];
-                
-                $sel_m = ConnexionBdd::Connecter()->prepare("SELECT SUM(montant) as montant FROM `payement` WHERE MONTH(date_payement) = ? AND YEAR(date_payement) = ? AND annee_acad = ? AND type_frais = ? GROUP BY type_frais");
-                $sel_m->execute(array($n, $year, $annee_acad_deb, $frais));
-
-                if($sel_m->rowCount() >= 1){
-                    while($data = $sel_m->fetch()){
-                        $pdf->cell(17, 5, $data['montant'], 1, 0, 'L');
-                        $tot_array[] = $data['montant'];
-                        
-                    }//$pdf->cell(20, 5, array_sum($tot_array), 1, 0, 'L');
-                    $tot_array = array();
-                }else{
-                    $pdf->cell(17, 5, '0', 1, 0, 'L');
-                }
-            }
-            $pdf->Ln(5);
         }
 
         $pdf->Ln(15);
         $pdf->SetFont('Arial','',10);
-	    $pdf->cell(300,20, decode_fr('par : '.$_SESSION['data']['noms'].'; le '.date('d/M/Y')),0,1,'C');
+	    $pdf->cell(300,20, decode_fr('par : '.$_SESSION['data']['noms'].'; le '.date('d M Y')),0,1,'C');
         $pdf->Output();
     }
 ?>
@@ -2144,17 +2767,17 @@
                                         <div class="">
                                             <div class="row mt-1" >
                                                 <div class="col-sm-12 col-md-4 col-lg-4">
-                                                    <label for="">Faculté</label>
+                                                    <label for="">Section</label>
                                                 </div>
                                                 <div class="col-sm-12 col-md-9 col-lg-7">
                                                     <select class="form-control" name="fac_etudiant" id="fac_etudiant">
                                                         <option value="Tous" selected>Tous</option>
                                                         <?php
-                                                            $sql = "SELECT DISTINCT section, id_section FROM sections";
+                                                            $sql = "SELECT DISTINCT section FROM sections";
                                                             $state = ConnexionBdd::Connecter()->query($sql);
                                                             while($d = $state->fetch()){
                                                                 echo' 
-                                                                    <option value="'.utf8_decode($d['id_section']).'">'.utf8_decode($d['section']).'</option>';
+                                                                    <option value="'.utf8_decode($d['section']).'">'.utf8_decode($d['section']).'</option>';
                                                             }
                                                         ?>
                                                     </select>
@@ -2224,11 +2847,11 @@
                                                     <select class="form-control" name="type_frais" id="type_frais">
                                                         <option value="Tous">Tous</option>
                                                         <?php
-                                                            $sql = "SELECT DISTINCT affectation_frais.id_frais, prevision_frais.type_frais FROM affectation_frais LEFT JOIN prevision_frais ON affectation_frais.id_frais = prevision_frais.id_frais";
+                                                            $sql = "SELECT DISTINCT prevision_frais.type_frais FROM affectation_frais LEFT JOIN prevision_frais ON affectation_frais.id_frais = prevision_frais.id_frais";
                                                             $state = ConnexionBdd::Connecter()->query($sql);
                                                             while($d = $state->fetch()){
                                                                 echo' 
-                                                                    <option value="'.$d['id_frais'].'">'.decode_fr($d['type_frais']).'</option>';
+                                                                    <option value="'.$d['type_frais'].'">'.decode_fr($d['type_frais']).'</option>';
                                                             }
                                                         ?>
                                                     </select>
