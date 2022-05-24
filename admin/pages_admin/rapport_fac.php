@@ -8,6 +8,22 @@
     require './fpdf/fpdf.php';
     $p = "Dépense Facultaire";
 
+    function get_annee($id){
+        $d = ConnexionBdd::Connecter()->query("SELECT annee_acad from annee_acad where id_annee  = {$id}");
+        $data = $d->fetch();
+        return $data['annee_acad'];
+    }
+
+    function get_fac($f){
+        if($f == "Tous"){
+            return $f;
+        }else{
+            $d = ConnexionBdd::Connecter()->query("SELECT section from sections where id_section  = {$f}");
+            $data = $d->fetch();
+            return $data['section'];
+        }
+    }
+
     function all($pdf){
         $pdf->AddPage();
         $pdf->SetFont('Arial','B',12);
@@ -27,8 +43,8 @@
 
         $pdf->SetFont('Arial','',10);
         $pdf->SetTextColor(0,0,0);
-        $pdf->cell(60, 5, decode_fr('Année Academique : '.verify($_POST['annee_acad_deb'])), 0, 1, 'L');
-        $pdf->cell(60, 5, decode_fr('Faculté                     : '.verify($_POST['fac_etudiant'])), 0, 1, 'L');
+        $pdf->cell(60, 5, decode_fr('Année Academique : '.verify(get_annee($_POST['annee_acad_deb']))), 0, 1, 'L');
+        $pdf->cell(60, 5, decode_fr('Section                     : '.verify(get_fac($_POST['fac_etudiant']))), 0, 1, 'L');
     }
 
     function verify($var){
@@ -64,17 +80,17 @@
             $t_fac = array();
             $ff = $_POST['fac_etudiant'];
             // selection des toutes les facultes
-            $f = ConnexionBdd::Connecter()->query("SELECT DISTINCT fac FROM etudiants_inscrits GROUP BY fac");
+            $f = ConnexionBdd::Connecter()->query("SELECT DISTINCT id_section FROM sections WHERE id_annee = {$annee_acad_deb} GROUP BY id_section");
             while($df = $f->fetch()){
-                $t_fac[] = $df['fac'];
+                $t_fac[] = $df['id_section'];
             }
             if($_POST['fac_etudiant'] == "Tous"){
                 $a = array();
                 $b = array();
                 foreach($t_fac as $ff){
                     $pdf->Ln(3);
-                    $pdf->cell(190, 5, decode_fr('Annee Acad. : '.$annee_acad_deb), 0, 1, 'L');
-                    $pdf->cell(190, 5, decode_fr('Faculte : '.$ff), 0, 1, 'L');
+                    $pdf->cell(190, 5, decode_fr('Annee Acad. : '.get_annee($annee_acad_deb)), 0, 1, 'L');
+                    $pdf->cell(190, 5, decode_fr('Section : '.get_fac($ff)), 0, 1, 'L');
                     $pdf->Ln(1);
 
                     $pdf->cell(70, 5, decode_fr('Poste de dépense'), 1, 0, 'L');
@@ -84,7 +100,7 @@
                     $pdf->cell(35, 5, decode_fr('Niveau d’exécution'), 1, 0, 'L');
                     $pdf->Ln(4);
 
-                    $rf = ConnexionBdd::Connecter()->prepare("SELECT * FROM depense_facultaire WHERE faculte = ? AND annee_acad = ?");
+                    $rf = ConnexionBdd::Connecter()->prepare("SELECT * FROM depense_facultaire WHERE id_section = ? AND id_annee = ?");
                     $rf->execute(array($ff, $annee_acad_deb));
 
                     while($d = $rf->fetch()){
@@ -116,11 +132,11 @@
                 $a = array();
                 $b = array();
                 $pdf->Ln(3);
-                $pdf->cell(190, 5, decode_fr('Annee Acad. : '.$annee_acad_deb), 0, 1, 'L');
+                $pdf->cell(190, 5, decode_fr('Annee Acad. : '.get_annee($annee_acad_deb)), 0, 1, 'L');
                 $pdf->Ln(1);
 
 
-                $pdf->cell(70, 5, decode_fr('Faculte'), 1, 0, 'L');
+                $pdf->cell(70, 5, decode_fr('Section'), 1, 0, 'L');
                 $pdf->cell(30, 5, decode_fr('Montant prévue'), 1, 0, 'L');
                 $pdf->cell(30, 5, decode_fr('Dépense'), 1, 0, 'L');
                 $pdf->cell(30, 5, decode_fr('Solde '), 1, 0, 'L');
@@ -128,12 +144,12 @@
                 $pdf->Ln(4);
                 $pdf->SetFont('Arial','',10);
 
-                $rf = ConnexionBdd::Connecter()->prepare("SELECT faculte, SUM(montant) as montant, SUM(depense) AS depense FROM depense_facultaire WHERE annee_acad = ? GROUP BY faculte");
+                $rf = ConnexionBdd::Connecter()->prepare("SELECT id_section, SUM(montant) as montant, SUM(depense) AS depense FROM depense_facultaire WHERE id_annee = ? GROUP BY id_section");
                 $rf->execute(array($annee_acad_deb));
 
                 while($d = $rf->fetch()){
                     $pdf->Ln(1);
-                    $pdf->cell(70, 5, decode_fr($d['faculte']), 1, 0, 'L');
+                    $pdf->cell(70, 5, get_fac(decode_fr($d['id_section'])), 1, 0, 'L');
                     $pdf->cell(30, 5, '$'.decode_fr($d['montant']), 1, 0, 'L');
                     $pdf->cell(30, 5, '$'.decode_fr($d['depense']), 1, 0, 'L');
                     $pdf->cell(30, 5, '$'.decode_fr(mm($d['montant'] - $d['depense'])), 1, 0, 'L');
@@ -153,8 +169,8 @@
                 $a = array();
                 $b = array();
                 $pdf->Ln(3);
-                $pdf->cell(190, 5, decode_fr('Annee Acad. : '.$annee_acad_deb), 0, 1, 'L');
-                $pdf->cell(190, 5, decode_fr('Faculte : '.$ff), 0, 1, 'L');
+                $pdf->cell(190, 5, decode_fr('Annee Acad. : '.get_annee($annee_acad_deb)), 0, 1, 'L');
+                $pdf->cell(190, 5, decode_fr('Section : '.get_fac($ff)), 0, 1, 'L');
                 $pdf->Ln(1);
 
                 $pdf->cell(70, 5, decode_fr('Poste de dépense'), 1, 0, 'L');
@@ -164,7 +180,7 @@
                 $pdf->cell(35, 5, decode_fr('Niveau d’exécution'), 1, 0, 'L');
                 $pdf->Ln(4);
 
-                $rf = ConnexionBdd::Connecter()->prepare("SELECT * FROM depense_facultaire WHERE faculte = ? AND annee_acad = ?");
+                $rf = ConnexionBdd::Connecter()->prepare("SELECT * FROM depense_facultaire WHERE id_section = ? AND id_annee = ?");
                 $rf->execute(array($ff, $annee_acad_deb));
 
                 while($d = $rf->fetch()){
@@ -248,11 +264,11 @@
                                                     <select class="form-control" name="fac_etudiant" id="fac_etudiant">
                                                         <option value="Tous" selected>Tous</option>
                                                         <?php
-                                                            $sql = "SELECT DISTINCT fac FROM etudiants_inscrits";
+                                                            $sql = "SELECT DISTINCT id_section, section FROM sections";
                                                             $state = ConnexionBdd::Connecter()->query($sql);
                                                             while($d = $state->fetch()){
                                                                 echo' 
-                                                                    <option value="'.$d['fac'].'">'.$d['fac'].'</option>';
+                                                                    <option value="'.$d['id_section'].'">'.$d['section'].'</option>';
                                                             }
                                                         ?>
                                                     </select>
@@ -266,11 +282,11 @@
                                                 <div class="col-sm-12 col-md-9 col-lg-7">
                                                     <select class="form-control" name="annee_acad_deb" id="annee_acad_deb">
                                                         <?php
-                                                            $sql = "SELECT * FROM annee_academique ORDER BY annee_acad DESC";
+                                                            $sql = "SELECT * FROM annee_acad ORDER BY id_annee DESC";
                                                             $state = ConnexionBdd::Connecter()->query($sql);
                                                             while($d = $state->fetch()){
                                                                 echo' 
-                                                                    <option value="'.$d['annee_acad'].'">'.$d['annee_acad'].'</option>';
+                                                                    <option value="'.$d['id_annee'].'">'.$d['annee_acad'].'</option>';
                                                             }
                                                         ?>
                                                     </select>
