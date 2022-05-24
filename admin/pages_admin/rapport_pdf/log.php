@@ -38,19 +38,19 @@
     $pdf->cell(25, 5,'Date et Heure',1,0,'C');
     $pdf->Ln(5);
 
-    $req = ConnexionBdd::Connecter()->query("SELECT * FROM log_admin_user ORDER BY date_action ASC");
+    $req = ConnexionBdd::Connecter()->query("SELECT log_user.id_log, log_user.log_action, log_user.date_action, utilisateurs.noms FROM log_user LEFT JOIN utilisateurs ON log_user.id_user = utilisateurs.id_user ORDER BY log_user.id_user ASC");
 
     $pdf->SetFont('Arial','',7);
     while ($res1=$req->fetch()) {
         $pdf->SetFont('Arial','',6);
-        $pdf->cell(35, 5, decode_fr($res1[1]), 1, 0, 'L');
+        $pdf->cell(35, 5, decode_fr($res1['noms']), 1, 0, 'L');
         $pdf->SetFont('Arial','',6);
-        $pdf->cell(125, 5, utf8_decode(decode_fr($res1[3])), 1, 0, 'L');
-        $pdf->cell(25, 5, utf8_decode(date("d/m/Y à H:m:s", strtotime(decode_fr($res1[2])))), 1, 0, 'R');
+        $pdf->cell(125, 5, utf8_decode(decode_fr($res1['log_action'])), 1, 0, 'L');
+        $pdf->cell(25, 5, utf8_decode(date("d/m/Y à H:m:s", strtotime(decode_fr($res1['date_action'])))), 1, 0, 'R');
         $pdf->Ln(5);
     }
     $pdf->Ln(3);
     $pdf->SetFont('Arial','',10);
-	$pdf->cell(300,20, decode_fr('par : '.$_SESSION['data']['noms'].'; le '.date('d/M/Y')),0,1,'C');
+	$pdf->cell(300,20, decode_fr('par : '.$_SESSION['data']['noms'].'; le '.date('d M Y')),0,1,'C');
     $pdf->output();
 ?>
