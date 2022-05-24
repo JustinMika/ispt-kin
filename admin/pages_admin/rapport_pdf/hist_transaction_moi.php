@@ -9,6 +9,12 @@
         exit();
     }
 
+    function get_poste($id){
+        $d = ConnexionBdd::Connecter()->query("SELECT poste from poste_depense where id_poste  = {$id}");
+        $data = $d->fetch();
+        return $data['poste'];
+    }
+
 	$pdf = new FPDF('L', 'mm', 'A4');
 	$pdf->AddPage();
 	$pdf->SetFont('Arial','B',12);
@@ -25,7 +31,7 @@
     $pdf->Ln(2);
     $pdf->cell(280,1 ,"",1,1,'C', true);
 
-    $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_academique GROUP BY annee_acad ORDER BY id DESC LIMIT 1");
+    $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1");
     if($an->rowCount() > 0){
         $an_r = $an->fetch();
     }else{
@@ -65,10 +71,10 @@
     // liste de frais enregistrer dans la base de donnees
     $list_f = array();
     $annee_acad_deb = $an_r['annee_acad'];
-    $f = ConnexionBdd::Connecter()->prepare("SELECT DISTINCT poste FROM `poste_depense` WHERE annee_acad = ?");
-    $f->execute(array($annee_acad_deb));
+    $f = ConnexionBdd::Connecter()->prepare("SELECT DISTINCT id_poste FROM `poste_depense` WHERE id_annee = ?");
+    $f->execute(array($an_r['id_annee']));
     while($d = $f->fetch()){
-        $list_f[] = $d['poste'];
+        $list_f[] = $d['id_poste'];
     }
 
     // tableau
@@ -77,12 +83,23 @@
 
     foreach($list_f as $frais){
         // $pdf->cell(60, 5, decode_fr($frais), 1, 0, 'L');
-        $pdf->Cell(60, 5, substr(decode_fr($frais), 0, 50), 1, 'L');
+        $pdf->Cell(60, 5, substr(decode_fr(get_poste($frais)), 0, 50), 1, 'L');
         foreach($n_mois as $n){
             $year = $annee_acad_deb[5].''.$annee_acad_deb[6].''.$annee_acad_deb[7].''.$annee_acad_deb[8];
-            
-            $sel_m = ConnexionBdd::Connecter()->prepare("SELECT SUM(montant) as montant FROM `transaction_depense` WHERE MONTH(date_t) = ? AND YEAR(date_t) = ? AND annee_acad = ? AND poste = ? GROUP BY poste");
-            $sel_m->execute(array($n, $year, $annee_acad_deb, $frais));
+
+            $sql = "SELECT
+                        SUM(transaction_depense.montant)as montant,
+                        poste_depense.poste,
+                        annee_acad.annee_acad
+                    FROM
+                        transaction_depense
+                    LEFT JOIN poste_depense ON transaction_depense.id_poste = poste_depense.id_poste
+                    LEFT JOIN annee_acad ON transaction_depense.id_annee = annee_acad.id_annee
+                    WHERE
+                        MONTH(transaction_depense.date_motif) = ? AND YEAR(transaction_depense.date_motif) = ? AND transaction_depense.id_annee = ? AND transaction_depense.id_poste = ?";
+            // die($frais);
+            $sel_m = ConnexionBdd::Connecter()->prepare($sql);
+            $sel_m->execute(array($n, $year, $an_r['id_annee'], $frais));
 
             if($sel_m->rowCount() >= 1){
                 while($data = $sel_m->fetch()){
@@ -120,6 +137,6 @@
 
     $pdf->Ln(3);
     $pdf->SetFont('Arial','',10);
-	$pdf->cell(300,20, decode_fr('par : '.$_SESSION['data']['noms'].'; le '.date('d/M/Y')),0,1,'C');
+	$pdf->cell(300,20, decode_fr('par : '.$_SESSION['data']['noms'].'; le '.date('d M Y')),0,1,'C');
     $pdf->output();
 ?>

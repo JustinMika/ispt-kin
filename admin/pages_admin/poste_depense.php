@@ -530,11 +530,11 @@
                             <select name="poste_depense" id="poste_depense" class="form-control">
                                 <option value="Tous">Tous</option>
                                 <?php
-                                    $pdh = ConnexionBdd::Connecter()->prepare("SELECT DISTINCT poste FROM transaction_depense WHERE annee_acad = ?");
-                                    $pdh->execute(array($an_r['annee_acad']));
+                                    $pdh = ConnexionBdd::Connecter()->prepare("SELECT id_poste,poste FROM poste_depense WHERE id_annee = ?");
+                                    $pdh->execute(array($an_r['id_annee']));
                                     while($data = $pdh->fetch()){
                                         echo '
-                                        <option value="'.$data['poste'].'">'.$data['poste'].'</option>';
+                                        <option value="'.$data['id_poste'].'">'.$data['poste'].'</option>';
                                     }
                                 ?>
                             </select>

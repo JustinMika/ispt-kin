@@ -25,11 +25,11 @@
     $pdf->Ln(2);
     $pdf->cell(280,1 ,"",1,1,'C', true);
 
-    $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_academique GROUP BY annee_acad ORDER BY id DESC LIMIT 1");
+    $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1");
     if($an->rowCount() > 0){
         $an_r = $an->fetch();
     }else{
-        $an_r['annee_acad'] = '';
+        $an_r['id_annee'] = '';
         die("Veuillez AJouter l annee academique");
     }
 
@@ -47,8 +47,22 @@
     $pdf->cell(35, 5,'Montant',1,0,'C');
     $pdf->Ln(5);
 
-    $req = ConnexionBdd::Connecter()->prepare("SELECT * FROM transaction_depense  WHERE  annee_acad = ? ORDER BY date_t ASC");
-    $req->execute(array($an_r['annee_acad']));
+    $sql = "SELECT
+                transaction_depense.id_transaction,
+                transaction_depense.montant,
+                transaction_depense.motif,
+                transaction_depense.date_motif as date_t,
+                poste_depense.poste,
+                transaction_depense.num_op
+            FROM
+                transaction_depense
+            LEFT JOIN poste_depense ON transaction_depense.id_poste = poste_depense.id_poste
+            WHERE
+                transaction_depense.id_annee = 1
+            ORDER BY
+                transaction_depense.date_motif ASC";
+    $req = ConnexionBdd::Connecter()->prepare($sql);
+    $req->execute(array($an_r['id_annee']));
     $a = array();
     $pdf->SetFont('Arial','',10);
     while ($res1=$req->fetch()) {
@@ -72,6 +86,6 @@
 
     $pdf->Ln(3);
     $pdf->SetFont('Arial','',10);
-	$pdf->cell(300,20, decode_fr('par : '.$_SESSION['data']['noms'].'; le '.date('d/M/Y')),0,1,'C');
+	$pdf->cell(300,20, decode_fr('par : '.$_SESSION['data']['noms'].'; le '.date('d M Y')),0,1,'C');
     $pdf->output();
 ?>

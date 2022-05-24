@@ -8,6 +8,12 @@
         exit();
     }
 
+    function get_poste($id){
+        $d = ConnexionBdd::Connecter()->query("SELECT poste from poste_depense where id_poste  = {$id}");
+        $data = $d->fetch();
+        return $data['poste'];
+    }
+
 	$pdf = new FPDF('L', 'mm', 'A4');
 	$pdf->AddPage();
 	$pdf->SetFont('Arial','B',12);
@@ -24,11 +30,11 @@
     $pdf->Ln(2);
     $pdf->cell(260,1 ,"",1,1,'C', true);
 
-    $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_academique GROUP BY annee_acad ORDER BY id DESC LIMIT 1");
+    $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1");
     if($an->rowCount() > 0){
         $an_r = $an->fetch();
     }else{
-        $an_r['annee_acad'] = '';
+        $an_r['id_annee'] = '';
         die("Veuillez AJouter l annee academique");
     }
 
@@ -59,7 +65,19 @@
                         $pdf->cell(150, 5,'Motif',1,0,'C');
                         $pdf->cell(15, 5,'Montant',1,0,'C');
                         $pdf->Ln(5);
-                        $req = ConnexionBdd::Connecter()->prepare("SELECT * FROM transaction_depense  WHERE date_t BETWEEN ? AND ? ORDER BY date_t ASC");
+                        $sql = "SELECT
+                                    transaction_depense.id_transaction,
+                                    transaction_depense.montant,
+                                    transaction_depense.date_motif as date_t,
+                                    poste_depense.poste,
+                                    transaction_depense.num_op,
+                                    transaction_depense.motif
+                                FROM
+                                    transaction_depense
+                                LEFT JOIN poste_depense ON transaction_depense.id_poste = poste_depense.id_poste
+                                WHERE
+                                    transaction_depense.date_motif BETWEEN ? AND ? ORDER BY transaction_depense.date_motif ASC";
+                        $req = ConnexionBdd::Connecter()->prepare($sql);
                         $req->execute(array($data_1, $data_2));
 
                         $pdf->SetFont('Arial','',10);
@@ -85,7 +103,7 @@
                         $pdf->Ln(1);
                         $pdf->SetFont('Arial','BU',10);
                         $pdf->cell(197,10,'HISTORIQUE DES TRANSACTIONS DES POSTES DE DEPENSES : '.date("d/m/Y",strtotime($data_1)).' au '.date("d/m/Y",strtotime($data_2)),0,1,'C');
-                        $pdf->cell(197,10, decode_fr('Poste : '.$post),0,1,'C');
+                        $pdf->cell(197,10, decode_fr('Poste : '.get_poste($post)),0,1,'C');
                         $pdf->Ln(1);
 
                         //Tableau
@@ -95,7 +113,19 @@
                         $pdf->cell(150, 5,'Motif',1,0,'C');
                         $pdf->cell(15, 5,'Montant',1,0,'C');
                         $pdf->Ln(5);
-                        $req = ConnexionBdd::Connecter()->prepare("SELECT * FROM transaction_depense  WHERE poste = ? AND date_t BETWEEN ? AND ? ORDER BY date_t ASC");
+                        $sql = "SELECT
+                                    transaction_depense.id_transaction,
+                                    transaction_depense.montant,
+                                    transaction_depense.date_motif as date_t,
+                                    poste_depense.poste,
+                                    transaction_depense.num_op,
+                                    transaction_depense.motif
+                                FROM
+                                    transaction_depense
+                                LEFT JOIN poste_depense ON transaction_depense.id_poste = poste_depense.id_poste
+                                WHERE
+                                    transaction_depense.id_poste = ? AND transaction_depense.date_motif BETWEEN ? AND ? ORDER BY transaction_depense.date_motif ASC";
+                        $req = ConnexionBdd::Connecter()->prepare($sql);
                         $req->execute(array($post, $data_1, $data_2));
 
                         $pdf->SetFont('Arial','',10);
