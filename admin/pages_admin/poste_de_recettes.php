@@ -7,7 +7,7 @@
     $p = "Poste des recettes";
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
 
     <meta charset="utf-8">
@@ -19,10 +19,6 @@
     <title>Poste de recette</title>
     <link rel="shortcut icon" href="../../images/ispt_kin.png" type="image/x-icon">
     <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-        rel="stylesheet">
-
     <link href="css/sb-admin-2.min.css" rel="stylesheet">
     <link rel="stylesheet" href="js/DataTables/css/dataTables.jqueryui.min.css">
     <link rel="stylesheet" href="js/DataTables/css/dataTables.bootstrap4.min.css">
@@ -52,7 +48,7 @@
                                                 aria-expanded="false">Actions</button>
                                         <div class="dropdown-menu" aria-labelledby="triggerId">
                                             <button data-target="#add_poste" data-toggle="modal" class="dropdown-item btn btn-primary btn-sm text-secondary"><i class="fa fa-plus" aria-hidden="true"> Ajouter un poste de recette</i></button>
-                                            <button data-target="#post_recette" data-toggle="modal" class="dropdown-item btn btn-default btn-sm text-secondary"><i class="fa fa-upload" aria-hidden="true"> Uploader le fichier</i></button>
+                                            <!-- <button data-target="#post_recette" data-toggle="modal" class="dropdown-item btn btn-default btn-sm text-secondary"><i class="fa fa-upload" aria-hidden="true"> Uploader le fichier</i></button> -->
                                             <a href="rapport_pdf/rapport_poste_recette.php" class="dropdown-item btn btn-default btn-sm text-secondary" target="_blank"><i class="fa fa-print" aria-hidden="true"></i> Imprimer</a>
                                         </div>
                                     </div>
@@ -115,7 +111,7 @@
                                         <div class="dropdown-menu" aria-labelledby="triggerId">
                                             <button data-target="#prevision_f" data-toggle="modal" class="dropdown-item btn btn-default btn-sm text-secondary"><i class="fa fa-upload" aria-hidden="true"> Ajouter une prévision</i></button>
 
-                                            <button data-target="#modal_etud" data-toggle="modal" class="dropdown-item btn btn-default btn-sm text-secondary"><i class="fa fa-upload" aria-hidden="true"> Uploader le fichier</i></button>
+                                            <!-- <button data-target="#modal_etud" data-toggle="modal" class="dropdown-item btn btn-default btn-sm text-secondary"><i class="fa fa-upload" aria-hidden="true"> Uploader le fichier</i></button> -->
                                             
                                             <a href="rapport_pdf/prevision_frais_acad.php" class="dropdown-item btn-sm btn-default text-secondary" id="btn_rapport" target="_blank"><i class="fa fa-print" aria-hidden="true"> Imprimer un Rapport</i> </a>
                                         </div>
