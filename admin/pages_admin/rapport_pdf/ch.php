@@ -41,16 +41,16 @@
 
     $a  = array();
 
-    $req = ConnexionBdd::Connecter()->query("SELECT * FROM hist_cheque ORDER BY date_c ASC");
+    $req = ConnexionBdd::Connecter()->query("SELECT * FROM gestion_cheque ORDER BY date_ ASC");
 
     $pdf->SetFont('Arial','',9);
     while ($res1=$req->fetch()) {
-        $pdf->cell(25, 5, date("d/m/Y", strtotime(decode_fr($res1[1]))), 1, 0, 'L');
-        $pdf->cell(115, 5, decode_fr($res1[2]), 1, 0, 'L');
-        $pdf->cell(25, 5, utf8_decode($res1[3]), 1, 0, 'R');
-        $pdf->cell(25, 5, utf8_decode('$'.$res1[4]), 1, 0, 'R');
+        $pdf->cell(25, 5, date("d/m/Y", strtotime(decode_fr($res1['date_']))), 1, 0, 'L');
+        $pdf->cell(115, 5, decode_fr($res1['liebelle']), 1, 0, 'L');
+        $pdf->cell(25, 5, utf8_decode($res1['num_cheque']), 1, 0, 'L');
+        $pdf->cell(25, 5, utf8_decode('$'.$res1['montant']), 1, 0, 'R');
         $pdf->Ln(5);
-        $a[] = $res1[4];
+        $a[] = $res1['montant'];
     }
     $pdf->cell(25, 5,'Total',1,0,'C');
     $pdf->cell(115, 5,decode_fr('libellé'),1,0,'C', true);
@@ -58,6 +58,6 @@
     $pdf->cell(25, 5, '$'.array_sum($a),1,0,'R');
     $pdf->Ln(3);
     $pdf->SetFont('Arial','',10);
-	$pdf->cell(300,20, decode_fr('par : '.$_SESSION['data']['noms'].'; le '.date('d/M/Y')),0,1,'C');
+	$pdf->cell(300,20, decode_fr('par : '.$_SESSION['data']['noms'].'; le '.date('d M Y')),0,1,'C');
     $pdf->output();
 ?>
