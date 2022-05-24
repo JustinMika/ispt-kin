@@ -93,7 +93,26 @@
                                             </thead>
                                             <tbody class="">
                                                 <?php
-                                                    $verif = ConnexionBdd::Connecter()->query("SELECT * FROM payement ORDER BY date_payement, id_annee DESC");
+                                                    $sql = "SELECT
+                                                                payement.id_payement as id,
+                                                                payement.montant,
+                                                                payement.date_payement,
+                                                                payement.num_bordereau,
+                                                                payement.matricule,
+                                                                prevision_frais.type_frais,
+                                                                sections.section,
+                                                                departement.departement,
+                                                                options.option_ as faculte,
+                                                                options.promotion,
+                                                                annee_acad.annee_acad
+                                                            FROM
+                                                                payement
+                                                            LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
+                                                            LEFT JOIN sections ON payement.id_section = sections.id_section
+                                                            LEFT JOIN departement ON payement.id_departement = departement.id_departement
+                                                            LEFT JOIN options ON payement.id_option = options.id_option
+                                                            LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee ORDER BY payement.date_payement DESC";
+                                                    $verif = ConnexionBdd::Connecter()->query($sql);
                                                     while($data = $verif->fetch()){
                                                         ?>
                                                             <tr>
@@ -102,9 +121,9 @@
                                                                 <td id="faculte_"><?=utf8_decode($data['faculte'])?></td>
                                                                 <td id="promotion_"><?=$data['promotion']?></td>
                                                                 <td id="type_frais_"><?=utf8_decode($data['type_frais'])?></td>
-                                                                <td id="num_bordereau"><?=utf8_decode($data['num_borderon'])?></td>
+                                                                <td id="num_bordereau"><?=utf8_decode($data['num_bordereau'])?></td>
                                                                 <td id="montant_a">$<?=$data['montant']?></label></td>
-                                                                <td id="datepy"><?=$data['date_payement']?></td>
+                                                                <td id="datepy"><?=date("Y-m-d", strtotime($data['date_payement']))?></td>
                                                                 <td id="annee_acad_a"><?=$data['annee_acad']?></td>
                                                                 <td style="<?=rr()?>;">
                                                                     <button type="button" class="btn btn-primary btn-sm m-1 p-1" data-toggle="modal" data-target="#mod_payement" aria-pressed="false" autocomplete="off" id="btn_mod_payement" title="Modifier">
@@ -319,7 +338,6 @@
         </div>
 
         <!-- supprimer un payement -->
-        <!-- modifier un payement -->
         <div class="modal fade" id="mod_payement_delete" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
