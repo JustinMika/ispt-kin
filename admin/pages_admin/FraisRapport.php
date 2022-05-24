@@ -8,6 +8,20 @@
     require './fpdf/fpdf.php';
     $p = "Frais Rapport";
 
+    function get_annee($id){
+        $d = ConnexionBdd::Connecter()->query("SELECT annee_acad from annee_acad where id_annee  = {$id}");
+        $data = $d->fetch();
+        return $data['annee_acad'];
+    }
+
+    function get_fac($f){
+        if($f == "Tous"){
+            return $f;
+        }else{
+            return $f;
+        }
+    }
+
     function all($pdf){
         $pdf->AddPage();
         $pdf->SetFont('Arial','B',12);
@@ -27,10 +41,9 @@
 
         $pdf->SetFont('Arial','',10);
         $pdf->SetTextColor(0,0,0);
-        $pdf->cell(60, 5, decode_fr('Année Academique Debut : '.verify($_POST['annee_acad_deb'])), 0, 1, 'L');
-        $pdf->cell(60, 5, decode_fr('Année Academique  Fin: '.verify($_POST['annee_acad_fin'])), 0, 1, 'L');
+        $pdf->cell(60, 5, decode_fr('Année Academique : '.verify(get_annee($_POST['annee_acad_deb']))), 0, 1, 'L');
         $pdf->cell(60, 5, 'Promotion                 : '.decode_fr(verify($_POST['promotion_etud'])), 0, 1, 'L');
-        $pdf->cell(60, 5, decode_fr('Faculté                     : '.verify($_POST['fac_etudiant'])), 0, 1, 'L');
+        $pdf->cell(60, 5, decode_fr('SECTION                     : '.verify($_POST['fac_etudiant'])), 0, 1, 'L');
         $pdf->cell(60, 5, 'Type de frais             : '.decode_fr(verify($_POST['type_frais'])), 0, 1, 'L');
         $pdf->cell(60, 5, decode_fr('Poucentage min.       : '.verify($_POST['pourcent_debut']).'%'), 0, 1, 'L');
         $pdf->cell(60, 5, decode_fr('Poucentage max.      : '.verify($_POST['pourcent_fin']).'%'), 0, 1, 'L');
@@ -2831,7 +2844,7 @@
         
         all($pdf);
         $pdf->SetFont('Arial','BU',10);
-        $pdf->cell(190, 10, decode_fr('RAPPORT FRAIS PAR ANNEE ACADEMIQUE '.$_POST['annee_acad_deb']), 0, 1, 'C');
+        $pdf->cell(190, 10, decode_fr('RAPPORT FRAIS PAR ANNEE ACADEMIQUE '.get_annee($_POST['annee_acad_deb'])), 0, 1, 'C');
         $pdf->SetFont('Arial','',10);
         
 
@@ -2844,11 +2857,13 @@
             $t_promotion = array();
             $ff = $_POST['fac_etudiant'];
             $pp = $_POST['promotion_etud'];
+
             // selection des toutes les facultes
-            $f = ConnexionBdd::Connecter()->query("SELECT DISTINCT fac FROM etudiants_inscrits GROUP BY fac");
+            $f = ConnexionBdd::Connecter()->query("SELECT etudiants_inscrits.id_section, sections.section, annee_acad.id_annee FROM etudiants_inscrits LEFT JOIN sections ON etudiants_inscrits.id_section = sections.id_section LEFT JOIN annee_acad ON etudiants_inscrits.id_annee = annee_acad.id_annee WHERE etudiants_inscrits.id_annee = {$annee_acad_fin}");
             while($df = $f->fetch()){
-                $t_fac[] = $df['fac'];
+                $t_fac[] = $df['section'];
             }
+
             // selection des toutes les promotions
             $f = ConnexionBdd::Connecter()->query("SELECT DISTINCT promotion FROM etudiants_inscrits GROUP BY promotion");
             while($df = $f->fetch()){
@@ -2858,12 +2873,12 @@
             if($_POST['fac_etudiant'] == "Tous" && $_POST['promotion_etud'] == "Tous"){
                 if(empty($_POST['pourcent_debut']) && empty($_POST['pourcent_fin'])){
                     // la tables etudiants
-                    $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT promotion,fac, annee_academique FROM etudiants_inscrits WHERE annee_academique = ? GROUP BY annee_academique");
+                    $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
                     $sel_etud->execute(array($annee_acad_fin));
     
                     if($sel_etud->rowCount() > 0){
                         while ($data_student = $sel_etud->fetch()){
-                            $pdf->cell(190, 5, decode_fr('Annee Acad.: '.$annee_acad_fin), 0, 1, 'L');
+                            $pdf->cell(190, 5, decode_fr('Annee Acad.: '.get_annee($annee_acad_fin)), 0, 1, 'L');
                             $pdf->cell(190, 5, decode_fr('Faculte : '.$ff), 0, 1, 'L');
                             $pdf->cell(190, 5, decode_fr('Promotion : '.$pp), 0, 1, 'L');
                             $pdf->Ln(2);
@@ -4447,11 +4462,11 @@
                                                         <select class="form-control" name="fac_etudiant" id="fac_etudiant">
                                                             <option value="Tous" selected>Tous</option>
                                                             <?php
-                                                                $sql = "SELECT DISTINCT fac FROM etudiants_inscrits";
+                                                                $sql = "SELECT DISTINCT section FROM sections";
                                                                 $state = ConnexionBdd::Connecter()->query($sql);
                                                                 while($d = $state->fetch()){
                                                                     echo' 
-                                                                        <option value="'.$d['fac'].'">'.$d['fac'].'</option>';
+                                                                        <option value="'.$d['section'].'">'.$d['section'].'</option>';
                                                                 }
                                                             ?>
                                                         </select>
@@ -4466,12 +4481,12 @@
                                                         <select class="form-control" name="promotion_etud" id="promotion_etud">
                                                             <option value="Tous">Tous</option>
                                                             <?php
-                                                                // $sql = "SELECT DISTINCT promotion FROM etudiants_inscrits";
-                                                                // $state = ConnexionBdd::Connecter()->query($sql);
-                                                                // while($d = $state->fetch()){
-                                                                //     echo' 
-                                                                //         <option value="'.$d['promotion'].'">'.$d['promotion'].'</option>';
-                                                                // }
+                                                                $sql = "SELECT DISTINCT promotion FROM etudiants_inscrits";
+                                                                $state = ConnexionBdd::Connecter()->query($sql);
+                                                                while($d = $state->fetch()){
+                                                                    echo' 
+                                                                        <option value="'.$d['promotion'].'">'.$d['promotion'].'</option>';
+                                                                }
                                                             ?>
                                                         </select>
                                                     </div>                                  
@@ -4484,11 +4499,11 @@
                                                     <div class="col-sm-12 col-md-9 col-lg-7">
                                                         <select class="form-control" name="annee_acad_deb" id="annee_acad_deb">
                                                             <?php
-                                                                $sql = "SELECT * FROM annee_academique ORDER BY annee_acad DESC";
+                                                                $sql = "SELECT * FROM annee_acad ORDER BY annee_acad DESC";
                                                                 $state = ConnexionBdd::Connecter()->query($sql);
                                                                 while($d = $state->fetch()){
                                                                     echo' 
-                                                                        <option value="'.$d['annee_acad'].'">'.$d['annee_acad'].'</option>';
+                                                                        <option value="'.$d['id_annee'].'">'.$d['annee_acad'].'</option>';
                                                                 }
                                                             ?>
                                                         </select>
@@ -4502,11 +4517,11 @@
                                                     <div class="col-sm-12 col-md-9 col-lg-7">
                                                         <select class="form-control" name="annee_acad_fin" id="annee_acad_fin">
                                                             <?php
-                                                                $sql = "SELECT * FROM annee_academique ORDER BY annee_acad DESC";
+                                                                $sql = "SELECT * FROM annee_acad ORDER BY annee_acad DESC";
                                                                 $state = ConnexionBdd::Connecter()->query($sql);
                                                                 while($d = $state->fetch()){
                                                                     echo' 
-                                                                        <option value="'.$d['annee_acad'].'">'.$d['annee_acad'].'</option>';
+                                                                        <option value="'.$d['id_annee'].'">'.$d['annee_acad'].'</option>';
                                                                 }
                                                             ?>
                                                         </select>
@@ -4522,7 +4537,7 @@
                                                             <option value="Tous">Tous</option>
                                                             <?php
                                                                 //le type de frais
-                                                                $sql = "SELECT DISTINCT type_frais FROM affectation_frais";
+                                                                $sql = "SELECT DISTINCT prevision_frais.type_frais FROM affectation_frais LEFT JOIN prevision_frais ON affectation_frais.id_frais = prevision_frais.id_frais";
                                                                 $state = ConnexionBdd::Connecter()->query($sql);
                                                                 while($d = $state->fetch()){
                                                                     echo' 
