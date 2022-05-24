@@ -31,7 +31,7 @@
     }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -357,7 +357,7 @@
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
-                    <form action="" method="post" id="historique_pay">
+                    <form action="" method="post" id="payement_form_pay">
                         <div class="modal-body m-0 pl-2 pr-2">
                             <div class="" id="">
                                 <div class="form-group">
@@ -503,26 +503,29 @@
                                 if($("#section_etud").val() !="" && $("#option_etu").val() !="" && $("#departement_etud").val() !=""){
                                     getFraisEtud();
                                 }else{
-
+                                    $("#type_d_frais").empty();
                                 }
                             } catch (err) {
                                 $("#error_payement").html("Erreur").removeClass('text-success').addClass('text-danger');
                                 $("#btn_payem_").attr('disabled', true);
+                                $("#type_d_frais").empty();
                             }
                         }else{
                             $("#error_payement").html("l'etudiant n'est pas inscrit(e) dans "+$("#annee_acad_pay option:selected").text() +" - "+ data);
+                            $("#type_d_frais").empty();
                             $("#btn_payem_").attr('disabled', true);
                         }
                     },
                     error: function(e){
                         $("#error_payement").html("Erreur de connexion ...");
+                        $("#type_d_frais").empty();
                         $("#btn_payem_").attr('disabled', true);
                     }
                 });
             }
 
             function getFraisEtud(){
-                if($("#section_etud").val() !="" && $("#option_etu").val() !="" && $("#departement_etud").val() !="" && $("#mat_etudiants_").val() && $("#annee_acad_pay").val() !=""){
+                if($("#section_etud").val() !="" && $("#option_etu").val() !="" && $("#departement_etud").val() !="" && $("#mat_etudiants_").val() !="" && $("#annee_acad_pay").val() !=""){
                     const data_  = {
                         list_frais:"list_frais",
                         a:$("#section_etud").val(),
@@ -532,24 +535,71 @@
                         e:$("#annee_acad_pay").val()
                     };
                     $.ajax({
-                        type: "POST",
+                        type: "GET",
                         url: "../../includes/select_std.php",
                         data: data_,
                         success: function (response) {
                             if(response !=""){
-                                // $("#").empty();
-                                // $("#").append(response);
-                                alert(response);
+                                $("#type_d_frais").empty();
+                                $("#type_d_frais").append(response);
                             }else{
                                 $("#error_payement").html("Aucun frais n'est affecté à l'étudiant(e)" +response).removeClass('text-success').addClass('text-danger');
+                                $("#type_d_frais").empty();
                                 $("#btn_payem_").attr('disabled', true);
                             }
+                        },
+                        error: function(e){
+                            $("#type_d_frais").empty();
+                            alert("Erreur de connexion.");
                         }
                     });
                 }else{
-
+                    $("#type_d_frais").empty();
+                    alert("Rien");
                 }
             }
+
+            $("#montant_pay_et").keyup(function (e) { 
+                var x = $("#montant_pay_et").val();
+                if(!isNaN(x) && x >= 1 && x !="0" && x !="0,"){
+                    if(x !=""){
+                        $("#btn_payem_").removeAttr('disabled');
+                        $("#error_payement").html('');
+                        $("#error_payement").html('montant valide (: :)').css({color:'green'}).addClass('text-success');
+                        console.log(x + "is a number");
+                        $("#montant_pay_et").val(x);
+                    }else{
+                        $("#error_payement").html('');
+                        $("#error_payement").html("une valeur est requis").addClass('text-danger');
+                        $("#btn_payem_").attr('disabled', true);
+                    }
+                }else{
+                    $("#error_payement").html('');
+                    $("#error_payement").html("Veuillez saisir un montant valide.").addClass('text-danger');
+                    $("#btn_payem_").attr('disabled', true);
+                    console.log(x + "is not a number");
+                }
+            });
+
+            $("#payement_form_pay").submit(function (e) { 
+                e.preventDefault();
+                $.ajax({
+                    type: "POST",
+                    url: "../../includes/payement_etudiants_.php",
+                    data: $(this).serializeArray(),
+                    success: function (response) {
+                        if(response !="" && response =="ok"){
+                            $("#error_payement").html(response +" payement reussi avec success").addClass('text-danger');
+                            window.location.reload();
+                        }else{
+                            $("#error_payement").html(response).addClass('text-danger');
+                        }
+                    },
+                    error: function (response){
+                        $("#error_payement").html("Erreur de connexion,..").addClass('text-danger');
+                    }
+                });
+            });
         </script>
         
         <script>

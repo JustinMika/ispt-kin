@@ -19,7 +19,9 @@
                     die("");
                 }
             }
-        }else if($_GET['list_frais']){
+        }
+            
+    } else if(isset($_GET['list_frais']) && $_GET['list_frais'] == "list_frais"){
             // print_r($_GET);
             $id_section = $_GET['a'];
             $id_departement = $_GET['b'];
@@ -41,12 +43,12 @@
             if($req->rowCount() > 0){
                 while($data = $req->fetch()){
                     echo '
-                        <option value="'.$data['id_frais'].'">'.$data['type_frais'].'</option>';
+                        <option value="'.$data['id_frais'].'">'.utf8_decode($data['type_frais']).'</option>';
                 }
             }else{
-                print_r($_GET);
                 die("");
             }
+        }else{
+            die("");
         }
-    }
 ?>
