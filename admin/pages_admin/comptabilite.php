@@ -67,9 +67,9 @@
                                                 <span class="sr-only">Toggle Dropdown</span>
                                             </button>
                                             <div class="dropdown-menu">
-                                                <a class="dropdown-item" data-toggle="modal" href="#myModal_ppe" style="<?=restruct_r_ab()?>;"><i class="fa fa-upload" aria-hidden="true"></i> Payement par étudiant(e)</a>
+                                                <a class="dropdown-item" data-toggle="modal" href="#myModal_ppe" style="<?=restruct_r_ab()?>;"><i class="fa fa-upload" aria-hidden="true"></i> Effectuer un Payement</a>
 
-                                                <a class="dropdown-item" data-toggle="modal" href="#Effect_payement" style="<?=restruct_r_ab()?>;"><i class="fa fa-plus" aria-hidden="true"></i> Effectuer un Payement</a>
+                                                <!-- <a class="dropdown-item" data-toggle="modal" href="#Effect_payement" style="<?=restruct_r_ab()?>;"><i class="fa fa-plus" aria-hidden="true"></i> Effectuer un Payement</a> -->
                                                 <!-- <a class="dropdown-item" data-toggle="modal" href="#myModal" style="<?=restruct_r_ab()?>;"><i class="fa fa-upload" aria-hidden="true"></i> Charger le Fichier excel ...</a> -->
                                                 <a class="dropdown-item" data-toggle="modal" href="#histpay"><i class="fa fa-upload" aria-hidden="true"></i> historique de paiement</a>
                                             </div>
