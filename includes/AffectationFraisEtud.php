@@ -36,15 +36,15 @@
                     <td>'.$data['annee_academique'].'</td>
                     <td id="id_annee" style="display:none">'.$data['id_annee'].'</td>
                     <td>
-                        <a class="btn btn-primary" href="#" id="btn_affecter" data-toggle="modal" data-target="#mod_affectation"><i class="fa fa-plus-circle" aria-hidden="true"></i> Affecter</a>
-                        <a class="btn btn-danger" href="#" id="btn_del_affecter" data-toggle="modal" data-target="#del_affectation"><i class="fa fa-recycle" aria-hidden="true"></i></a>
+                        <a class="btn btn-primary" href="#" id="btn_affecter" data-toggle="modal" data-target="#mod_affectation" title="Affecter"><i class="fa fa-plus-circle" aria-hidden="true"></i></a>
+                        <a class="btn btn-danger" href="#" id="btn_del_affecter" data-toggle="modal" data-target="#del_affectation" title="Supprimer les Affectations"><i class="fa fa-recycle" aria-hidden="true"></i></a>
                     </td>
                 </tr>';
         }
     }
     // search
     if(isset($_POST['id_search']) && !empty($_POST['id_search'])){
-        if(!empty($_POST['mat']) && !empty($_POST['fac']) && !empty($_POST['promotion']) && !empty($_POST['annee_acad'])){
+        if(!empty($_POST['mat']) && !empty($_POST['annee_acad'])){
             
             //selection de l etudiants
             $verif = ConnexionBdd::Connecter()->prepare("SELECT * FROM etudiants_inscrits WHERE matricule = ? AND fac = ? AND promotion = ? AND annee_academique = ?");
@@ -70,7 +70,7 @@
                 die('<p class="h4 text-danger">Aucun resultat pour votre recherche</p>');
             }
         }else{
-            die('<p class="h4 text-danger">Veuillez repmlir tous les champs svp !</p>');
+            die('<p class="h4 text-danger">Veuillez remplir tous les champs svp !</p>');
         }
     }
 

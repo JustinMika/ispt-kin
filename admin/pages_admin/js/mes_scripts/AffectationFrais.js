@@ -8,17 +8,13 @@ $(document).ready(function() {
     $("#form_inscription_etud").submit(function(e) {
         e.preventDefault();
         var mat_etud = $("#mat_etud");
-        var fac = $("#fac_search option:selected").text();
-        var promotion = $("#promotion_search option:selected").text();
         var annee_acad = $("#annee_acad_search option:selected").text();
 
-        if ($(mat_etud).val() != "" && fac != "" && promotion != "" && annee_acad != "") {
+        if ($(mat_etud).val() != "" && annee_acad != "") {
             const data = {
                 "id_search": "search",
                 "mat": $(mat_etud).val(),
-                "fac": fac,
-                "annee_acad": annee_acad,
-                "promotion": promotion
+                "annee_acad": annee_acad
             };
 
             $.ajax({
@@ -109,15 +105,15 @@ $(document).ready(function() {
             frais_a_payer.push($(this).val());
             frais_a_payer.join(', ');
         });
-        if (mat_etud_aff != "" && annee_acad_aff != "" && promotion_aff != "" && option !="" && departement !="" && section !="") {
+        if (mat_etud_aff != "" && annee_acad_aff != "" && promotion_aff != "" && option != "" && departement != "" && section != "") {
             const data = {
                 affect: "affect",
                 mat: mat_etud_aff,
                 promotion: promotion_aff,
                 frais: frais_a_payer,
                 section: section,
-                departement:departement,
-                option:option,
+                departement: departement,
+                option: option,
                 annee_acad: annee_acad_aff
             };
             //{ affect: "affecter", matricule: mat_etud_aff, promotion_aff: promotion_aff, fac_aff: fac_aff, annee_acad_aff: annee_acad_aff, frais: frais_a_payer, montant_f: montant }
@@ -140,7 +136,7 @@ $(document).ready(function() {
             });
         } else {
             $("#ErrorAff").text("");
-             $("#ErrorAff").text("Veuillez completer tous les champs, ...").css({ color: 'red' });
+            $("#ErrorAff").text("Veuillez completer tous les champs, ...").css({ color: 'red' });
         }
     });
 

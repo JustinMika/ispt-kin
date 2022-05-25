@@ -78,7 +78,7 @@
                                                 <td><i class="icon_cogs"></i> #</td>
                                             </tr>
                                         </thead>
-                                        <tbody id="t_inscription_etudiants" class="" style="<?php //restruct_user()?>">
+                                        <tbody id="t_inscription_etudiants" class="" style="font-size:90%">
                                         </tbody>
                                         <caption id="no-data"></caption>
                                     </table>
