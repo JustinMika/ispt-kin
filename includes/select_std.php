@@ -20,7 +20,6 @@
                 }
             }
         }
-            
     } else if(isset($_GET['list_frais']) && $_GET['list_frais'] == "list_frais"){
             // print_r($_GET);
             $id_section = $_GET['a'];
@@ -30,14 +29,22 @@
             $annee = $_GET['e'];
 
             $sql = "SELECT
+                        affectation_frais.id,
+                        affectation_frais.id_section,
+                        affectation_frais.matricule,
+                        affectation_frais.id_departement,
+                        affectation_frais.id_option,
                         affectation_frais.id_frais,
-                        prevision_frais.type_frais
+                        prevision_frais.id_frais,
+                        prevision_frais.type_frais,
+                        prevision_frais.montant
                     FROM
                         affectation_frais
                     LEFT JOIN prevision_frais ON affectation_frais.id_frais = prevision_frais.id_frais
                     WHERE
-                        affectation_frais.matricule = ? AND affectation_frais.id_section = ? AND affectation_frais.id_departement = ? AND affectation_frais.id_option = ? AND affectation_frais.id_annee = ?";
-            $p = array($mat, $id_section, $id_departement, $id_option, $annee);
+                        affectation_frais.matricule = ? AND affectation_frais.id_annee = ?";
+            $p = array($mat, $annee);
+            // print_r($p);
             $req = ConnexionBdd::Connecter()->prepare($sql);
             $req->execute($p);
             if($req->rowCount() > 0){

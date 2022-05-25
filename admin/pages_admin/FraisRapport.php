@@ -3140,19 +3140,18 @@
                             $a = array();
                             $b = array();
                             if($_POST['type_frais'] != "Tous"){
-                                    $sql_2 = "SELECT
-                                            payement.id_payement,
-                                            SUM(payement.montant) as mp,
-                                            prevision_frais.id_frais,
-                                            SUM(prevision_frais.montant) as mt,
-                                            prevision_frais.type_frais,
-                                            annee_acad.annee_acad
-                                        FROM
-                                            payement
-                                        LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
-                                        LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
-                                        WHERE
-                                            prevision_frais.type_frais = ? AND annee_acad.id_annee = ?";
+                                $sql_2 = "SELECT
+                                        SUM(prevision_frais.montant) AS mt,
+                                        prevision_frais.type_frais,
+                                        annee_acad.annee_acad,
+                                        SUM(payement.montant) AS mp
+                                    FROM
+                                        prevision_frais LEFT JOIN payement ON payement.id_frais = prevision_frais.id_frais
+                                    LEFT JOIN annee_acad ON prevision_frais.id_annee = annee_acad.id_annee
+                                    WHERE
+                                        prevision_frais.type_frais = ? AND annee_acad.id_annee = ? 
+                                    GROUP BY
+                                        prevision_frais.type_frais";
                                     $sql_2_a = array($_POST['type_frais'], $annee_acad_deb);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
@@ -3184,18 +3183,17 @@
                                 // le type de frais n est pas selectionner
                             }else{
                                 $sql_2 = "SELECT
-                                            payement.id_payement,
-                                            SUM(payement.montant) as mp,
-                                            prevision_frais.id_frais,
-                                            SUM(prevision_frais.montant) as mt,
+                                            SUM(prevision_frais.montant) AS mt,
                                             prevision_frais.type_frais,
-                                            annee_acad.annee_acad
+                                            annee_acad.annee_acad,
+                                            SUM(payement.montant) AS mp
                                         FROM
-                                            payement
-                                        LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
-                                        LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                            prevision_frais LEFT JOIN payement ON payement.id_frais = prevision_frais.id_frais
+                                        LEFT JOIN annee_acad ON prevision_frais.id_annee = annee_acad.id_annee
                                         WHERE
-                                            annee_acad.id_annee = ?";
+                                            annee_acad.id_annee = ? 
+                                        GROUP BY
+                                            prevision_frais.type_frais";
                                     $sql_2_a = array($annee_acad_deb);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
@@ -3247,19 +3245,18 @@
                             $b = array();
                             if($_POST['type_frais'] != "Tous"){
                                     $sql_2 = "SELECT
-                                            payement.id_payement,
-                                            SUM(payement.montant) as mp,
-                                            prevision_frais.id_frais,
-                                            SUM(prevision_frais.montant) as mt,
+                                            SUM(prevision_frais.montant) AS mt,
                                             prevision_frais.type_frais,
-                                            annee_acad.annee_acad
+                                            annee_acad.annee_acad,
+                                            SUM(payement.montant) AS mp
                                         FROM
-                                            payement
-                                        LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
-                                        LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                            prevision_frais LEFT JOIN payement ON payement.id_frais = prevision_frais.id_frais
+                                        LEFT JOIN annee_acad ON prevision_frais.id_annee = annee_acad.id_annee
                                         WHERE
-                                            prevision_frais.type_frais = ? AND annee_acad.id_annee = ?
-                                        HAVING ROUND(mp * 100 / ?) >= ? AND ROUND(mp * 100 / ?) <= ?";
+                                            prevision_frais.type_frais = ? AND annee_acad.id_annee = ? 
+                                        HAVING ROUND(mp * 100 / ?) >= ? AND ROUND(mp * 100 / ?) <= ?
+                                        GROUP BY
+                                            prevision_frais.type_frais"; 
                                     $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $pd, $pf);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
@@ -3291,19 +3288,18 @@
                                 // le type de frais n est pas selectionner
                             }else{
                                 $sql_2 = "SELECT
-                                            payement.id_payement,
-                                            SUM(payement.montant) as mp,
-                                            prevision_frais.id_frais,
-                                            SUM(prevision_frais.montant) as mt,
+                                            SUM(prevision_frais.montant) AS mt,
                                             prevision_frais.type_frais,
-                                            annee_acad.annee_acad
+                                            annee_acad.annee_acad,
+                                            SUM(payement.montant) AS mp
                                         FROM
-                                            payement
-                                        LEFT JOIN prevision_frais ON payement.id_frais = prevision_frais.id_frais
-                                        LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
+                                            prevision_frais LEFT JOIN payement ON payement.id_frais = prevision_frais.id_frais
+                                        LEFT JOIN annee_acad ON prevision_frais.id_annee = annee_acad.id_annee
                                         WHERE
-                                            annee_acad.id_annee = ?
-                                        HAVING ROUND(mp * 100 / ?) >= ? AND ROUND(mp * 100 / ?) <= ?";
+                                            annee_acad.id_annee = ? 
+                                        HAVING ROUND(mp * 100 / ?) >= ? AND ROUND(mp * 100 / ?) <= ?
+                                        GROUP BY
+                                            prevision_frais.type_frais";
                                     $sql_2_a = array($annee_acad_deb, $pd, $pf);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
@@ -4143,8 +4139,8 @@
                                     LEFT JOIN payement ON affectation_frais.id_frais = payement.id_frais
                                     WHERE
                                         etudiants_inscrits.promotion = ? AND sections.section = ? AND annee_acad.id_annee = ?
-                                    ORDER BY
-                                        etudiants_inscrits.noms";
+                                    
+                                    GROUP BY etudiants_inscrits.matricule, affectation_frais.matricule";
 
                                 $mt = ConnexionBdd::Connecter()->prepare($sql);
                                 $mt->execute(array($pp, $ff, $annee_acad_fin));

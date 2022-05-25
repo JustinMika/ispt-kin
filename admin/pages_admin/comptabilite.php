@@ -118,7 +118,7 @@
                                                             <tr>
                                                                 <td id="id_payement"><?=$data['id']?></td>
                                                                 <td id="mat_etud"><?=$data['matricule']?></td>
-                                                                <td id="faculte_"><?=utf8_decode($data['faculte'])?></td>
+                                                                <td id="faculte_"><?=$data['faculte']?></td>
                                                                 <td id="promotion_"><?=$data['promotion']?></td>
                                                                 <td id="type_frais_"><?=utf8_decode($data['type_frais'])?></td>
                                                                 <td id="num_bordereau"><?=utf8_decode($data['num_bordereau'])?></td>
@@ -549,6 +549,7 @@
                         url: "../../includes/select_std.php",
                         data: data_,
                         success: function (response) {
+                            // alert(response);
                             if(response !=""){
                                 $("#type_d_frais").empty();
                                 $("#type_d_frais").append(response);
