@@ -4096,6 +4096,394 @@
                 if(empty($_POST['pourcent_debut']) && empty($_POST['pourcent_fin'])){
                     foreach($t_fac as $ff){
                         $t_promotion = array();
+                        $f = ConnexionBdd::Connecter()->query("SELECT DISTINCT etudiants_inscrits.promotion, options.id_option, sections.section FROM etudiants_inscrits LEFT JOIN options ON etudiants_inscrits.id_option = options.id_option LEFT JOIN sections ON etudiants_inscrits.id_section = sections.id_section WHERE sections.section = '{$ff}' GROUP BY etudiants_inscrits.promotion");
+                        while($df = $f->fetch()){
+                            $t_promotion[] = $df['promotion'];
+                        }
+                        foreach($t_promotion as $pp){
+                            $pdf->SetFont('Arial','B',10);
+                            $pdf->cell(190, 5, decode_fr("Faculte : ".$ff), 0, 1, 'L');
+                            $pdf->cell(190, 5, decode_fr("Promotion : ".$pp), 0, 1, 'L');
+                            $pdf->cell(190, 5, decode_fr("Année Acad. : ".get_annee($annee_acad_fin)), 0, 1, 'L');
+                            $pdf->Ln(2);
+                            $pdf->cell(15, 5, 'mat', 1, 0, 'L');
+                            $pdf->cell(70, 5, 'Noms', 1, 0, 'L');
+                            $pdf->cell(30, 5, 'Montant prevu', 1, 0, 'L');
+                            $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
+                            $pdf->cell(30, 5, 'Solde ', 1, 0, 'L');
+                            $pdf->cell(15, 5, ' % ', 1, 0, 'L');
+                            $pdf->Ln(2);
+                            $pdf->SetFont('Arial','',10);
+
+                            $a = array();
+                            $b = array();
+
+                            if($_POST['type_frais'] == "Tous"){
+                                $sql = "SELECT
+                                        etudiants_inscrits.matricule,
+                                        etudiants_inscrits.noms,
+                                        affectation_frais.id,
+                                        prevision_frais.type_frais,
+                                        SUM(prevision_frais.montant) as mt,
+                                        SUM(payement.montant) as mp,
+                                        sections.section,
+                                        departement.departement,
+                                        options.option_,
+                                        options.promotion,
+                                        annee_acad.annee_acad,
+                                        sections.id_section
+                                    FROM
+                                        etudiants_inscrits,
+                                        affectation_frais
+                                    LEFT JOIN prevision_frais ON affectation_frais.id_frais = prevision_frais.id_frais
+                                    LEFT JOIN annee_acad ON affectation_frais.id_annee = annee_acad.id_annee
+                                    LEFT JOIN sections ON affectation_frais.id_section = sections.id_section
+                                    LEFT JOIN options ON affectation_frais.id_option = options.id_option
+                                    LEFT JOIN departement ON affectation_frais.id_departement = departement.id_departement
+                                    LEFT JOIN payement ON affectation_frais.id_frais = payement.id_frais
+                                    WHERE
+                                        etudiants_inscrits.promotion = ? AND sections.section = ? AND annee_acad.id_annee = ?
+                                    ORDER BY
+                                        etudiants_inscrits.noms";
+
+                                $mt = ConnexionBdd::Connecter()->prepare($sql);
+                                $mt->execute(array($pp, $ff, $annee_acad_fin));
+
+                                while($data = $mt->fetch()){
+                                    $pdf->SetFont('Arial','I',8);
+                                    $pdf->Ln(3);
+                                    $pdf->cell(15, 7, $data['matricule'], 1, 0, 'L');
+                                    $pdf->cell(70, 7, $data['noms'], 1, 0, 'L');
+                                    $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
+                                    $pdf->cell(30, 7, '$ '.mm($data['mp']), 1, 0, 'L');
+                                    $pdf->cell(30, 7, '$ '.mm($data['mt'] - $data['mp']), 1, 0, 'L');
+                                    $pdf->cell(15, 7, montant_restant_pourcent($data['mp'], $data['mt']).' % ', 1, 0, 'L');
+                                    $pdf->Ln(4);
+                                    $b[] = $data['mp'];
+                                    $a[] = $data['mt'];
+                                }
+                            }else {
+                                $sql = "SELECT
+                                        etudiants_inscrits.matricule,
+                                        etudiants_inscrits.noms,
+                                        affectation_frais.id,
+                                        prevision_frais.type_frais,
+                                        SUM(prevision_frais.montant) as mt,
+                                        SUM(payement.montant) as mp,
+                                        sections.section,
+                                        departement.departement,
+                                        options.option_,
+                                        options.promotion,
+                                        annee_acad.annee_acad,
+                                        sections.id_section
+                                    FROM
+                                        etudiants_inscrits,
+                                        affectation_frais
+                                    LEFT JOIN prevision_frais ON affectation_frais.id_frais = prevision_frais.id_frais
+                                    LEFT JOIN annee_acad ON affectation_frais.id_annee = annee_acad.id_annee
+                                    LEFT JOIN sections ON affectation_frais.id_section = sections.id_section
+                                    LEFT JOIN options ON affectation_frais.id_option = options.id_option
+                                    LEFT JOIN departement ON affectation_frais.id_departement = departement.id_departement
+                                    LEFT JOIN payement ON affectation_frais.id_frais = payement.id_frais
+                                    WHERE
+                                        etudiants_inscrits.promotion = ? AND sections.section = ? AND annee_acad.id_annee = ? AND prevision_frais.type_frais = ?
+                                    ORDER BY
+                                        etudiants_inscrits.noms";
+
+                                $mt = ConnexionBdd::Connecter()->prepare($sql);
+                                $mt->execute(array($pp, $ff, $annee_acad_fin, $_POST['type_frais']));
+
+                                while($data = $mt->fetch()){
+                                    $pdf->SetFont('Arial','I',8);
+                                    $pdf->Ln(3);
+                                    $pdf->cell(15, 7, $data['matricule'], 1, 0, 'L');
+                                    $pdf->cell(70, 7, $data['noms'], 1, 0, 'L');
+                                    $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
+                                    $pdf->cell(30, 7, '$ '.mm($data['mp']), 1, 0, 'L');
+                                    $pdf->cell(30, 7, '$ '.mm($data['mt'] - $data['mp']), 1, 0, 'L');
+                                    $pdf->cell(15, 7, montant_restant_pourcent($data['mp'], $data['mt']).' % ', 1, 0, 'L');
+                                    $pdf->Ln(4);
+                                    $b[] = $data['mp'];
+                                    $a[] = $data['mt'];
+                                }
+                            }  
+                                
+                            $pdf->Ln(3);
+                            $pdf->SetFillColor(0,0,0);
+                            $pdf->cell(15, 5, decode_fr('Total'), 1, 0, 'L', true);
+                            $pdf->cell(70, 5, decode_fr('Total'), 1, 0, 'L');
+                            $pdf->cell(30, 5, '$ '.mm(array_sum($a)), 1, 0, 'L');
+                            $pdf->cell(30, 5, '$ '.mm(array_sum($b)), 1, 0, 'L');
+                            $pdf->cell(30, 5, '$ '.mm(array_sum($a) - array_sum($b)), 1, 0, 'L');
+                            $pdf->cell(15, 5, montant_restant_pourcent(array_sum($b), array_sum($a)).'%', 1, 0, 'L');
+                            $a = array();
+                            $b = array();
+                            $pdf->Ln(8);
+                            $pdf->Ln(9);
+                        }
+                    }
+                }else if(!empty($_POST['pourcent_debut']) && !empty($_POST['pourcent_fin'])){
+                    foreach($t_fac as $ff){
+                        $t_promotion = array();
+                        $f = ConnexionBdd::Connecter()->query("SELECT DISTINCT etudiants_inscrits.promotion, options.id_option, sections.section FROM etudiants_inscrits LEFT JOIN options ON etudiants_inscrits.id_option = options.id_option LEFT JOIN sections ON etudiants_inscrits.id_section = sections.id_section WHERE sections.section = '{$ff}' GROUP BY etudiants_inscrits.promotion");
+                        while($df = $f->fetch()){
+                            $t_promotion[] = $df['promotion'];
+                        }
+                        foreach($t_promotion as $pp){
+                            $pdf->SetFont('Arial','B',10);
+                            $pdf->cell(190, 5, decode_fr("Faculte : ".$ff), 0, 1, 'L');
+                            $pdf->cell(190, 5, decode_fr("Promotion : ".$pp), 0, 1, 'L');
+                            $pdf->cell(190, 5, decode_fr("Année Acad. : ".get_annee($annee_acad_fin)), 0, 1, 'L');
+                            $pdf->Ln(2);
+                            $pdf->cell(15, 5, 'mat', 1, 0, 'L');
+                            $pdf->cell(70, 5, 'Noms', 1, 0, 'L');
+                            $pdf->cell(30, 5, 'Montant prevu', 1, 0, 'L');
+                            $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
+                            $pdf->cell(30, 5, 'Solde ', 1, 0, 'L');
+                            $pdf->cell(15, 5, ' % ', 1, 0, 'L');
+                            $pdf->Ln(2);
+                            $pdf->SetFont('Arial','',10);
+
+                            $a = array();
+                            $b = array();
+
+                            if($_POST['type_frais'] == "Tous"){
+                                $sql = "SELECT
+                                        etudiants_inscrits.matricule,
+                                        etudiants_inscrits.noms,
+                                        affectation_frais.id,
+                                        prevision_frais.type_frais,
+                                        SUM(prevision_frais.montant) as mt,
+                                        SUM(payement.montant) as mp,
+                                        sections.section,
+                                        departement.departement,
+                                        options.option_,
+                                        options.promotion,
+                                        annee_acad.annee_acad,
+                                        sections.id_section
+                                    FROM
+                                        etudiants_inscrits,
+                                        affectation_frais
+                                    LEFT JOIN prevision_frais ON affectation_frais.id_frais = prevision_frais.id_frais
+                                    LEFT JOIN annee_acad ON affectation_frais.id_annee = annee_acad.id_annee
+                                    LEFT JOIN sections ON affectation_frais.id_section = sections.id_section
+                                    LEFT JOIN options ON affectation_frais.id_option = options.id_option
+                                    LEFT JOIN departement ON affectation_frais.id_departement = departement.id_departement
+                                    LEFT JOIN payement ON affectation_frais.id_frais = payement.id_frais
+                                    WHERE
+                                        etudiants_inscrits.promotion = ? AND sections.section = ? AND annee_acad.id_annee = ?
+                                    ORDER BY
+                                        etudiants_inscrits.noms ASC
+                                    HAVING ROUND(mp * 100 / ?) >= ? AND ROUND(mp * 100 / ?) <= ?";
+
+                                $mt = ConnexionBdd::Connecter()->prepare($sql);
+                                $mt->execute(array($pp, $ff, $annee_acad_fin, $pd, $pf));
+
+                                while($data = $mt->fetch()){
+                                    $pdf->SetFont('Arial','I',8);
+                                    $pdf->Ln(3);
+                                    $pdf->cell(15, 7, $data['matricule'], 1, 0, 'L');
+                                    $pdf->cell(70, 7, $data['noms'], 1, 0, 'L');
+                                    $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
+                                    $pdf->cell(30, 7, '$ '.mm($data['mp']), 1, 0, 'L');
+                                    $pdf->cell(30, 7, '$ '.mm($data['mt'] - $data['mp']), 1, 0, 'L');
+                                    $pdf->cell(15, 7, montant_restant_pourcent($data['mp'], $data['mt']).' % ', 1, 0, 'L');
+                                    $pdf->Ln(4);
+                                    $b[] = $data['mp'];
+                                    $a[] = $data['mt'];
+                                }
+                            }else {
+                                $sql = "SELECT
+                                        etudiants_inscrits.matricule,
+                                        etudiants_inscrits.noms,
+                                        affectation_frais.id,
+                                        prevision_frais.type_frais,
+                                        SUM(prevision_frais.montant) as mt,
+                                        SUM(payement.montant) as mp,
+                                        sections.section,
+                                        departement.departement,
+                                        options.option_,
+                                        options.promotion,
+                                        annee_acad.annee_acad,
+                                        sections.id_section
+                                    FROM
+                                        etudiants_inscrits,
+                                        affectation_frais
+                                    LEFT JOIN prevision_frais ON affectation_frais.id_frais = prevision_frais.id_frais
+                                    LEFT JOIN annee_acad ON affectation_frais.id_annee = annee_acad.id_annee
+                                    LEFT JOIN sections ON affectation_frais.id_section = sections.id_section
+                                    LEFT JOIN options ON affectation_frais.id_option = options.id_option
+                                    LEFT JOIN departement ON affectation_frais.id_departement = departement.id_departement
+                                    LEFT JOIN payement ON affectation_frais.id_frais = payement.id_frais
+                                    WHERE
+                                        etudiants_inscrits.promotion = ? AND sections.section = ? AND annee_acad.id_annee = ? AND prevision_frais.type_frais = ?
+                                    ORDER BY
+                                        etudiants_inscrits.noms ASC
+                                    HAVING ROUND(mp * 100 / ?) >= ? AND ROUND(mp * 100 / ?) <= ?";
+
+                                $mt = ConnexionBdd::Connecter()->prepare($sql);
+                                $mt->execute(array($pp, $ff, $annee_acad_fin, $_POST['type_frais']));
+
+                                while($data = $mt->fetch()){
+                                    $pdf->SetFont('Arial','I',8);
+                                    $pdf->Ln(3);
+                                    $pdf->cell(15, 7, $data['matricule'], 1, 0, 'L');
+                                    $pdf->cell(70, 7, $data['noms'], 1, 0, 'L');
+                                    $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
+                                    $pdf->cell(30, 7, '$ '.mm($data['mp']), 1, 0, 'L');
+                                    $pdf->cell(30, 7, '$ '.mm($data['mt'] - $data['mp']), 1, 0, 'L');
+                                    $pdf->cell(15, 7, montant_restant_pourcent($data['mp'], $data['mt']).' % ', 1, 0, 'L');
+                                    $pdf->Ln(4);
+                                    $b[] = $data['mp'];
+                                    $a[] = $data['mt'];
+                                }
+                            }  
+                                
+                            $pdf->Ln(3);
+                            $pdf->SetFillColor(0,0,0);
+                            $pdf->cell(15, 5, decode_fr('Total'), 1, 0, 'L', true);
+                            $pdf->cell(70, 5, decode_fr('Total'), 1, 0, 'L');
+                            $pdf->cell(30, 5, '$ '.mm(array_sum($a)), 1, 0, 'L');
+                            $pdf->cell(30, 5, '$ '.mm(array_sum($b)), 1, 0, 'L');
+                            $pdf->cell(30, 5, '$ '.mm(array_sum($a) - array_sum($b)), 1, 0, 'L');
+                            $pdf->cell(15, 5, montant_restant_pourcent(array_sum($b), array_sum($a)).'%', 1, 0, 'L');
+                            $a = array();
+                            $b = array();
+                            $pdf->Ln(8);
+                            $pdf->Ln(9);
+                        }
+                    }
+                }
+            }else if($_POST['fac_etudiant'] != "Tous" && $_POST['promotion_etud'] == "Tous"){
+                if(empty($_POST['pourcent_debut']) && empty($_POST['pourcent_fin'])){
+                    $t_promotion = array();
+                    $f = ConnexionBdd::Connecter()->query("SELECT DISTINCT etudiants_inscrits.promotion, options.id_option, sections.section FROM etudiants_inscrits LEFT JOIN options ON etudiants_inscrits.id_option = options.id_option LEFT JOIN sections ON etudiants_inscrits.id_section = sections.id_section WHERE sections.section = '{$_POST['pourcent_debut']}' GROUP BY etudiants_inscrits.promotion");
+                    while($df = $f->fetch()){
+                        $t_promotion[] = $df['promotion'];
+                    }
+                    foreach($t_promotion as $pp){
+                        $pdf->SetFont('Arial','B',10);
+                        $pdf->cell(190, 5, decode_fr("Faculte : ".$ff), 0, 1, 'L');
+                        $pdf->cell(190, 5, decode_fr("Promotion : ".$pp), 0, 1, 'L');
+                        $pdf->cell(190, 5, decode_fr("Année Acad. : ".get_annee($annee_acad_fin)), 0, 1, 'L');
+                        $pdf->Ln(2);
+                        $pdf->cell(15, 5, 'mat', 1, 0, 'L');
+                        $pdf->cell(70, 5, 'Noms', 1, 0, 'L');
+                        $pdf->cell(30, 5, 'Montant prevu', 1, 0, 'L');
+                        $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
+                        $pdf->cell(30, 5, 'Solde ', 1, 0, 'L');
+                        $pdf->cell(15, 5, ' % ', 1, 0, 'L');
+                        $pdf->Ln(2);
+                        $pdf->SetFont('Arial','',10);
+
+                        $a = array();
+                        $b = array();
+
+                        if($_POST['type_frais'] == "Tous"){
+                            $sql = "SELECT
+                                    etudiants_inscrits.matricule,
+                                    etudiants_inscrits.noms,
+                                    affectation_frais.id,
+                                    prevision_frais.type_frais,
+                                    SUM(prevision_frais.montant) as mt,
+                                    SUM(payement.montant) as mp,
+                                    sections.section,
+                                    departement.departement,
+                                    options.option_,
+                                    options.promotion,
+                                    annee_acad.annee_acad,
+                                    sections.id_section
+                                FROM
+                                    etudiants_inscrits,
+                                    affectation_frais
+                                LEFT JOIN prevision_frais ON affectation_frais.id_frais = prevision_frais.id_frais
+                                LEFT JOIN annee_acad ON affectation_frais.id_annee = annee_acad.id_annee
+                                LEFT JOIN sections ON affectation_frais.id_section = sections.id_section
+                                LEFT JOIN options ON affectation_frais.id_option = options.id_option
+                                LEFT JOIN departement ON affectation_frais.id_departement = departement.id_departement
+                                LEFT JOIN payement ON affectation_frais.id_frais = payement.id_frais
+                                WHERE
+                                    etudiants_inscrits.promotion = ? AND sections.section = ? AND annee_acad.id_annee = ?
+                                ORDER BY
+                                    etudiants_inscrits.noms";
+
+                            $mt = ConnexionBdd::Connecter()->prepare($sql);
+                            $mt->execute(array($pp, $ff, $annee_acad_fin));
+
+                            while($data = $mt->fetch()){
+                                $pdf->SetFont('Arial','I',8);
+                                $pdf->Ln(3);
+                                $pdf->cell(15, 7, $data['matricule'], 1, 0, 'L');
+                                $pdf->cell(70, 7, $data['noms'], 1, 0, 'L');
+                                $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
+                                $pdf->cell(30, 7, '$ '.mm($data['mp']), 1, 0, 'L');
+                                $pdf->cell(30, 7, '$ '.mm($data['mt'] - $data['mp']), 1, 0, 'L');
+                                $pdf->cell(15, 7, montant_restant_pourcent($data['mp'], $data['mt']).' % ', 1, 0, 'L');
+                                $pdf->Ln(4);
+                                $b[] = $data['mp'];
+                                $a[] = $data['mt'];
+                            }
+                        }else {
+                            $sql = "SELECT
+                                    etudiants_inscrits.matricule,
+                                    etudiants_inscrits.noms,
+                                    affectation_frais.id,
+                                    prevision_frais.type_frais,
+                                    SUM(prevision_frais.montant) as mt,
+                                    SUM(payement.montant) as mp,
+                                    sections.section,
+                                    departement.departement,
+                                    options.option_,
+                                    options.promotion,
+                                    annee_acad.annee_acad,
+                                    sections.id_section
+                                FROM
+                                    etudiants_inscrits,
+                                    affectation_frais
+                                LEFT JOIN prevision_frais ON affectation_frais.id_frais = prevision_frais.id_frais
+                                LEFT JOIN annee_acad ON affectation_frais.id_annee = annee_acad.id_annee
+                                LEFT JOIN sections ON affectation_frais.id_section = sections.id_section
+                                LEFT JOIN options ON affectation_frais.id_option = options.id_option
+                                LEFT JOIN departement ON affectation_frais.id_departement = departement.id_departement
+                                LEFT JOIN payement ON affectation_frais.id_frais = payement.id_frais
+                                WHERE
+                                    etudiants_inscrits.promotion = ? AND sections.section = ? AND annee_acad.id_annee = ? AND prevision_frais.type_frais = ?
+                                ORDER BY
+                                    etudiants_inscrits.noms";
+
+                            $mt = ConnexionBdd::Connecter()->prepare($sql);
+                            $mt->execute(array($pp, $ff, $annee_acad_fin, $_POST['type_frais']));
+
+                            while($data = $mt->fetch()){
+                                $pdf->SetFont('Arial','I',8);
+                                $pdf->Ln(3);
+                                $pdf->cell(15, 7, $data['matricule'], 1, 0, 'L');
+                                $pdf->cell(70, 7, $data['noms'], 1, 0, 'L');
+                                $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
+                                $pdf->cell(30, 7, '$ '.mm($data['mp']), 1, 0, 'L');
+                                $pdf->cell(30, 7, '$ '.mm($data['mt'] - $data['mp']), 1, 0, 'L');
+                                $pdf->cell(15, 7, montant_restant_pourcent($data['mp'], $data['mt']).' % ', 1, 0, 'L');
+                                $pdf->Ln(4);
+                                $b[] = $data['mp'];
+                                $a[] = $data['mt'];
+                            }
+                        }  
+                            
+                        $pdf->Ln(3);
+                        $pdf->SetFillColor(0,0,0);
+                        $pdf->cell(15, 5, decode_fr('Total'), 1, 0, 'L', true);
+                        $pdf->cell(70, 5, decode_fr('Total'), 1, 0, 'L');
+                        $pdf->cell(30, 5, '$ '.mm(array_sum($a)), 1, 0, 'L');
+                        $pdf->cell(30, 5, '$ '.mm(array_sum($b)), 1, 0, 'L');
+                        $pdf->cell(30, 5, '$ '.mm(array_sum($a) - array_sum($b)), 1, 0, 'L');
+                        $pdf->cell(15, 5, montant_restant_pourcent(array_sum($b), array_sum($a)).'%', 1, 0, 'L');
+                        $a = array();
+                        $b = array();
+                        $pdf->Ln(8);
+                        $pdf->Ln(9);
+                    }
+                }else if(!empty($_POST['pourcent_debut']) && !empty($_POST['pourcent_fin'])){
+                    $t_promotion = array();
                         $f = ConnexionBdd::Connecter()->query("SELECT DISTINCT etudiants_inscrits.promotion, options.id_option, sections.section FROM etudiants_inscrits LEFT JOIN options ON etudiants_inscrits.id_option = options.id_option LEFT JOIN sections ON etudiants_inscrits.id_section = sections.id_section WHERE sections.section = '{$_POST['fac_etudiant']}' GROUP BY etudiants_inscrits.promotion");
                         while($df = $f->fetch()){
                             $t_promotion[] = $df['promotion'];
@@ -4118,68 +4506,97 @@
                             $a = array();
                             $b = array();
 
-                            // selection de l etudiant
-                            $sql = "SELECT
-                                    etudiants_inscrits.matricule,
-                                    etudiants_inscrits.noms,
-                                    affectation_frais.id,
-                                    prevision_frais.type_frais,
-                                    prevision_frais.montant,
-                                    payement.montant
-                                FROM
-                                    etudiants_inscrits,
-                                    affectation_frais
-                                LEFT JOIN prevision_frais ON affectation_frais.id_frais = prevision_frais.id_frais
-                                LEFT JOIN payement ON affectation_frais.id_frais = payement.id_frais";
-                                
-                            $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT matricule, noms, promotion, fac, annee_academique FROM etudiants_inscrits WHERE promotion = ? AND fac = ? AND annee_academique = ? GROUP BY matricule, fac, promotion");
-                            $sel_etud->execute(array($pp, $ff, $annee_acad_fin)); 
-                            
-                            while($data_etu = $sel_etud->fetch()){
-                                if($_POST['type_frais'] == "Tous"){
-                                    $mt = ConnexionBdd::Connecter()->prepare("SELECT SUM(montant) AS mt FROM affectation_frais WHERE matricule  = ? AND promotion = ? AND faculte = ? AND annee_acad = ?");
-                                    $mt->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $data_etu['annee_academique']));
+                            if($_POST['type_frais'] == "Tous"){
+                                $sql = "SELECT
+                                        etudiants_inscrits.matricule,
+                                        etudiants_inscrits.noms,
+                                        affectation_frais.id,
+                                        prevision_frais.type_frais,
+                                        SUM(prevision_frais.montant) as mt,
+                                        SUM(payement.montant) as mp,
+                                        sections.section,
+                                        departement.departement,
+                                        options.option_,
+                                        options.promotion,
+                                        annee_acad.annee_acad,
+                                        sections.id_section
+                                    FROM
+                                        etudiants_inscrits,
+                                        affectation_frais
+                                    LEFT JOIN prevision_frais ON affectation_frais.id_frais = prevision_frais.id_frais
+                                    LEFT JOIN annee_acad ON affectation_frais.id_annee = annee_acad.id_annee
+                                    LEFT JOIN sections ON affectation_frais.id_section = sections.id_section
+                                    LEFT JOIN options ON affectation_frais.id_option = options.id_option
+                                    LEFT JOIN departement ON affectation_frais.id_departement = departement.id_departement
+                                    LEFT JOIN payement ON affectation_frais.id_frais = payement.id_frais
+                                    WHERE
+                                        etudiants_inscrits.promotion = ? AND sections.section = ? AND annee_acad.id_annee = ?
+                                    ORDER BY
+                                        etudiants_inscrits.noms ASC
+                                    HAVING ROUND(mp * 100 / ?) >= ? AND ROUND(mp * 100 / ?) <= ?";
 
-                                    while($data = $mt->fetch()){
-                                        $payement = ConnexionBdd::Connecter()->prepare("SELECT SUM(montant) AS mp FROM payement WHERE matricule  = ? AND promotion = ? AND faculte = ? AND annee_acad = ?");
-                                        $payement->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $data_etu['annee_academique']));
-                                        while($pay = $payement->fetch()){
-                                            $pdf->SetFont('Arial','I',8);
-                                            $pdf->Ln(3);
-                                            $pdf->cell(15, 7, $data_etu['matricule'], 1, 0, 'L');
-                                            $pdf->cell(70, 7, $data_etu['noms'], 1, 0, 'L');
-                                            $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
-                                            $pdf->cell(30, 7, '$ '.mm($pay['mp']), 1, 0, 'L');
-                                            $pdf->cell(30, 7, '$ '.mm($data['mt'] - $pay['mp']), 1, 0, 'L');
-                                            $pdf->cell(15, 7, montant_restant_pourcent($pay['mp'], $data['mt']).' % ', 1, 0, 'L');
-                                            $pdf->Ln(4);
-                                            $b[] = $pay['mp'];
-                                            $a[] = $data['mt'];
-                                        }
-                                    }
-                                }else{
-                                    $mt = ConnexionBdd::Connecter()->prepare("SELECT type_frais, SUM(montant) AS mt FROM affectation_frais WHERE matricule  = ? AND promotion = ? AND faculte = ? AND type_frais = ? AND annee_acad = ? HAVING mt > 0 ");
-                                    $mt->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $_POST['type_frais'], $data_etu['annee_academique']));
+                                $mt = ConnexionBdd::Connecter()->prepare($sql);
+                                $mt->execute(array($pp, $ff, $annee_acad_fin, $pd, $pf));
 
-                                    while($data = $mt->fetch()){
-                                        $payement = ConnexionBdd::Connecter()->prepare("SELECT SUM(montant) AS mp FROM payement WHERE matricule  = ? AND promotion = ? AND faculte = ? AND type_frais= ? AND annee_acad = ?");
-                                        $payement->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $data['type_frais'], $data_etu['annee_academique']));
-                                        while($pay = $payement->fetch()){
-                                            $pdf->SetFont('Arial','I',8);
-                                            $pdf->Ln(3);
-                                            $pdf->cell(15, 7, $data_etu['matricule'], 1, 0, 'L');
-                                            $pdf->cell(70, 7, $data_etu['noms'], 1, 0, 'L');
-                                            $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
-                                            $pdf->cell(30, 7, '$ '.mm($pay['mp']), 1, 0, 'L');
-                                            $pdf->cell(30, 7, '$ '.mm($data['mt'] - $pay['mp']), 1, 0, 'L');
-                                            $pdf->cell(15, 7, montant_restant_pourcent($pay['mp'], $data['mt']).' % ', 1, 0, 'L');
-                                            $pdf->Ln(4);
-                                            $b[] = $pay['mp'];
-                                            $a[] = $data['mt'];
-                                        }
-                                    }
-                                }   
-                            }
+                                while($data = $mt->fetch()){
+                                    $pdf->SetFont('Arial','I',8);
+                                    $pdf->Ln(3);
+                                    $pdf->cell(15, 7, $data['matricule'], 1, 0, 'L');
+                                    $pdf->cell(70, 7, $data['noms'], 1, 0, 'L');
+                                    $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
+                                    $pdf->cell(30, 7, '$ '.mm($data['mp']), 1, 0, 'L');
+                                    $pdf->cell(30, 7, '$ '.mm($data['mt'] - $data['mp']), 1, 0, 'L');
+                                    $pdf->cell(15, 7, montant_restant_pourcent($data['mp'], $data['mt']).' % ', 1, 0, 'L');
+                                    $pdf->Ln(4);
+                                    $b[] = $data['mp'];
+                                    $a[] = $data['mt'];
+                                }
+                            }else {
+                                $sql = "SELECT
+                                        etudiants_inscrits.matricule,
+                                        etudiants_inscrits.noms,
+                                        affectation_frais.id,
+                                        prevision_frais.type_frais,
+                                        SUM(prevision_frais.montant) as mt,
+                                        SUM(payement.montant) as mp,
+                                        sections.section,
+                                        departement.departement,
+                                        options.option_,
+                                        options.promotion,
+                                        annee_acad.annee_acad,
+                                        sections.id_section
+                                    FROM
+                                        etudiants_inscrits,
+                                        affectation_frais
+                                    LEFT JOIN prevision_frais ON affectation_frais.id_frais = prevision_frais.id_frais
+                                    LEFT JOIN annee_acad ON affectation_frais.id_annee = annee_acad.id_annee
+                                    LEFT JOIN sections ON affectation_frais.id_section = sections.id_section
+                                    LEFT JOIN options ON affectation_frais.id_option = options.id_option
+                                    LEFT JOIN departement ON affectation_frais.id_departement = departement.id_departement
+                                    LEFT JOIN payement ON affectation_frais.id_frais = payement.id_frais
+                                    WHERE
+                                        etudiants_inscrits.promotion = ? AND sections.section = ? AND annee_acad.id_annee = ? AND prevision_frais.type_frais = ?
+                                    ORDER BY
+                                        etudiants_inscrits.noms ASC
+                                    HAVING ROUND(mp * 100 / ?) >= ? AND ROUND(mp * 100 / ?) <= ?";
+
+                                $mt = ConnexionBdd::Connecter()->prepare($sql);
+                                $mt->execute(array($pp, $ff, $annee_acad_fin, $_POST['type_frais']));
+
+                                while($data = $mt->fetch()){
+                                    $pdf->SetFont('Arial','I',8);
+                                    $pdf->Ln(3);
+                                    $pdf->cell(15, 7, $data['matricule'], 1, 0, 'L');
+                                    $pdf->cell(70, 7, $data['noms'], 1, 0, 'L');
+                                    $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
+                                    $pdf->cell(30, 7, '$ '.mm($data['mp']), 1, 0, 'L');
+                                    $pdf->cell(30, 7, '$ '.mm($data['mt'] - $data['mp']), 1, 0, 'L');
+                                    $pdf->cell(15, 7, montant_restant_pourcent($data['mp'], $data['mt']).' % ', 1, 0, 'L');
+                                    $pdf->Ln(4);
+                                    $b[] = $data['mp'];
+                                    $a[] = $data['mt'];
+                                }
+                            }  
                                 
                             $pdf->Ln(3);
                             $pdf->SetFillColor(0,0,0);
@@ -4194,264 +4611,13 @@
                             $pdf->Ln(8);
                             $pdf->Ln(9);
                         }
-                    }
-                }else if(!empty($_POST['pourcent_debut']) && !empty($_POST['pourcent_fin'])){
-                    foreach($t_fac as $ff){
-                        foreach($t_promotion as $pp){
-                            $pdf->SetFont('Arial','B',10);
-                            $pdf->cell(190, 5, decode_fr("Faculte : ".$ff), 0, 1, 'L');
-                            $pdf->cell(190, 5, decode_fr("Promotion : ".$pp), 0, 1, 'L');
-                            $pdf->cell(190, 5, decode_fr("Année Acad. : ".$annee_acad_fin), 0, 1, 'L');
-                            $pdf->Ln(2);
-                            $pdf->cell(15, 5, 'mat', 1, 0, 'L');
-                            $pdf->cell(70, 5, 'Noms', 1, 0, 'L');
-                            $pdf->cell(30, 5, 'Montant prevu', 1, 0, 'L');
-                            $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
-                            $pdf->cell(30, 5, 'Solde ', 1, 0, 'L');
-                            $pdf->cell(15, 5, ' % ', 1, 0, 'L');
-                            $pdf->Ln(2);
-                            $pdf->SetFont('Arial','',10);
-
-                            $a = array();
-                            $b = array();
-
-                            // selection de l etudiant
-                            $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT matricule, noms, promotion, fac, annee_academique FROM etudiants_inscrits WHERE promotion = ? AND fac = ? AND annee_academique = ? GROUP BY matricule");
-                            $sel_etud->execute(array($pp, $ff, $annee_acad_fin)); 
-                            
-                            while($data_etu = $sel_etud->fetch()){
-                                if($_POST['type_frais'] == "Tous"){
-                                    $mt = ConnexionBdd::Connecter()->prepare("SELECT SUM(montant) AS mt FROM affectation_frais WHERE matricule  = ? AND promotion = ? AND faculte = ? AND annee_acad = ?");
-                                    $mt->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $data_etu['annee_academique']));
-
-                                    while($data = $mt->fetch()){
-                                        $payement = ConnexionBdd::Connecter()->prepare("SELECT SUM(montant) AS mp FROM payement WHERE matricule  = ? AND promotion = ? AND faculte = ? AND annee_acad = ? HAVING ROUND(mp * 100 / ?) >= ? AND ROUND(mp * 100 / ?) <= ?");
-                                        $payement->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $data_etu['annee_academique'], $data['mt'], $_POST['pourcent_debut'], $data['mt'], $_POST['pourcent_fin']));
-                                        while($pay = $payement->fetch()){
-                                            $pdf->SetFont('Arial','I',8);
-                                            $pdf->Ln(3);
-                                            $pdf->cell(15, 7, $data_etu['matricule'], 1, 0, 'L');
-                                            $pdf->cell(70, 7, $data_etu['noms'], 1, 0, 'L');
-                                            $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
-                                            $pdf->cell(30, 7, '$ '.mm($pay['mp']), 1, 0, 'L');
-                                            $pdf->cell(30, 7, '$ '.mm($data['mt'] - $pay['mp']), 1, 0, 'L');
-                                            $pdf->cell(15, 7, montant_restant_pourcent($pay['mp'], $data['mt']).' % ', 1, 0, 'L');
-                                            $pdf->Ln(4);
-                                            $b[] = $pay['mp'];
-                                            $a[] = $data['mt'];
-                                        }
-                                    }   
-                                }else{
-                                    $mt = ConnexionBdd::Connecter()->prepare("SELECT type_frais, SUM(montant) AS mt FROM affectation_frais WHERE matricule  = ? AND promotion = ? AND faculte = ? AND type_frais = ? AND annee_acad = ?");
-                                    $mt->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $_POST['type_frais'], $data_etu['annee_academique']));
-
-                                    while($data = $mt->fetch()){
-                                        $payement = ConnexionBdd::Connecter()->prepare("SELECT SUM(montant) AS mp FROM payement WHERE matricule  = ? AND promotion = ? AND faculte = ? AND type_frais  = ? AND annee_acad = ? HAVING ROUND(mp * 100 / ?) >= ? AND ROUND(mp * 100 / ?) <= ?");
-                                        $payement->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $data['type_frais'], $data_etu['annee_academique'], $data['mt'], $_POST['pourcent_debut'], $data['mt'], $_POST['pourcent_fin']));
-                                        while($pay = $payement->fetch()){
-                                            $pdf->SetFont('Arial','I',8);
-                                            $pdf->Ln(3);
-                                            $pdf->cell(15, 7, $data_etu['matricule'], 1, 0, 'L');
-                                            $pdf->cell(70, 7, $data_etu['noms'], 1, 0, 'L');
-                                            $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
-                                            $pdf->cell(30, 7, '$ '.mm($pay['mp']), 1, 0, 'L');
-                                            $pdf->cell(30, 7, '$ '.mm($data['mt'] - $pay['mp']), 1, 0, 'L');
-                                            $pdf->cell(15, 7, montant_restant_pourcent($pay['mp'], $data['mt']).' % ', 1, 0, 'L');
-                                            $pdf->Ln(4);
-                                            $b[] = $pay['mp'];
-                                            $a[] = $data['mt'];
-                                        }
-                                    }
-                                }
-                            }
-                                
-                            $pdf->Ln(3);
-                            $pdf->SetFillColor(0,0,0);
-                            $pdf->cell(15, 5, decode_fr('Total'), 1, 0, 'L', true);
-                            $pdf->cell(70, 5, decode_fr('Total'), 1, 0, 'L');
-                            $pdf->cell(30, 5, '$ '.mm(array_sum($a)), 1, 0, 'L');
-                            $pdf->cell(30, 5, '$ '.mm(array_sum($b)), 1, 0, 'L');
-                            $pdf->cell(30, 5, '$ '.mm(array_sum($a) - array_sum($b)), 1, 0, 'L');
-                            $pdf->cell(15, 5, montant_restant_pourcent(array_sum($b), array_sum($a)).'%', 1, 0, 'L');
-                            $a = array();
-                            $b = array();
-                            $pdf->Ln(8);
-                            $pdf->Ln(9);
-                        }
-                    }
-                }
-            }else if($_POST['fac_etudiant'] != "Tous" && $_POST['promotion_etud'] == "Tous"){
-                if(empty($_POST['pourcent_debut']) && empty($_POST['pourcent_fin'])){
-                    foreach($t_promotion as $pp){
-                        $pdf->SetFont('Arial','B',10);
-                        $pdf->cell(190, 5, decode_fr("Faculte : ".$ff), 0, 1, 'L');
-                        $pdf->cell(190, 5, decode_fr("Promotion : ".$pp), 0, 1, 'L');
-                        $pdf->cell(190, 5, decode_fr("Année Acad. : ".$annee_acad_fin), 0, 1, 'L');
-                        $pdf->Ln(2);
-                        $pdf->cell(15, 5, 'mat', 1, 0, 'L');
-                        $pdf->cell(70, 5, 'Noms', 1, 0, 'L');
-                        $pdf->cell(30, 5, 'Montant prevu', 1, 0, 'L');
-                        $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
-                        $pdf->cell(30, 5, 'Solde ', 1, 0, 'L');
-                        $pdf->cell(15, 5, ' % ', 1, 0, 'L');
-                        $pdf->Ln(2);
-                        $pdf->SetFont('Arial','',10);
-
-                        $a = array();
-                        $b = array();
-
-                        // selection de l etudiant
-                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT matricule, noms, promotion, fac, annee_academique FROM etudiants_inscrits WHERE fac = ? AND promotion = ? AND annee_academique = ? GROUP BY matricule");
-                        $sel_etud->execute(array($ff, $pp, $annee_acad_fin)); 
-                        
-                        while($data_etu = $sel_etud->fetch()){
-                            if($_POST['type_frais'] == "Tous"){
-                                $mt = ConnexionBdd::Connecter()->prepare("SELECT SUM(montant) AS mt FROM affectation_frais WHERE matricule  = ? AND promotion = ? AND faculte = ? AND annee_acad = ?");
-                                $mt->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $data_etu['annee_academique']));
-
-                                while($data = $mt->fetch()){
-                                    $payement = ConnexionBdd::Connecter()->prepare("SELECT SUM(montant) AS mp FROM payement WHERE matricule  = ? AND promotion = ? AND faculte = ? AND annee_acad = ?");
-                                    $payement->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $data_etu['annee_academique']));
-                                    while($pay = $payement->fetch()){
-                                        $pdf->SetFont('Arial','I',8);
-                                        $pdf->Ln(3);
-                                        $pdf->cell(15, 7, $data_etu['matricule'], 1, 0, 'L');
-                                        $pdf->cell(70, 7, $data_etu['noms'], 1, 0, 'L');
-                                        $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
-                                        $pdf->cell(30, 7, '$ '.mm($pay['mp']), 1, 0, 'L');
-                                        $pdf->cell(30, 7, '$ '.mm($data['mt'] - $pay['mp']), 1, 0, 'L');
-                                        $pdf->cell(15, 7, montant_restant_pourcent($pay['mp'], $data['mt']).' % ', 1, 0, 'L');
-                                        $pdf->Ln(4);
-                                        $b[] = $pay['mp'];
-                                        $a[] = $data['mt'];
-                                    }
-                                }
-                            }else{
-                                $mt = ConnexionBdd::Connecter()->prepare("SELECT type_frais, SUM(montant) AS mt FROM affectation_frais WHERE matricule  = ? AND promotion = ? AND faculte = ? AND type_frais = ? AND annee_acad = ?");
-                                $mt->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $_POST['type_frais'], $data_etu['annee_academique']));
-
-                                while($data = $mt->fetch()){
-                                    $payement = ConnexionBdd::Connecter()->prepare("SELECT SUM(montant) AS mp FROM payement WHERE matricule  = ? AND promotion = ? AND faculte = ? AND type_frais = ? AND annee_acad = ?");
-                                    $payement->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $data['type_frais'], $data_etu['annee_academique']));
-                                    while($pay = $payement->fetch()){
-                                        $pdf->SetFont('Arial','I',8);
-                                        $pdf->Ln(3);
-                                        $pdf->cell(15, 7, $data_etu['matricule'], 1, 0, 'L');
-                                        $pdf->cell(70, 7, $data_etu['noms'], 1, 0, 'L');
-                                        $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
-                                        $pdf->cell(30, 7, '$ '.mm($pay['mp']), 1, 0, 'L');
-                                        $pdf->cell(30, 7, '$ '.mm($data['mt'] - $pay['mp']), 1, 0, 'L');
-                                        $pdf->cell(15, 7, montant_restant_pourcent($pay['mp'], $data['mt']).' % ', 1, 0, 'L');
-                                        $pdf->Ln(4);
-                                        $b[] = $pay['mp'];
-                                        $a[] = $data['mt'];
-                                    }
-                                }
-                            }   
-                        }
-                            
-                        $pdf->Ln(3);
-                        $pdf->SetFillColor(0,0,0);
-                        $pdf->cell(15, 5, decode_fr('Total'), 1, 0, 'L', true);
-                        $pdf->cell(70, 5, decode_fr('Total'), 1, 0, 'L');
-                        $pdf->cell(30, 5, '$ '.mm(array_sum($a)), 1, 0, 'L');
-                        $pdf->cell(30, 5, '$ '.mm(array_sum($b)), 1, 0, 'L');
-                        $pdf->cell(30, 5, '$ '.mm(array_sum($a) - array_sum($b)), 1, 0, 'L');
-                        $pdf->cell(15, 5, montant_restant_pourcent(array_sum($b), array_sum($a)).'%', 1, 0, 'L');
-                        $a = array();
-                        $b = array();
-                        $pdf->Ln(8);
-                        $pdf->Ln(9);
-                    }
-                }else if(!empty($_POST['pourcent_debut']) && !empty($_POST['pourcent_fin'])){
-                    foreach($t_promotion as $pp){
-                        $pdf->SetFont('Arial','B',10);
-                        $pdf->cell(190, 5, decode_fr("Faculte : ".$ff), 0, 1, 'L');
-                        $pdf->cell(190, 5, decode_fr("Promotion : ".$pp), 0, 1, 'L');
-                        $pdf->cell(190, 5, decode_fr("Année Acad. : ".$annee_acad_fin), 0, 1, 'L');
-                        $pdf->Ln(2);
-                        $pdf->cell(15, 5, 'mat', 1, 0, 'L');
-                        $pdf->cell(70, 5, 'Noms', 1, 0, 'L');
-                        $pdf->cell(30, 5, 'Montant prevu', 1, 0, 'L');
-                        $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
-                        $pdf->cell(30, 5, 'Solde ', 1, 0, 'L');
-                        $pdf->cell(15, 5, ' % ', 1, 0, 'L');
-                        $pdf->Ln(2);
-                        $pdf->SetFont('Arial','',10);
-
-                        $a = array();
-                        $b = array();
-
-                        // selection de l etudiant
-                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT matricule, noms, promotion, fac, annee_academique FROM etudiants_inscrits WHERE fac = ? AND promotion = ? AND annee_academique = ? GROUP BY matricule");
-                        $sel_etud->execute(array($ff, $pp, $annee_acad_fin)); 
-                        
-                        while($data_etu = $sel_etud->fetch()){
-                            if($_POST['type_frais'] == "Tous"){
-                                $mt = ConnexionBdd::Connecter()->prepare("SELECT SUM(montant) AS mt FROM affectation_frais WHERE matricule  = ? AND promotion = ? AND faculte = ? AND annee_acad = ?");
-                                $mt->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $data_etu['annee_academique']));
-
-                                while($data = $mt->fetch()){
-                                    $payement = ConnexionBdd::Connecter()->prepare("SELECT SUM(montant) AS mp FROM payement WHERE matricule  = ? AND promotion = ? AND faculte = ? AND annee_acad = ? HAVING ROUND(mp * 100 / ?) >= ? AND ROUND(mp * 100 / ?) <= ?");
-                                    $payement->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $data_etu['annee_academique'], $data['mt'], $_POST['pourcent_debut'], $data['mt'], $_POST['pourcent_fin']));
-                                    while($pay = $payement->fetch()){
-                                        $pdf->SetFont('Arial','I',8);
-                                        $pdf->Ln(3);
-                                        $pdf->cell(15, 7, $data_etu['matricule'], 1, 0, 'L');
-                                        $pdf->cell(70, 7, $data_etu['noms'], 1, 0, 'L');
-                                        $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
-                                        $pdf->cell(30, 7, '$ '.mm($pay['mp']), 1, 0, 'L');
-                                        $pdf->cell(30, 7, '$ '.mm($data['mt'] - $pay['mp']), 1, 0, 'L');
-                                        $pdf->cell(15, 7, montant_restant_pourcent($pay['mp'], $data['mt']).' % ', 1, 0, 'L');
-                                        $pdf->Ln(4);
-                                        $b[] = $pay['mp'];
-                                        $a[] = $data['mt'];
-                                    }
-                                }   
-                            }else{
-                                $mt = ConnexionBdd::Connecter()->prepare("SELECT type_frais, SUM(montant) AS mt FROM affectation_frais WHERE matricule  = ? AND promotion = ? AND faculte = ? AND type_frais = ? AND annee_acad = ?");
-                                $mt->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $_POST['type_frais'], $data_etu['annee_academique']));
-
-                                while($data = $mt->fetch()){
-                                    $payement = ConnexionBdd::Connecter()->prepare("SELECT SUM(montant) AS mp FROM payement WHERE matricule  = ? AND promotion = ? AND faculte = ? AND type_frais = ? AND annee_acad = ? HAVING ROUND(mp * 100 / ?) >= ? AND ROUND(mp * 100 / ?) <= ?");
-                                    $payement->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $data['type_frais'], $data_etu['annee_academique'], $data['mt'], $_POST['pourcent_debut'], $data['mt'], $_POST['pourcent_fin']));
-                                    while($pay = $payement->fetch()){
-                                        $pdf->SetFont('Arial','I',8);
-                                        $pdf->Ln(3);
-                                        $pdf->cell(15, 7, $data_etu['matricule'], 1, 0, 'L');
-                                        $pdf->cell(70, 7, $data_etu['noms'], 1, 0, 'L');
-                                        $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
-                                        $pdf->cell(30, 7, '$ '.mm($pay['mp']), 1, 0, 'L');
-                                        $pdf->cell(30, 7, '$ '.mm($data['mt'] - $pay['mp']), 1, 0, 'L');
-                                        $pdf->cell(15, 7, montant_restant_pourcent($pay['mp'], $data['mt']).' % ', 1, 0, 'L');
-                                        $pdf->Ln(4);
-                                        $b[] = $pay['mp'];
-                                        $a[] = $data['mt'];
-                                    }
-                                }
-                            }
-                        }
-                            
-                        $pdf->Ln(3);
-                        $pdf->SetFillColor(0,0,0);
-                        $pdf->cell(15, 5, decode_fr('Total'), 1, 0, 'L', true);
-                        $pdf->cell(70, 5, decode_fr('Total'), 1, 0, 'L');
-                        $pdf->cell(30, 5, '$ '.mm(array_sum($a)), 1, 0, 'L');
-                        $pdf->cell(30, 5, '$ '.mm(array_sum($b)), 1, 0, 'L');
-                        $pdf->cell(30, 5, '$ '.mm(array_sum($a) - array_sum($b)), 1, 0, 'L');
-                        $pdf->cell(15, 5, montant_restant_pourcent(array_sum($b), array_sum($a)).'%', 1, 0, 'L');
-                        $a = array();
-                        $b = array();
-                        $pdf->Ln(8);
-                        $pdf->Ln(9);
-                    }
                 }
             }else if($_POST['fac_etudiant'] != "Tous" && $_POST['promotion_etud'] != "Tous"){
                 if(empty($_POST['pourcent_debut']) && empty($_POST['pourcent_fin'])){
                     $pdf->SetFont('Arial','B',10);
                     $pdf->cell(190, 5, decode_fr("Faculte : ".$ff), 0, 1, 'L');
                     $pdf->cell(190, 5, decode_fr("Promotion : ".$pp), 0, 1, 'L');
-                    $pdf->cell(190, 5, decode_fr("Année Acad. : ".$annee_acad_fin), 0, 1, 'L');
+                    $pdf->cell(190, 5, decode_fr("Année Acad. : ".get_annee($annee_acad_fin)), 0, 1, 'L');
                     $pdf->Ln(2);
                     $pdf->cell(15, 5, 'mat', 1, 0, 'L');
                     $pdf->cell(70, 5, 'Noms', 1, 0, 'L');
@@ -4465,55 +4631,95 @@
                     $a = array();
                     $b = array();
 
-                    // selection de l etudiant
-                    $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT matricule, noms, promotion, fac, annee_academique FROM etudiants_inscrits WHERE fac = ? AND promotion = ? AND annee_academique = ? GROUP BY matricule");
-                    $sel_etud->execute(array($ff, $pp, $annee_acad_fin)); 
-                    
-                    while($data_etu = $sel_etud->fetch()){
-                        if($_POST['type_frais'] == "Tous"){
-                            $mt = ConnexionBdd::Connecter()->prepare("SELECT SUM(montant) AS mt FROM affectation_frais WHERE matricule  = ? AND promotion = ? AND faculte = ? AND annee_acad = ?");
-                            $mt->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $data_etu['annee_academique']));
+                    if($_POST['type_frais'] == "Tous"){
+                        $sql = "SELECT
+                                etudiants_inscrits.matricule,
+                                etudiants_inscrits.noms,
+                                affectation_frais.id,
+                                prevision_frais.type_frais,
+                                SUM(prevision_frais.montant) as mt,
+                                SUM(payement.montant) as mp,
+                                sections.section,
+                                departement.departement,
+                                options.option_,
+                                options.promotion,
+                                annee_acad.annee_acad,
+                                sections.id_section
+                            FROM
+                                etudiants_inscrits,
+                                affectation_frais
+                            LEFT JOIN prevision_frais ON affectation_frais.id_frais = prevision_frais.id_frais
+                            LEFT JOIN annee_acad ON affectation_frais.id_annee = annee_acad.id_annee
+                            LEFT JOIN sections ON affectation_frais.id_section = sections.id_section
+                            LEFT JOIN options ON affectation_frais.id_option = options.id_option
+                            LEFT JOIN departement ON affectation_frais.id_departement = departement.id_departement
+                            LEFT JOIN payement ON affectation_frais.id_frais = payement.id_frais
+                            WHERE
+                                etudiants_inscrits.promotion = ? AND sections.section = ? AND annee_acad.id_annee = ?
+                            ORDER BY
+                                etudiants_inscrits.noms";
 
-                            while($data = $mt->fetch()){
-                                $payement = ConnexionBdd::Connecter()->prepare("SELECT SUM(montant) AS mp FROM payement WHERE matricule  = ? AND promotion = ? AND faculte = ? AND annee_acad = ?");
-                                $payement->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $data_etu['annee_academique']));
-                                while($pay = $payement->fetch()){
-                                    $pdf->SetFont('Arial','I',8);
-                                    $pdf->Ln(3);
-                                    $pdf->cell(15, 7, $data_etu['matricule'], 1, 0, 'L');
-                                    $pdf->cell(70, 7, $data_etu['noms'], 1, 0, 'L');
-                                    $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
-                                    $pdf->cell(30, 7, '$ '.mm($pay['mp']), 1, 0, 'L');
-                                    $pdf->cell(30, 7, '$ '.mm($data['mt'] - $pay['mp']), 1, 0, 'L');
-                                    $pdf->cell(15, 7, montant_restant_pourcent($pay['mp'], $data['mt']).' % ', 1, 0, 'L');
-                                    $pdf->Ln(4);
-                                    $b[] = $pay['mp'];
-                                    $a[] = $data['mt'];
-                                }
-                            }
-                        }else{
-                            $mt = ConnexionBdd::Connecter()->prepare("SELECT type_frais, SUM(montant) AS mt FROM affectation_frais WHERE matricule  = ? AND promotion = ? AND faculte = ? AND type_frais = ? AND annee_acad = ?");
-                            $mt->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $_POST['type_frais'], $data_etu['annee_academique']));
+                        $mt = ConnexionBdd::Connecter()->prepare($sql);
+                        $mt->execute(array($pp, $ff, $annee_acad_fin));
 
-                            while($data = $mt->fetch()){
-                                $payement = ConnexionBdd::Connecter()->prepare("SELECT SUM(montant) AS mp FROM payement WHERE matricule  = ? AND promotion = ? AND faculte = ? AND type_frais = ? AND annee_acad = ? HAVING mt > 0 ");
-                                $payement->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $data['type_frais'], $data_etu['annee_academique']));
-                                while($pay = $payement->fetch()){
-                                    $pdf->SetFont('Arial','I',8);
-                                    $pdf->Ln(3);
-                                    $pdf->cell(15, 7, $data_etu['matricule'], 1, 0, 'L');
-                                    $pdf->cell(70, 7, $data_etu['noms'], 1, 0, 'L');
-                                    $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
-                                    $pdf->cell(30, 7, '$ '.mm($pay['mp']), 1, 0, 'L');
-                                    $pdf->cell(30, 7, '$ '.mm($data['mt'] - $pay['mp']), 1, 0, 'L');
-                                    $pdf->cell(15, 7, montant_restant_pourcent($pay['mp'], $data['mt']).' % ', 1, 0, 'L');
-                                    $pdf->Ln(4);
-                                    $b[] = $pay['mp'];
-                                    $a[] = $data['mt'];
-                                }
-                            }
-                        }   
-                    }
+                        while($data = $mt->fetch()){
+                            $pdf->SetFont('Arial','I',8);
+                            $pdf->Ln(3);
+                            $pdf->cell(15, 7, $data['matricule'], 1, 0, 'L');
+                            $pdf->cell(70, 7, $data['noms'], 1, 0, 'L');
+                            $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
+                            $pdf->cell(30, 7, '$ '.mm($data['mp']), 1, 0, 'L');
+                            $pdf->cell(30, 7, '$ '.mm($data['mt'] - $data['mp']), 1, 0, 'L');
+                            $pdf->cell(15, 7, montant_restant_pourcent($data['mp'], $data['mt']).' % ', 1, 0, 'L');
+                            $pdf->Ln(4);
+                            $b[] = $data['mp'];
+                            $a[] = $data['mt'];
+                        }
+                    }else {
+                        $sql = "SELECT
+                                etudiants_inscrits.matricule,
+                                etudiants_inscrits.noms,
+                                affectation_frais.id,
+                                prevision_frais.type_frais,
+                                SUM(prevision_frais.montant) as mt,
+                                SUM(payement.montant) as mp,
+                                sections.section,
+                                departement.departement,
+                                options.option_,
+                                options.promotion,
+                                annee_acad.annee_acad,
+                                sections.id_section
+                            FROM
+                                etudiants_inscrits,
+                                affectation_frais
+                            LEFT JOIN prevision_frais ON affectation_frais.id_frais = prevision_frais.id_frais
+                            LEFT JOIN annee_acad ON affectation_frais.id_annee = annee_acad.id_annee
+                            LEFT JOIN sections ON affectation_frais.id_section = sections.id_section
+                            LEFT JOIN options ON affectation_frais.id_option = options.id_option
+                            LEFT JOIN departement ON affectation_frais.id_departement = departement.id_departement
+                            LEFT JOIN payement ON affectation_frais.id_frais = payement.id_frais
+                            WHERE
+                                etudiants_inscrits.promotion = ? AND sections.section = ? AND annee_acad.id_annee = ? AND prevision_frais.type_frais = ?
+                            ORDER BY
+                                etudiants_inscrits.noms";
+
+                        $mt = ConnexionBdd::Connecter()->prepare($sql);
+                        $mt->execute(array($pp, $ff, $annee_acad_fin, $_POST['type_frais']));
+
+                        while($data = $mt->fetch()){
+                            $pdf->SetFont('Arial','I',8);
+                            $pdf->Ln(3);
+                            $pdf->cell(15, 7, $data['matricule'], 1, 0, 'L');
+                            $pdf->cell(70, 7, $data['noms'], 1, 0, 'L');
+                            $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
+                            $pdf->cell(30, 7, '$ '.mm($data['mp']), 1, 0, 'L');
+                            $pdf->cell(30, 7, '$ '.mm($data['mt'] - $data['mp']), 1, 0, 'L');
+                            $pdf->cell(15, 7, montant_restant_pourcent($data['mp'], $data['mt']).' % ', 1, 0, 'L');
+                            $pdf->Ln(4);
+                            $b[] = $data['mp'];
+                            $a[] = $data['mt'];
+                        }
+                    }  
                         
                     $pdf->Ln(3);
                     $pdf->SetFillColor(0,0,0);
@@ -4531,7 +4737,7 @@
                     $pdf->SetFont('Arial','B',10);
                     $pdf->cell(190, 5, decode_fr("Faculte : ".$ff), 0, 1, 'L');
                     $pdf->cell(190, 5, decode_fr("Promotion : ".$pp), 0, 1, 'L');
-                    $pdf->cell(190, 5, decode_fr("Année Acad. : ".$annee_acad_fin), 0, 1, 'L');
+                    $pdf->cell(190, 5, decode_fr("Année Acad. : ".get_annee($annee_acad_fin)), 0, 1, 'L');
                     $pdf->Ln(2);
                     $pdf->cell(15, 5, 'mat', 1, 0, 'L');
                     $pdf->cell(70, 5, 'Noms', 1, 0, 'L');
@@ -4545,55 +4751,97 @@
                     $a = array();
                     $b = array();
 
-                    // selection de l etudiant
-                    $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT matricule, noms, promotion, fac, annee_academique FROM etudiants_inscrits WHERE fac = ? AND promotion = ? AND annee_academique = ? GROUP BY matricule");
-                    $sel_etud->execute(array($ff, $pp, $annee_acad_fin)); 
-                    
-                    while($data_etu = $sel_etud->fetch()){
-                        if($_POST['type_frais'] == "Tous"){
-                            $mt = ConnexionBdd::Connecter()->prepare("SELECT SUM(montant) AS mt FROM affectation_frais WHERE matricule  = ? AND promotion = ? AND faculte = ? AND annee_acad = ?");
-                            $mt->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $data_etu['annee_academique']));
+                    if($_POST['type_frais'] == "Tous"){
+                        $sql = "SELECT
+                                etudiants_inscrits.matricule,
+                                etudiants_inscrits.noms,
+                                affectation_frais.id,
+                                prevision_frais.type_frais,
+                                SUM(prevision_frais.montant) as mt,
+                                SUM(payement.montant) as mp,
+                                sections.section,
+                                departement.departement,
+                                options.option_,
+                                options.promotion,
+                                annee_acad.annee_acad,
+                                sections.id_section
+                            FROM
+                                etudiants_inscrits,
+                                affectation_frais
+                            LEFT JOIN prevision_frais ON affectation_frais.id_frais = prevision_frais.id_frais
+                            LEFT JOIN annee_acad ON affectation_frais.id_annee = annee_acad.id_annee
+                            LEFT JOIN sections ON affectation_frais.id_section = sections.id_section
+                            LEFT JOIN options ON affectation_frais.id_option = options.id_option
+                            LEFT JOIN departement ON affectation_frais.id_departement = departement.id_departement
+                            LEFT JOIN payement ON affectation_frais.id_frais = payement.id_frais
+                            WHERE
+                                etudiants_inscrits.promotion = ? AND sections.section = ? AND annee_acad.id_annee = ?
+                            ORDER BY
+                                etudiants_inscrits.noms ASC
+                            HAVING ROUND(mp * 100 / ?) >= ? AND ROUND(mp * 100 / ?) <= ?";
 
-                            while($data = $mt->fetch()){
-                                $payement = ConnexionBdd::Connecter()->prepare("SELECT SUM(montant) AS mp FROM payement WHERE matricule  = ? AND promotion = ? AND faculte = ? AND annee_acad = ? HAVING ROUND(mp * 100 / ?) >= ? AND ROUND(mp * 100 / ?) <= ?");
-                                $payement->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $data_etu['annee_academique'], $data['mt'], $_POST['pourcent_debut'], $data['mt'], $_POST['pourcent_fin']));
-                                while($pay = $payement->fetch()){
-                                    $pdf->SetFont('Arial','I',8);
-                                    $pdf->Ln(3);
-                                    $pdf->cell(15, 7, $data_etu['matricule'], 1, 0, 'L');
-                                    $pdf->cell(70, 7, $data_etu['noms'], 1, 0, 'L');
-                                    $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
-                                    $pdf->cell(30, 7, '$ '.mm($pay['mp']), 1, 0, 'L');
-                                    $pdf->cell(30, 7, '$ '.mm($data['mt'] - $pay['mp']), 1, 0, 'L');
-                                    $pdf->cell(15, 7, montant_restant_pourcent($pay['mp'], $data['mt']).' % ', 1, 0, 'L');
-                                    $pdf->Ln(4);
-                                    $b[] = $pay['mp'];
-                                    $a[] = $data['mt'];
-                                }
-                            }
-                        }else{
-                            $mt = ConnexionBdd::Connecter()->prepare("SELECT type_frais, SUM(montant) AS mt FROM affectation_frais WHERE matricule  = ? AND promotion = ? AND faculte = ? AND type_frais = ? AND annee_acad = ? HAVING mt > 0 ");
-                            $mt->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $_POST['type_frais'], $data_etu['annee_academique']));
+                        $mt = ConnexionBdd::Connecter()->prepare($sql);
+                        $mt->execute(array($pp, $ff, $annee_acad_fin, $pd, $pf));
 
-                            while($data = $mt->fetch()){
-                                $payement = ConnexionBdd::Connecter()->prepare("SELECT SUM(montant) AS mp FROM payement WHERE matricule  = ? AND promotion = ? AND faculte = ? AND annee_acad = ? AND type_frais = ? HAVING ROUND(mp * 100 / ?) >= ? AND ROUND(mp * 100 / ?) <= ?");
-                                $payement->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $data_etu['annee_academique'], $data['type_frais'], $data['mt'], $_POST['pourcent_debut'], $data['mt'], $_POST['pourcent_fin']));
-                                while($pay = $payement->fetch()){
-                                    $pdf->SetFont('Arial','I',8);
-                                    $pdf->Ln(3);
-                                    $pdf->cell(15, 7, $data_etu['matricule'], 1, 0, 'L');
-                                    $pdf->cell(70, 7, $data_etu['noms'], 1, 0, 'L');
-                                    $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
-                                    $pdf->cell(30, 7, '$ '.mm($pay['mp']), 1, 0, 'L');
-                                    $pdf->cell(30, 7, '$ '.mm($data['mt'] - $pay['mp']), 1, 0, 'L');
-                                    $pdf->cell(15, 7, montant_restant_pourcent($pay['mp'], $data['mt']).' % ', 1, 0, 'L');
-                                    $pdf->Ln(4);
-                                    $b[] = $pay['mp'];
-                                    $a[] = $data['mt'];
-                                }
-                            }
-                        }   
-                    }
+                        while($data = $mt->fetch()){
+                            $pdf->SetFont('Arial','I',8);
+                            $pdf->Ln(3);
+                            $pdf->cell(15, 7, $data['matricule'], 1, 0, 'L');
+                            $pdf->cell(70, 7, $data['noms'], 1, 0, 'L');
+                            $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
+                            $pdf->cell(30, 7, '$ '.mm($data['mp']), 1, 0, 'L');
+                            $pdf->cell(30, 7, '$ '.mm($data['mt'] - $data['mp']), 1, 0, 'L');
+                            $pdf->cell(15, 7, montant_restant_pourcent($data['mp'], $data['mt']).' % ', 1, 0, 'L');
+                            $pdf->Ln(4);
+                            $b[] = $data['mp'];
+                            $a[] = $data['mt'];
+                        }
+                    }else {
+                        $sql = "SELECT
+                                etudiants_inscrits.matricule,
+                                etudiants_inscrits.noms,
+                                affectation_frais.id,
+                                prevision_frais.type_frais,
+                                SUM(prevision_frais.montant) as mt,
+                                SUM(payement.montant) as mp,
+                                sections.section,
+                                departement.departement,
+                                options.option_,
+                                options.promotion,
+                                annee_acad.annee_acad,
+                                sections.id_section
+                            FROM
+                                etudiants_inscrits,
+                                affectation_frais
+                            LEFT JOIN prevision_frais ON affectation_frais.id_frais = prevision_frais.id_frais
+                            LEFT JOIN annee_acad ON affectation_frais.id_annee = annee_acad.id_annee
+                            LEFT JOIN sections ON affectation_frais.id_section = sections.id_section
+                            LEFT JOIN options ON affectation_frais.id_option = options.id_option
+                            LEFT JOIN departement ON affectation_frais.id_departement = departement.id_departement
+                            LEFT JOIN payement ON affectation_frais.id_frais = payement.id_frais
+                            WHERE
+                                etudiants_inscrits.promotion = ? AND sections.section = ? AND annee_acad.id_annee = ? AND prevision_frais.type_frais = ?
+                            ORDER BY
+                                etudiants_inscrits.noms ASC
+                            HAVING ROUND(mp * 100 / ?) >= ? AND ROUND(mp * 100 / ?) <= ?";
+
+                        $mt = ConnexionBdd::Connecter()->prepare($sql);
+                        $mt->execute(array($pp, $ff, $annee_acad_fin, $_POST['type_frais']));
+
+                        while($data = $mt->fetch()){
+                            $pdf->SetFont('Arial','I',8);
+                            $pdf->Ln(3);
+                            $pdf->cell(15, 7, $data['matricule'], 1, 0, 'L');
+                            $pdf->cell(70, 7, $data['noms'], 1, 0, 'L');
+                            $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
+                            $pdf->cell(30, 7, '$ '.mm($data['mp']), 1, 0, 'L');
+                            $pdf->cell(30, 7, '$ '.mm($data['mt'] - $data['mp']), 1, 0, 'L');
+                            $pdf->cell(15, 7, montant_restant_pourcent($data['mp'], $data['mt']).' % ', 1, 0, 'L');
+                            $pdf->Ln(4);
+                            $b[] = $data['mp'];
+                            $a[] = $data['mt'];
+                        }
+                    }  
                         
                     $pdf->Ln(3);
                     $pdf->SetFillColor(0,0,0);
@@ -4614,7 +4862,7 @@
                         $pdf->SetFont('Arial','B',10);
                         $pdf->cell(190, 5, decode_fr("Faculte : ".$ff), 0, 1, 'L');
                         $pdf->cell(190, 5, decode_fr("Promotion : ".$pp), 0, 1, 'L');
-                        $pdf->cell(190, 5, decode_fr("Année Acad. : ".$annee_acad_fin), 0, 1, 'L');
+                        $pdf->cell(190, 5, decode_fr("Année Acad. : ".get_annee($annee_acad_fin)), 0, 1, 'L');
                         $pdf->Ln(2);
                         $pdf->cell(15, 5, 'mat', 1, 0, 'L');
                         $pdf->cell(70, 5, 'Noms', 1, 0, 'L');
@@ -4628,55 +4876,95 @@
                         $a = array();
                         $b = array();
 
-                        // selection de l etudiant
-                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT matricule, noms, promotion, fac, annee_academique FROM etudiants_inscrits WHERE fac = ? AND promotion = ? AND annee_academique = ? GROUP BY matricule");
-                        $sel_etud->execute(array($ff, $pp, $annee_acad_fin)); 
-                        
-                        while($data_etu = $sel_etud->fetch()){
-                            if($_POST['type_frais'] == "Tous"){
-                                $mt = ConnexionBdd::Connecter()->prepare("SELECT SUM(montant) AS mt FROM affectation_frais WHERE matricule  = ? AND promotion = ? AND faculte = ? AND annee_acad = ?");
-                                $mt->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $data_etu['annee_academique']));
+                        if($_POST['type_frais'] == "Tous"){
+                            $sql = "SELECT
+                                    etudiants_inscrits.matricule,
+                                    etudiants_inscrits.noms,
+                                    affectation_frais.id,
+                                    prevision_frais.type_frais,
+                                    SUM(prevision_frais.montant) as mt,
+                                    SUM(payement.montant) as mp,
+                                    sections.section,
+                                    departement.departement,
+                                    options.option_,
+                                    options.promotion,
+                                    annee_acad.annee_acad,
+                                    sections.id_section
+                                FROM
+                                    etudiants_inscrits,
+                                    affectation_frais
+                                LEFT JOIN prevision_frais ON affectation_frais.id_frais = prevision_frais.id_frais
+                                LEFT JOIN annee_acad ON affectation_frais.id_annee = annee_acad.id_annee
+                                LEFT JOIN sections ON affectation_frais.id_section = sections.id_section
+                                LEFT JOIN options ON affectation_frais.id_option = options.id_option
+                                LEFT JOIN departement ON affectation_frais.id_departement = departement.id_departement
+                                LEFT JOIN payement ON affectation_frais.id_frais = payement.id_frais
+                                WHERE
+                                    etudiants_inscrits.promotion = ? AND sections.section = ? AND annee_acad.id_annee = ?
+                                ORDER BY
+                                    etudiants_inscrits.noms";
 
-                                while($data = $mt->fetch()){
-                                    $payement = ConnexionBdd::Connecter()->prepare("SELECT SUM(montant) AS mp FROM payement WHERE matricule  = ? AND promotion = ? AND faculte = ? AND annee_acad = ?");
-                                    $payement->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $data_etu['annee_academique']));
-                                    while($pay = $payement->fetch()){
-                                        $pdf->SetFont('Arial','I',8);
-                                        $pdf->Ln(3);
-                                        $pdf->cell(15, 7, $data_etu['matricule'], 1, 0, 'L');
-                                        $pdf->cell(70, 7, $data_etu['noms'], 1, 0, 'L');
-                                        $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
-                                        $pdf->cell(30, 7, '$ '.mm($pay['mp']), 1, 0, 'L');
-                                        $pdf->cell(30, 7, '$ '.mm($data['mt'] - $pay['mp']), 1, 0, 'L');
-                                        $pdf->cell(15, 7, montant_restant_pourcent($pay['mp'], $data['mt']).' % ', 1, 0, 'L');
-                                        $pdf->Ln(4);
-                                        $b[] = $pay['mp'];
-                                        $a[] = $data['mt'];
-                                    }
-                                }   
-                            }else{
-                                $mt = ConnexionBdd::Connecter()->prepare("SELECT type_frais, SUM(montant) AS mt FROM affectation_frais WHERE matricule  = ? AND promotion = ? AND faculte = ? AND type_frais = ? AND annee_acad = ? HAVING mt > 0 ");
-                                $mt->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $_POST['type_frais'], $data_etu['annee_academique']));
+                            $mt = ConnexionBdd::Connecter()->prepare($sql);
+                            $mt->execute(array($pp, $ff, $annee_acad_fin));
 
-                                while($data = $mt->fetch()){
-                                    $payement = ConnexionBdd::Connecter()->prepare("SELECT SUM(montant) AS mp FROM payement WHERE matricule  = ? AND promotion = ? AND faculte = ? AND type_frais = ? AND annee_acad = ?");
-                                    $payement->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $data['type_frais'], $data_etu['annee_academique']));
-                                    while($pay = $payement->fetch()){
-                                        $pdf->SetFont('Arial','I',8);
-                                        $pdf->Ln(3);
-                                        $pdf->cell(15, 7, $data_etu['matricule'], 1, 0, 'L');
-                                        $pdf->cell(70, 7, $data_etu['noms'], 1, 0, 'L');
-                                        $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
-                                        $pdf->cell(30, 7, '$ '.mm($pay['mp']), 1, 0, 'L');
-                                        $pdf->cell(30, 7, '$ '.mm($data['mt'] - $pay['mp']), 1, 0, 'L');
-                                        $pdf->cell(15, 7, montant_restant_pourcent($pay['mp'], $data['mt']).' % ', 1, 0, 'L');
-                                        $pdf->Ln(4);
-                                        $b[] = $pay['mp'];
-                                        $a[] = $data['mt'];
-                                    }
-                                }
+                            while($data = $mt->fetch()){
+                                $pdf->SetFont('Arial','I',8);
+                                $pdf->Ln(3);
+                                $pdf->cell(15, 7, $data['matricule'], 1, 0, 'L');
+                                $pdf->cell(70, 7, $data['noms'], 1, 0, 'L');
+                                $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
+                                $pdf->cell(30, 7, '$ '.mm($data['mp']), 1, 0, 'L');
+                                $pdf->cell(30, 7, '$ '.mm($data['mt'] - $data['mp']), 1, 0, 'L');
+                                $pdf->cell(15, 7, montant_restant_pourcent($data['mp'], $data['mt']).' % ', 1, 0, 'L');
+                                $pdf->Ln(4);
+                                $b[] = $data['mp'];
+                                $a[] = $data['mt'];
                             }
-                        }
+                        }else {
+                            $sql = "SELECT
+                                    etudiants_inscrits.matricule,
+                                    etudiants_inscrits.noms,
+                                    affectation_frais.id,
+                                    prevision_frais.type_frais,
+                                    SUM(prevision_frais.montant) as mt,
+                                    SUM(payement.montant) as mp,
+                                    sections.section,
+                                    departement.departement,
+                                    options.option_,
+                                    options.promotion,
+                                    annee_acad.annee_acad,
+                                    sections.id_section
+                                FROM
+                                    etudiants_inscrits,
+                                    affectation_frais
+                                LEFT JOIN prevision_frais ON affectation_frais.id_frais = prevision_frais.id_frais
+                                LEFT JOIN annee_acad ON affectation_frais.id_annee = annee_acad.id_annee
+                                LEFT JOIN sections ON affectation_frais.id_section = sections.id_section
+                                LEFT JOIN options ON affectation_frais.id_option = options.id_option
+                                LEFT JOIN departement ON affectation_frais.id_departement = departement.id_departement
+                                LEFT JOIN payement ON affectation_frais.id_frais = payement.id_frais
+                                WHERE
+                                    etudiants_inscrits.promotion = ? AND sections.section = ? AND annee_acad.id_annee = ? AND prevision_frais.type_frais = ?
+                                ORDER BY
+                                    etudiants_inscrits.noms";
+
+                            $mt = ConnexionBdd::Connecter()->prepare($sql);
+                            $mt->execute(array($pp, $ff, $annee_acad_fin, $_POST['type_frais']));
+
+                            while($data = $mt->fetch()){
+                                $pdf->SetFont('Arial','I',8);
+                                $pdf->Ln(3);
+                                $pdf->cell(15, 7, $data['matricule'], 1, 0, 'L');
+                                $pdf->cell(70, 7, $data['noms'], 1, 0, 'L');
+                                $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
+                                $pdf->cell(30, 7, '$ '.mm($data['mp']), 1, 0, 'L');
+                                $pdf->cell(30, 7, '$ '.mm($data['mt'] - $data['mp']), 1, 0, 'L');
+                                $pdf->cell(15, 7, montant_restant_pourcent($data['mp'], $data['mt']).' % ', 1, 0, 'L');
+                                $pdf->Ln(4);
+                                $b[] = $data['mp'];
+                                $a[] = $data['mt'];
+                            }
+                        }  
                             
                         $pdf->Ln(3);
                         $pdf->SetFillColor(0,0,0);
@@ -4696,7 +4984,7 @@
                         $pdf->SetFont('Arial','B',10);
                         $pdf->cell(190, 5, decode_fr("Faculte : ".$ff), 0, 1, 'L');
                         $pdf->cell(190, 5, decode_fr("Promotion : ".$pp), 0, 1, 'L');
-                        $pdf->cell(190, 5, decode_fr("Année Acad. : ".$annee_acad_fin), 0, 1, 'L');
+                        $pdf->cell(190, 5, decode_fr("Année Acad. : ".get_annee($annee_acad_fin)), 0, 1, 'L');
                         $pdf->Ln(2);
                         $pdf->cell(15, 5, 'mat', 1, 0, 'L');
                         $pdf->cell(70, 5, 'Noms', 1, 0, 'L');
@@ -4710,55 +4998,97 @@
                         $a = array();
                         $b = array();
 
-                        // selection de l etudiant
-                        $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT matricule, noms, promotion, fac, annee_academique FROM etudiants_inscrits WHERE fac = ? AND promotion = ? AND annee_academique = ? GROUP BY matricule");
-                        $sel_etud->execute(array($ff, $pp, $annee_acad_fin)); 
-                        
-                        while($data_etu = $sel_etud->fetch()){
-                            if($_POST['type_frais'] == "Tous"){
-                                $mt = ConnexionBdd::Connecter()->prepare("SELECT SUM(montant) AS mt FROM affectation_frais WHERE matricule  = ? AND promotion = ? AND faculte = ? AND annee_acad = ?");
-                                $mt->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $data_etu['annee_academique']));
+                        if($_POST['type_frais'] == "Tous"){
+                            $sql = "SELECT
+                                    etudiants_inscrits.matricule,
+                                    etudiants_inscrits.noms,
+                                    affectation_frais.id,
+                                    prevision_frais.type_frais,
+                                    SUM(prevision_frais.montant) as mt,
+                                    SUM(payement.montant) as mp,
+                                    sections.section,
+                                    departement.departement,
+                                    options.option_,
+                                    options.promotion,
+                                    annee_acad.annee_acad,
+                                    sections.id_section
+                                FROM
+                                    etudiants_inscrits,
+                                    affectation_frais
+                                LEFT JOIN prevision_frais ON affectation_frais.id_frais = prevision_frais.id_frais
+                                LEFT JOIN annee_acad ON affectation_frais.id_annee = annee_acad.id_annee
+                                LEFT JOIN sections ON affectation_frais.id_section = sections.id_section
+                                LEFT JOIN options ON affectation_frais.id_option = options.id_option
+                                LEFT JOIN departement ON affectation_frais.id_departement = departement.id_departement
+                                LEFT JOIN payement ON affectation_frais.id_frais = payement.id_frais
+                                WHERE
+                                    etudiants_inscrits.promotion = ? AND sections.section = ? AND annee_acad.id_annee = ?
+                                ORDER BY
+                                    etudiants_inscrits.noms ASC
+                                HAVING ROUND(mp * 100 / ?) >= ? AND ROUND(mp * 100 / ?) <= ?";
 
-                                while($data = $mt->fetch()){
-                                    $payement = ConnexionBdd::Connecter()->prepare("SELECT SUM(montant) AS mp FROM payement WHERE matricule  = ? AND promotion = ? AND faculte = ? AND annee_acad = ? HAVING ROUND(mp * 100 / ?) >= ? AND ROUND(mp * 100 / ?) <= ?");
-                                    $payement->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $data_etu['annee_academique'], $data['mt'], $_POST['pourcent_debut'], $data['mt'], $_POST['pourcent_fin']));
-                                    while($pay = $payement->fetch()){
-                                        $pdf->SetFont('Arial','I',8);
-                                        $pdf->Ln(3);
-                                        $pdf->cell(15, 7, $data_etu['matricule'], 1, 0, 'L');
-                                        $pdf->cell(70, 7, $data_etu['noms'], 1, 0, 'L');
-                                        $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
-                                        $pdf->cell(30, 7, '$ '.mm($pay['mp']), 1, 0, 'L');
-                                        $pdf->cell(30, 7, '$ '.mm($data['mt'] - $pay['mp']), 1, 0, 'L');
-                                        $pdf->cell(15, 7, montant_restant_pourcent($pay['mp'], $data['mt']).' % ', 1, 0, 'L');
-                                        $pdf->Ln(4);
-                                        $b[] = $pay['mp'];
-                                        $a[] = $data['mt'];
-                                    }
-                                }
-                            }else{
-                                $mt = ConnexionBdd::Connecter()->prepare("SELECT type_frais, SUM(montant) AS mt FROM affectation_frais WHERE matricule  = ? AND promotion = ? AND faculte = ? AND type-Frais = ? AND annee_acad = ? HAVING mt > 0 ");
-                                $mt->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $_POST['type_frais'], $data_etu['annee_academique']));
+                            $mt = ConnexionBdd::Connecter()->prepare($sql);
+                            $mt->execute(array($pp, $ff, $annee_acad_fin, $pd, $pf));
 
-                                while($data = $mt->fetch()){
-                                    $payement = ConnexionBdd::Connecter()->prepare("SELECT SUM(montant) AS mp FROM payement WHERE matricule  = ? AND promotion = ? AND faculte = ? AND type_frais = ? AND annee_acad = ? HAVING ROUND(mp * 100 / ?) >= ? AND ROUND(mp * 100 / ?) <= ?");
-                                    $payement->execute(array($data_etu['matricule'], $data_etu['promotion'], $data_etu['fac'], $data['type_frais'], $data_etu['annee_academique'], $data['mt'], $_POST['pourcent_debut'], $data['mt'], $_POST['pourcent_fin']));
-                                    while($pay = $payement->fetch()){
-                                        $pdf->SetFont('Arial','I',8);
-                                        $pdf->Ln(3);
-                                        $pdf->cell(15, 7, $data_etu['matricule'], 1, 0, 'L');
-                                        $pdf->cell(70, 7, $data_etu['noms'], 1, 0, 'L');
-                                        $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
-                                        $pdf->cell(30, 7, '$ '.mm($pay['mp']), 1, 0, 'L');
-                                        $pdf->cell(30, 7, '$ '.mm($data['mt'] - $pay['mp']), 1, 0, 'L');
-                                        $pdf->cell(15, 7, montant_restant_pourcent($pay['mp'], $data['mt']).' % ', 1, 0, 'L');
-                                        $pdf->Ln(4);
-                                        $b[] = $pay['mp'];
-                                        $a[] = $data['mt'];
-                                    }
-                                }
-                            }   
-                        }
+                            while($data = $mt->fetch()){
+                                $pdf->SetFont('Arial','I',8);
+                                $pdf->Ln(3);
+                                $pdf->cell(15, 7, $data['matricule'], 1, 0, 'L');
+                                $pdf->cell(70, 7, $data['noms'], 1, 0, 'L');
+                                $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
+                                $pdf->cell(30, 7, '$ '.mm($data['mp']), 1, 0, 'L');
+                                $pdf->cell(30, 7, '$ '.mm($data['mt'] - $data['mp']), 1, 0, 'L');
+                                $pdf->cell(15, 7, montant_restant_pourcent($data['mp'], $data['mt']).' % ', 1, 0, 'L');
+                                $pdf->Ln(4);
+                                $b[] = $data['mp'];
+                                $a[] = $data['mt'];
+                            }
+                        }else {
+                            $sql = "SELECT
+                                    etudiants_inscrits.matricule,
+                                    etudiants_inscrits.noms,
+                                    affectation_frais.id,
+                                    prevision_frais.type_frais,
+                                    SUM(prevision_frais.montant) as mt,
+                                    SUM(payement.montant) as mp,
+                                    sections.section,
+                                    departement.departement,
+                                    options.option_,
+                                    options.promotion,
+                                    annee_acad.annee_acad,
+                                    sections.id_section
+                                FROM
+                                    etudiants_inscrits,
+                                    affectation_frais
+                                LEFT JOIN prevision_frais ON affectation_frais.id_frais = prevision_frais.id_frais
+                                LEFT JOIN annee_acad ON affectation_frais.id_annee = annee_acad.id_annee
+                                LEFT JOIN sections ON affectation_frais.id_section = sections.id_section
+                                LEFT JOIN options ON affectation_frais.id_option = options.id_option
+                                LEFT JOIN departement ON affectation_frais.id_departement = departement.id_departement
+                                LEFT JOIN payement ON affectation_frais.id_frais = payement.id_frais
+                                WHERE
+                                    etudiants_inscrits.promotion = ? AND sections.section = ? AND annee_acad.id_annee = ? AND prevision_frais.type_frais = ?
+                                ORDER BY
+                                    etudiants_inscrits.noms ASC
+                                HAVING ROUND(mp * 100 / ?) >= ? AND ROUND(mp * 100 / ?) <= ?";
+
+                            $mt = ConnexionBdd::Connecter()->prepare($sql);
+                            $mt->execute(array($pp, $ff, $annee_acad_fin, $_POST['type_frais']));
+
+                            while($data = $mt->fetch()){
+                                $pdf->SetFont('Arial','I',8);
+                                $pdf->Ln(3);
+                                $pdf->cell(15, 7, $data['matricule'], 1, 0, 'L');
+                                $pdf->cell(70, 7, $data['noms'], 1, 0, 'L');
+                                $pdf->cell(30, 7, '$ '.mm($data['mt']), 1, 0, 'L');
+                                $pdf->cell(30, 7, '$ '.mm($data['mp']), 1, 0, 'L');
+                                $pdf->cell(30, 7, '$ '.mm($data['mt'] - $data['mp']), 1, 0, 'L');
+                                $pdf->cell(15, 7, montant_restant_pourcent($data['mp'], $data['mt']).' % ', 1, 0, 'L');
+                                $pdf->Ln(4);
+                                $b[] = $data['mp'];
+                                $a[] = $data['mt'];
+                            }
+                        }  
                             
                         $pdf->Ln(3);
                         $pdf->SetFillColor(0,0,0);
@@ -4950,7 +5280,7 @@
                                             <!--  -->
                                             <button type="submit" id="btn_etudiant" class="btn-link text-left" name="btn_etudiant" value="btn_etudiant">Synthèse par étudiant</button>
                                             <!--  -->
-                                            <button type="submit" id="btn_detail_etud" class="btn-link text-left" name="btn_detail_etud" value="btn_detail_etud">Détail de payement par étudiant</button>
+                                            <!-- <button type="submit" id="btn_detail_etud" class="btn-link text-left" name="btn_detail_etud" value="btn_detail_etud">Détail de payement par étudiant</button> -->
                                         </div>
                                     </div>
                                 </form>
