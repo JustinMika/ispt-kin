@@ -1,5 +1,7 @@
 <?php
     require_once './ConnexionBdd.class.php';
+    require_once './log_user.class.php';
+    require_once './verification.class.php';
     require_once '../admin/PHPExcel/PHPExcel.php';
     require_once '../admin/PHPExcel/PHPExcel/IOFactory.php';
 
@@ -26,37 +28,61 @@
                             $nrColumns = ord($highestColumn) - 64;
 
                             for ($i=2; $i <= $highestRow ; $i++){
-                                $type = $worksheet->getCellByColumnAndRow(0, $i)->getValue();
-                                $annee_acad = $worksheet->getCellByColumnAndRow(1, $i)->getValue();
+                                $type = $worksheet->getCellByColumnAndRow(1, $i)->getValue();
+                                $code = $worksheet->getCellByColumnAndRow(0, $i)->getValue();
+                                $code = strtoupper($code);
                                 $montant = $worksheet->getCellByColumnAndRow(2, $i)->getValue();
-                                $faculte = $worksheet->getCellByColumnAndRow(3, $i)->getValue();
-                                $promotion = $worksheet->getCellByColumnAndRow(4, $i)->getValue();
 
                                 // verification s il y a pas des champs qui sont laiasser vide par erreur par l utilisateur
-                                if(!empty($type) && !empty($annee_acad) && !empty($montant) && !empty($faculte) && !empty($promotion)){
-                                    $verif = ConnexionBdd::Connecter()->prepare("SELECT * FROM prevision_frais WHERE type_frais = ? AND annee_acad  = ? AND montant = ? AND faculte = ? AND promotion = ?");
-                                    $verif->execute(array($type, $annee_acad, $montant,  $faculte, $promotion));
+                                if(!empty($type) || !empty($code) || !empty($montant) ){
+                                    // on recupere le dernier annee academique
+                                    $an =  ConnexionBdd::Connecter()->query("SELECT * FROM annee_acad GROUP BY annee_acad ORDER BY id_annee DESC LIMIT 1");
+                                    if($an->rowCount() > 0){
+                                        $an_r = $an->fetch();
+                                    }else{
+                                        $an_r['id_annee'] = '';
+                                        die("Veuillez AJouter l annee academique");
+                                    }
+                                    // verification pour le matricule, promotion, fac, annee acad
+                                    $v = ConnexionBdd::Connecter()->prepare("SELECT * FROM options WHERE code_ = ? AND id_annee = ? ORDER BY id_option DESC LIMIT 0, 1");
+                                    $v->execute(array($code, $an_r['id_annee']));
 
-                                    $nbre = $verif->rowcount();
-                                    if($nbre <= 0){
-                                        // insertion de donnees dans la base de donnees 
-                                        $insert_etud = ConnexionBdd::Connecter()->prepare("INSERT INTO prevision_frais(type_frais, annee_acad, montant, faculte, promotion) VALUES(?,?,?,?,?)");
-                                        $ok = $insert_etud->execute(array($type, $annee_acad, $montant,  $faculte, $promotion));
-                                        if(!$ok){
-                                            echo "une erreur est survenues : les donnees ne sont pas inserer";
+                                    if($v->rowCount() > 0){
+                                        $data = $v->fetch();
+                                        $id_section = $data['id_section'];
+                                        $id_option = $data['id_option'];
+                                        $id_departement = $data['id_departement'];
+                                        $promotion = $data['promotion'];
+
+                                        // on verifie si le frais n existe pas dans la base de donnees
+
+                                        $verif = ConnexionBdd::Connecter()->prepare("SELECT * FROM prevision_frais WHERE type_frais = ? AND id_annee  = ? AND promotion = ? AND id_section = ? AND id_departement = ? AND id_option = ?");
+                                        $verif->execute(array($type, $an_r['id_annee'], $promotion, $id_section, $id_departement, $id_option));
+
+                                        $n = $verif->rowCount();
+
+                                        if($n >= 0){
+                                            // insertion de donnees dans la base de donnees 
+                                            $insert_etud = ConnexionBdd::Connecter()->prepare("INSERT INTO prevision_frais(type_frais, montant, promotion, id_section, id_departement, id_option, id_annee) VALUES(?, ?, ?, ?, ?, ?, ?)");
+                                            $ok = $insert_etud->execute(array($type, $montant, $promotion, $id_section, $id_departement, $id_option, $an_r['id_annee']));
+                                            if(!$ok){
+                                                echo "Ligne {$i} :: une erreur est survenues : les donnees ne sont pas inserer";
+                                            }
+                                        }else{
+                                            echo "le type de frais : '".$type."' existe déjà pour l'année ".$an_r['annee_acad'];
                                         }
                                     }else{
-                                        // on branle quedal 
-                                        // echo "les donnees existe deja dans la base de donnees";
+                                        echo("Ligne {$i} : Le code de l'option {$code} n'est pas enregistrer<hr class='m-0'>");
                                     }
                                 }else{
                                     // on fait quedal on saute cette ligne
                                 }
                             }
+                            // LogUser::addlog(VerificationUser::verif($_SESSION['data']['id_user']), "a ajouté des prevision de frais pour les etudiants.");
                             echo "Traitement reussi avec succes"; 
                         }               
                     } catch (\Throwable $th) {
-                        echo "Erreur : "+$th;
+                        echo "Erreur : ".$th->getMessage();
                     }
                 }else{
                     echo("Veuillez charger le fichier de prevision des frais pas n importe quoi svp !!!.");

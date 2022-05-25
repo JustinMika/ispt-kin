@@ -139,7 +139,7 @@
 								$an_r['id_annee'] = '';
 							}
 							// print_r($an_r['id_annee']);
-							$nb_fac = ConnexionBdd::Connecter()->prepare("SELECT count(*) FROM etudiants_inscrits WHERE etudiants_inscrits.id_annee = ?");
+							$nb_fac = ConnexionBdd::Connecter()->prepare("SELECT * FROM etudiants_inscrits WHERE etudiants_inscrits.id_annee = ?");
 							$nb_fac->execute(array($an_r['id_annee']));
 							$n = $nb_fac->rowCount();
 							?>

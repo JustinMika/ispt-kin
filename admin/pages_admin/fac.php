@@ -109,7 +109,7 @@
                                                         $an_r['id_annee'] = '';
                                                     }
 
-                                                    $verif = ConnexionBdd::Connecter()->prepare("SELECT * FROM departement WHERE id_annee = ? ORDER BY departement ASC");
+                                                    $verif = ConnexionBdd::Connecter()->prepare("SELECT * FROM departement WHERE id_annee = ? ORDER BY id_departement ASC");
                                                     $verif->execute(array($an_r['id_annee']));
                                                     while($data = $verif->fetch()){
                                                         ?>
@@ -235,10 +235,11 @@
                                     <option value="G1">G1</option>
                                     <option value="G2">G2</option>
                                     <option value="G3">G3</option>
-                                    <option value="L1 A">L1 A</option>
-                                    <option value="L2 A">L2 A</option>
+                                    <option value="L1 A">L1 ANC</option>
+                                    <option value="L2 A">L2 ANC</option>
                                     <option value="L1">L1</option>
                                     <option value="L2">L2</option>
+                                    <option value="L3">L3</option>
                                     <option value="M1">M1</option>
                                     <option value="M2">M2</option>
                                 </select>

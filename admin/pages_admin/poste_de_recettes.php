@@ -111,7 +111,7 @@
                                         <div class="dropdown-menu" aria-labelledby="triggerId">
                                             <button data-target="#prevision_f" data-toggle="modal" class="dropdown-item btn btn-default btn-sm text-secondary"><i class="fa fa-upload" aria-hidden="true"> Ajouter une prévision</i></button>
 
-                                            <!-- <button data-target="#modal_etud" data-toggle="modal" class="dropdown-item btn btn-default btn-sm text-secondary"><i class="fa fa-upload" aria-hidden="true"> Uploader le fichier</i></button> -->
+                                            <button data-target="#modal_etud" data-toggle="modal" class="dropdown-item btn btn-default btn-sm text-secondary"><i class="fa fa-upload" aria-hidden="true"> Uploader le fichier</i></button>
                                             
                                             <a href="rapport_pdf/prevision_frais_acad.php" class="dropdown-item btn-sm btn-default text-secondary" id="btn_rapport" target="_blank"><i class="fa fa-print" aria-hidden="true"> Imprimer un Rapport</i> </a>
                                         </div>
