@@ -194,8 +194,8 @@
 												$an_r['annee_acad'] = '';
 											}
 
-											$frais_par_fac = ConnexionBdd::Connecter()->prepare("SELECT faculte.fac AS f, SUM(payement.montant) AS m FROM faculte LEFT JOIN payement ON faculte.fac = payement.faculte WHERE payement.annee_acad = ? GROUP BY faculte.fac");
-											$frais_par_fac->execute(array(f_annee($an_r['annee_acad'])));
+											$frais_par_fac = ConnexionBdd::Connecter()->prepare("SELECT SUM(payement.montant) as m , sections.section as f, annee_acad.id_annee FROM payement LEFT JOIN sections ON payement.id_section = sections.id_section LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee WHERE payement.id_annee = 1 GROUP BY sections.section");
+											$frais_par_fac->execute(array(f_annee($an_r['id_annee'])));
 
 											while($data_ = $frais_par_fac->fetch()){
 												$data1 = $data1.'"'. $data_['f'].'",';
@@ -353,11 +353,11 @@
 										if($an->rowCount() > 0){
 											$an_r = $an->fetch();
 										}else{
-											$an_r['annee_acad'] = '';
+											$an_r['id_annee'] = '';
 										}
 
-										$frais_promotion = ConnexionBdd::Connecter()->prepare("SELECT promotion, SUM(payement.montant) AS m FROM payement WHERE annee_acad = ? GROUP BY promotion");
-										$frais_promotion->execute(array($an_r['annee_acad']));
+										$frais_promotion = ConnexionBdd::Connecter()->prepare("SELECT SUM(payement.montant) as m, options.promotion, annee_acad.id_annee FROM payement LEFT JOIN options ON payement.id_option = options.id_option LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee WHERE payement.id_annee = ? GROUP BY options.promotion");
+										$frais_promotion->execute(array($an_r['id_annee']));
 
 										while($data = $frais_promotion->fetch()){
 											$data_promotion = $data_promotion.'"'. $data['m'].'",';
