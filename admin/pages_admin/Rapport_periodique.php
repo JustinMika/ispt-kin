@@ -89,7 +89,7 @@
             $pp = $_POST['promotion_etud'];
 
             // selection des toutes les facultes
-            $f = ConnexionBdd::Connecter()->query("SELECT etudiants_inscrits.id_section, sections.section, annee_acad.id_annee FROM etudiants_inscrits LEFT JOIN sections ON etudiants_inscrits.id_section = sections.id_section LEFT JOIN annee_acad ON etudiants_inscrits.id_annee = annee_acad.id_annee WHERE etudiants_inscrits.id_annee = {$annee_acad_fin}");
+            $f = ConnexionBdd::Connecter()->query("SELECT DISTINCT etudiants_inscrits.id_section, sections.section, annee_acad.id_annee FROM etudiants_inscrits LEFT JOIN sections ON etudiants_inscrits.id_section = sections.id_section LEFT JOIN annee_acad ON etudiants_inscrits.id_annee = annee_acad.id_annee WHERE etudiants_inscrits.id_annee = {$annee_acad_fin}");
             while($df = $f->fetch()){
                 $t_fac[] = $df['section'];
             }
@@ -138,7 +138,7 @@
                                             LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                             LEFT JOIN sections ON payement.id_section = sections.id_section
                                             LEFT JOIN options ON payement.id_section = options.id_option
-                                            WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                            WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?  group by prevision_frais.type_frais";
                                         $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp, $dd, $_POST['date_fin']);
                                         $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                         $sql_2->execute($sql_2_a);
@@ -173,7 +173,7 @@
                                         LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                         LEFT JOIN sections ON payement.id_section = sections.id_section
                                         LEFT JOIN options ON payement.id_section = options.id_option
-                                        WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                        WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ? GROUP BY prevision_frais.type_frais";
                                         // die($dd);
                                         $sql_2_a = array($annee_acad_deb, trim($ff), $pp, $dd, $_POST['date_fin']);
                                         $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
@@ -235,7 +235,7 @@
                                             LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                             LEFT JOIN sections ON payement.id_section = sections.id_section
                                             LEFT JOIN options ON payement.id_section = options.id_option
-                                            WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                            WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? group by prevision_frais.type_frais";
                                         $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp);
                                         $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                         $sql_2->execute($sql_2_a);
@@ -270,7 +270,7 @@
                                         LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                         LEFT JOIN sections ON payement.id_section = sections.id_section
                                         LEFT JOIN options ON payement.id_section = options.id_option
-                                        WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                        WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? group by prevision_frais.type_frais";
                                         // die($pp);
                                         $sql_2_a = array($annee_acad_deb, trim($ff), $pp);
                                         $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
@@ -342,7 +342,7 @@
                                         LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                         LEFT JOIN sections ON payement.id_section = sections.id_section
                                         LEFT JOIN options ON payement.id_section = options.id_option
-                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?  group by prevision_frais.type_frais";
                                     $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp, $dd, $_POST['date_fin']);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
@@ -377,7 +377,7 @@
                                     LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                     LEFT JOIN sections ON payement.id_section = sections.id_section
                                     LEFT JOIN options ON payement.id_section = options.id_option
-                                    WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                    WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?  group by prevision_frais.type_frais";
                                     // die($dd);
                                     $sql_2_a = array($annee_acad_deb, trim($ff), $pp, $dd, $_POST['date_fin']);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
@@ -439,7 +439,7 @@
                                         LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                         LEFT JOIN sections ON payement.id_section = sections.id_section
                                         LEFT JOIN options ON payement.id_section = options.id_option
-                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?  group by prevision_frais.type_frais";
                                     $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
@@ -474,7 +474,7 @@
                                     LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                     LEFT JOIN sections ON payement.id_section = sections.id_section
                                     LEFT JOIN options ON payement.id_section = options.id_option
-                                    WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                    WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?  group by prevision_frais.type_frais";
                                     // die($pp);
                                     $sql_2_a = array($annee_acad_deb, trim($ff), $pp);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
@@ -540,7 +540,7 @@
                                     LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                     LEFT JOIN sections ON payement.id_section = sections.id_section
                                     LEFT JOIN options ON payement.id_section = options.id_option
-                                    WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                    WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?  group by prevision_frais.type_frais";
                                 $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp, $dd, $_POST['date_fin']);
                                 $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                 $sql_2->execute($sql_2_a);
@@ -575,7 +575,7 @@
                                 LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                 LEFT JOIN sections ON payement.id_section = sections.id_section
                                 LEFT JOIN options ON payement.id_section = options.id_option
-                                WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?  group by prevision_frais.type_frais";
                                 // die($dd);
                                 $sql_2_a = array($annee_acad_deb, trim($ff), $pp, $dd, $_POST['date_fin']);
                                 $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
@@ -637,7 +637,7 @@
                                     LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                     LEFT JOIN sections ON payement.id_section = sections.id_section
                                     LEFT JOIN options ON payement.id_section = options.id_option
-                                    WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                    WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?  group by prevision_frais.type_frais";
                                 $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp);
                                 $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                 $sql_2->execute($sql_2_a);
@@ -672,7 +672,7 @@
                                 LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                 LEFT JOIN sections ON payement.id_section = sections.id_section
                                 LEFT JOIN options ON payement.id_section = options.id_option
-                                WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?  group by prevision_frais.type_frais";
                                 // die($pp);
                                 $sql_2_a = array($annee_acad_deb, trim($ff), $pp);
                                 $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
@@ -738,7 +738,7 @@
                                         LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                         LEFT JOIN sections ON payement.id_section = sections.id_section
                                         LEFT JOIN options ON payement.id_section = options.id_option
-                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?  group by prevision_frais.type_frais";
                                     $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp, $dd, $_POST['date_fin']);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
@@ -773,7 +773,7 @@
                                     LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                     LEFT JOIN sections ON payement.id_section = sections.id_section
                                     LEFT JOIN options ON payement.id_section = options.id_option
-                                    WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                    WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?  group by prevision_frais.type_frais";
                                     // die($dd);
                                     $sql_2_a = array($annee_acad_deb, trim($ff), $pp, $dd, $_POST['date_fin']);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
@@ -835,7 +835,7 @@
                                         LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                         LEFT JOIN sections ON payement.id_section = sections.id_section
                                         LEFT JOIN options ON payement.id_section = options.id_option
-                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?  group by prevision_frais.type_frais";
                                     $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
@@ -870,7 +870,7 @@
                                     LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                     LEFT JOIN sections ON payement.id_section = sections.id_section
                                     LEFT JOIN options ON payement.id_section = options.id_option
-                                    WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                    WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?  group by prevision_frais.type_frais";
                                     // die($pp);
                                     $sql_2_a = array($annee_acad_deb, trim($ff), $pp);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
@@ -944,18 +944,12 @@
             $ff = $_POST['fac_etudiant'];
             $pp = $_POST['promotion_etud'];
             // selection des toutes les facultes
-            $f = ConnexionBdd::Connecter()->query("SELECT etudiants_inscrits.id_section, sections.section, annee_acad.id_annee FROM etudiants_inscrits LEFT JOIN sections ON etudiants_inscrits.id_section = sections.id_section LEFT JOIN annee_acad ON etudiants_inscrits.id_annee = annee_acad.id_annee WHERE etudiants_inscrits.id_annee = {$annee_acad_fin}");
-            while($df = $f->fetch()){
-                $t_fac[] = $df['section'];
-            }
-            // selection des toutes les promotions
-            $f = ConnexionBdd::Connecter()->query("SELECT DISTINCT promotion FROM etudiants_inscrits GROUP BY promotion");
-            while($df = $f->fetch()){
-                $t_promotion[] = $df['promotion'];
-            }
-
-
+            
             if($_POST['fac_etudiant'] == "Tous" && $_POST['promotion_etud'] == "Tous"){
+                $f = ConnexionBdd::Connecter()->query("SELECT DISTINCT  etudiants_inscrits.id_section, sections.section, annee_acad.id_annee FROM etudiants_inscrits LEFT JOIN sections ON etudiants_inscrits.id_section = sections.id_section LEFT JOIN annee_acad ON etudiants_inscrits.id_annee = annee_acad.id_annee WHERE etudiants_inscrits.id_annee = {$annee_acad_fin}");
+                while($df = $f->fetch()){
+                    $t_fac[] = $df['section'];
+                }
                 foreach($t_fac as $ff){
                     if(!empty($_POST['date_debit']) && !empty($_POST['date_fin'])){
                         // la tables etudiants
@@ -994,7 +988,7 @@
                                         LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                         LEFT JOIN sections ON payement.id_section = sections.id_section
                                         LEFT JOIN options ON payement.id_section = options.id_option
-                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND payement.date_payement BETWEEN ? AND ?";
+                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND payement.date_payement BETWEEN ? AND ? GROUP BY prevision_frais.type_frais";
                                     $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $ff, $dd, $_POST['date_fin']);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
@@ -1029,7 +1023,7 @@
                                     LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                     LEFT JOIN sections ON payement.id_section = sections.id_section
                                     LEFT JOIN options ON payement.id_section = options.id_option
-                                    WHERE annee_acad.id_annee = ? AND sections.section = ? AND payement.date_payement BETWEEN ? AND ?";
+                                    WHERE annee_acad.id_annee = ? AND sections.section = ? AND payement.date_payement BETWEEN ? AND ?  GROUP BY prevision_frais.type_frais";
                                     // die($dd);
                                     $sql_2_a = array($annee_acad_deb, trim($ff), $dd, $_POST['date_fin']);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
@@ -1091,7 +1085,8 @@
                                         LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                         LEFT JOIN sections ON payement.id_section = sections.id_section
                                         LEFT JOIN options ON payement.id_section = options.id_option
-                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ?";
+                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? 
+                                        group by prevision_frais.type_frais";
                                     $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $ff);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
@@ -1126,7 +1121,8 @@
                                     LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                     LEFT JOIN sections ON payement.id_section = sections.id_section
                                     LEFT JOIN options ON payement.id_section = options.id_option
-                                    WHERE annee_acad.id_annee = ? AND sections.section = ?";
+                                    WHERE annee_acad.id_annee = ? AND sections.section = ? 
+                                    group by prevision_frais.type_frais, sections.section";
                                     // die($pp);
                                     $sql_2_a = array($annee_acad_deb, trim($ff));
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
@@ -1165,7 +1161,7 @@
                         // selection des l etudiant
                         $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
                         $sel_etud->execute(array($annee_acad_fin));
-            
+        
                         if($sel_etud->rowCount() > 0){
                             // while ($data_student = $sel_etud->fetch()){
                                 $pdf->Ln(5);
@@ -1176,11 +1172,11 @@
                                 $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
                                 $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
                                 $pdf->Ln(1);
-            
+        
                                 // tableau
                                 $a = array();
                                 $b = array();
-            
+        
                                 if($_POST['type_frais'] != "Tous"){
                                     $sql_2 = "SELECT
                                             payement.id_payement,
@@ -1197,11 +1193,11 @@
                                         LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                         LEFT JOIN sections ON payement.id_section = sections.id_section
                                         LEFT JOIN options ON payement.id_section = options.id_option
-                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
-                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp, $dd, $_POST['date_fin']);
+                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND payement.date_payement BETWEEN ? AND ? GROUP BY prevision_frais.type_frais";
+                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $ff, $dd, $_POST['date_fin']);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
-            
+    
                                     while($d = $sql_2->fetch()){
                                         $pdf->SetFont('Arial','i',8);
                                         $pdf->Ln(4);
@@ -1232,12 +1228,12 @@
                                     LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                     LEFT JOIN sections ON payement.id_section = sections.id_section
                                     LEFT JOIN options ON payement.id_section = options.id_option
-                                    WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                    WHERE annee_acad.id_annee = ? AND sections.section = ? AND payement.date_payement BETWEEN ? AND ?  GROUP BY prevision_frais.type_frais";
                                     // die($dd);
-                                    $sql_2_a = array($annee_acad_deb, trim($ff), $pp, $dd, $_POST['date_fin']);
+                                    $sql_2_a = array($annee_acad_deb, trim($ff), $dd, $_POST['date_fin']);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
-            
+        
                                     while($d = $sql_2->fetch()){
                                         $pdf->SetFont('Arial','i',8);
                                         $pdf->Ln(4);
@@ -1246,7 +1242,7 @@
                                         $pdf->Ln(1);
                                         $a[] = $d['mp'];
                                     }
-            
+        
                                     $pdf->Ln(4);
                                     $pdf->SetFont('Arial','',9);
                                     $pdf->cell(60, 5, 'Total', 1, 0, 'L');
@@ -1262,7 +1258,7 @@
                         // selection des l etudiant
                         $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
                         $sel_etud->execute(array($annee_acad_fin));
-            
+        
                         if($sel_etud->rowCount() > 0){
                             while ($data_student = $sel_etud->fetch()){
                                 $pdf->Ln(5);
@@ -1273,11 +1269,11 @@
                                 $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
                                 $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
                                 $pdf->Ln(1);
-            
+        
                                 // tableau
                                 $a = array();
                                 $b = array();
-            
+        
                                 if($_POST['type_frais'] != "Tous"){
                                     $sql_2 = "SELECT
                                             payement.id_payement,
@@ -1294,11 +1290,12 @@
                                         LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                         LEFT JOIN sections ON payement.id_section = sections.id_section
                                         LEFT JOIN options ON payement.id_section = options.id_option
-                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
-                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp);
+                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? 
+                                        group by prevision_frais.type_frais";
+                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $ff);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
-            
+    
                                     while($d = $sql_2->fetch()){
                                         $pdf->SetFont('Arial','i',8);
                                         $pdf->Ln(4);
@@ -1329,12 +1326,13 @@
                                     LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                     LEFT JOIN sections ON payement.id_section = sections.id_section
                                     LEFT JOIN options ON payement.id_section = options.id_option
-                                    WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                    WHERE annee_acad.id_annee = ? AND sections.section = ? 
+                                    group by prevision_frais.type_frais, sections.section";
                                     // die($pp);
-                                    $sql_2_a = array($annee_acad_deb, trim($ff), $pp);
+                                    $sql_2_a = array($annee_acad_deb, trim($ff));
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
-            
+        
                                     while($d = $sql_2->fetch()){
                                         $pdf->SetFont('Arial','i',8);
                                         $pdf->Ln(4);
@@ -1343,7 +1341,7 @@
                                         $pdf->Ln(1);
                                         $a[] = $d['mp'];
                                     }
-            
+        
                                     $pdf->Ln(4);
                                     $pdf->SetFont('Arial','',9);
                                     $pdf->cell(60, 5, 'Total', 1, 0, 'L');
@@ -1363,7 +1361,7 @@
                     // selection des l etudiant
                     $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
                     $sel_etud->execute(array($annee_acad_fin));
-        
+    
                     if($sel_etud->rowCount() > 0){
                         // while ($data_student = $sel_etud->fetch()){
                             $pdf->Ln(5);
@@ -1374,11 +1372,11 @@
                             $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
                             $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
                             $pdf->Ln(1);
-        
+    
                             // tableau
                             $a = array();
                             $b = array();
-        
+    
                             if($_POST['type_frais'] != "Tous"){
                                 $sql_2 = "SELECT
                                         payement.id_payement,
@@ -1395,11 +1393,11 @@
                                     LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                     LEFT JOIN sections ON payement.id_section = sections.id_section
                                     LEFT JOIN options ON payement.id_section = options.id_option
-                                    WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
-                                $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp, $dd, $_POST['date_fin']);
+                                    WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND payement.date_payement BETWEEN ? AND ? GROUP BY prevision_frais.type_frais";
+                                $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $ff, $dd, $_POST['date_fin']);
                                 $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                 $sql_2->execute($sql_2_a);
-        
+
                                 while($d = $sql_2->fetch()){
                                     $pdf->SetFont('Arial','i',8);
                                     $pdf->Ln(4);
@@ -1430,12 +1428,12 @@
                                 LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                 LEFT JOIN sections ON payement.id_section = sections.id_section
                                 LEFT JOIN options ON payement.id_section = options.id_option
-                                WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                WHERE annee_acad.id_annee = ? AND sections.section = ? AND payement.date_payement BETWEEN ? AND ?  GROUP BY prevision_frais.type_frais";
                                 // die($dd);
-                                $sql_2_a = array($annee_acad_deb, trim($ff), $pp, $dd, $_POST['date_fin']);
+                                $sql_2_a = array($annee_acad_deb, trim($ff), $dd, $_POST['date_fin']);
                                 $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                 $sql_2->execute($sql_2_a);
-        
+    
                                 while($d = $sql_2->fetch()){
                                     $pdf->SetFont('Arial','i',8);
                                     $pdf->Ln(4);
@@ -1444,7 +1442,7 @@
                                     $pdf->Ln(1);
                                     $a[] = $d['mp'];
                                 }
-        
+    
                                 $pdf->Ln(4);
                                 $pdf->SetFont('Arial','',9);
                                 $pdf->cell(60, 5, 'Total', 1, 0, 'L');
@@ -1460,7 +1458,7 @@
                     // selection des l etudiant
                     $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
                     $sel_etud->execute(array($annee_acad_fin));
-        
+    
                     if($sel_etud->rowCount() > 0){
                         while ($data_student = $sel_etud->fetch()){
                             $pdf->Ln(5);
@@ -1471,11 +1469,11 @@
                             $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
                             $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
                             $pdf->Ln(1);
-        
+    
                             // tableau
                             $a = array();
                             $b = array();
-        
+    
                             if($_POST['type_frais'] != "Tous"){
                                 $sql_2 = "SELECT
                                         payement.id_payement,
@@ -1492,11 +1490,12 @@
                                     LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                     LEFT JOIN sections ON payement.id_section = sections.id_section
                                     LEFT JOIN options ON payement.id_section = options.id_option
-                                    WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
-                                $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp);
+                                    WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? 
+                                    group by prevision_frais.type_frais";
+                                $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $ff);
                                 $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                 $sql_2->execute($sql_2_a);
-        
+
                                 while($d = $sql_2->fetch()){
                                     $pdf->SetFont('Arial','i',8);
                                     $pdf->Ln(4);
@@ -1527,12 +1526,13 @@
                                 LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                 LEFT JOIN sections ON payement.id_section = sections.id_section
                                 LEFT JOIN options ON payement.id_section = options.id_option
-                                WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                WHERE annee_acad.id_annee = ? AND sections.section = ? 
+                                group by prevision_frais.type_frais, sections.section";
                                 // die($pp);
-                                $sql_2_a = array($annee_acad_deb, trim($ff), $pp);
+                                $sql_2_a = array($annee_acad_deb, trim($ff));
                                 $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                 $sql_2->execute($sql_2_a);
-        
+    
                                 while($d = $sql_2->fetch()){
                                     $pdf->SetFont('Arial','i',8);
                                     $pdf->Ln(4);
@@ -1541,7 +1541,7 @@
                                     $pdf->Ln(1);
                                     $a[] = $d['mp'];
                                 }
-        
+    
                                 $pdf->Ln(4);
                                 $pdf->SetFont('Arial','',9);
                                 $pdf->cell(60, 5, 'Total', 1, 0, 'L');
@@ -1561,7 +1561,7 @@
                         // selection des l etudiant
                         $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
                         $sel_etud->execute(array($annee_acad_fin));
-            
+        
                         if($sel_etud->rowCount() > 0){
                             // while ($data_student = $sel_etud->fetch()){
                                 $pdf->Ln(5);
@@ -1572,11 +1572,11 @@
                                 $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
                                 $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
                                 $pdf->Ln(1);
-            
+        
                                 // tableau
                                 $a = array();
                                 $b = array();
-            
+        
                                 if($_POST['type_frais'] != "Tous"){
                                     $sql_2 = "SELECT
                                             payement.id_payement,
@@ -1593,11 +1593,11 @@
                                         LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                         LEFT JOIN sections ON payement.id_section = sections.id_section
                                         LEFT JOIN options ON payement.id_section = options.id_option
-                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
-                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp, $dd, $_POST['date_fin']);
+                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND payement.date_payement BETWEEN ? AND ? GROUP BY prevision_frais.type_frais";
+                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $ff, $dd, $_POST['date_fin']);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
-            
+    
                                     while($d = $sql_2->fetch()){
                                         $pdf->SetFont('Arial','i',8);
                                         $pdf->Ln(4);
@@ -1628,12 +1628,12 @@
                                     LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                     LEFT JOIN sections ON payement.id_section = sections.id_section
                                     LEFT JOIN options ON payement.id_section = options.id_option
-                                    WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ? AND payement.date_payement BETWEEN ? AND ?";
+                                    WHERE annee_acad.id_annee = ? AND sections.section = ? AND payement.date_payement BETWEEN ? AND ?  GROUP BY prevision_frais.type_frais";
                                     // die($dd);
-                                    $sql_2_a = array($annee_acad_deb, trim($ff), $pp, $dd, $_POST['date_fin']);
+                                    $sql_2_a = array($annee_acad_deb, trim($ff), $dd, $_POST['date_fin']);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
-            
+        
                                     while($d = $sql_2->fetch()){
                                         $pdf->SetFont('Arial','i',8);
                                         $pdf->Ln(4);
@@ -1642,7 +1642,7 @@
                                         $pdf->Ln(1);
                                         $a[] = $d['mp'];
                                     }
-            
+        
                                     $pdf->Ln(4);
                                     $pdf->SetFont('Arial','',9);
                                     $pdf->cell(60, 5, 'Total', 1, 0, 'L');
@@ -1658,7 +1658,7 @@
                         // selection des l etudiant
                         $sel_etud = ConnexionBdd::Connecter()->prepare("SELECT id_annee FROM etudiants_inscrits WHERE id_annee = ? GROUP BY id_annee");
                         $sel_etud->execute(array($annee_acad_fin));
-            
+        
                         if($sel_etud->rowCount() > 0){
                             while ($data_student = $sel_etud->fetch()){
                                 $pdf->Ln(5);
@@ -1669,11 +1669,11 @@
                                 $pdf->cell(60, 5, 'Type frais', 1, 0, 'L');
                                 $pdf->cell(30, 5, decode_fr('Montant payé'), 1, 0, 'L');
                                 $pdf->Ln(1);
-            
+        
                                 // tableau
                                 $a = array();
                                 $b = array();
-            
+        
                                 if($_POST['type_frais'] != "Tous"){
                                     $sql_2 = "SELECT
                                             payement.id_payement,
@@ -1690,11 +1690,12 @@
                                         LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                         LEFT JOIN sections ON payement.id_section = sections.id_section
                                         LEFT JOIN options ON payement.id_section = options.id_option
-                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
-                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $_POST['fac_etudiant'], $pp);
+                                        WHERE prevision_frais.type_frais = ? AND annee_acad.id_annee = ? AND sections.section = ? 
+                                        group by prevision_frais.type_frais";
+                                    $sql_2_a = array($_POST['type_frais'], $annee_acad_deb, $ff);
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
-            
+    
                                     while($d = $sql_2->fetch()){
                                         $pdf->SetFont('Arial','i',8);
                                         $pdf->Ln(4);
@@ -1725,12 +1726,13 @@
                                     LEFT JOIN annee_acad ON payement.id_annee = annee_acad.id_annee
                                     LEFT JOIN sections ON payement.id_section = sections.id_section
                                     LEFT JOIN options ON payement.id_section = options.id_option
-                                    WHERE annee_acad.id_annee = ? AND sections.section = ? AND options.promotion = ?";
+                                    WHERE annee_acad.id_annee = ? AND sections.section = ? 
+                                    group by prevision_frais.type_frais, sections.section";
                                     // die($pp);
-                                    $sql_2_a = array($annee_acad_deb, trim($ff), $pp);
+                                    $sql_2_a = array($annee_acad_deb, trim($ff));
                                     $sql_2 = ConnexionBdd::Connecter()->prepare($sql_2);
                                     $sql_2->execute($sql_2_a);
-            
+        
                                     while($d = $sql_2->fetch()){
                                         $pdf->SetFont('Arial','i',8);
                                         $pdf->Ln(4);
@@ -1739,7 +1741,7 @@
                                         $pdf->Ln(1);
                                         $a[] = $d['mp'];
                                     }
-            
+        
                                     $pdf->Ln(4);
                                     $pdf->SetFont('Arial','',9);
                                     $pdf->cell(60, 5, 'Total', 1, 0, 'L');
@@ -2628,7 +2630,10 @@
         $pdf->Ln(3);
 
         $pdf->SetFont('Arial','BU',10);
-        $pdf->cell(250, 10, decode_fr('RAPPORT MENSUEL DES PAYENMETS '.$annee_acad_deb), 0, 1, 'C');
+        $an = get_annee($annee_acad_deb);
+        // annee academique moins un
+        $year_below = $an[5].''.$an[6].''.$an[7].''.$an[8];
+        $pdf->cell(250, 10, decode_fr('RAPPORT MENSUEL DES PAYENMETS '.get_annee($annee_acad_deb).' de '.$year_below), 0, 1, 'C');
         $pdf->SetFont('Arial','',10);
         // lw titre
 
@@ -2650,9 +2655,8 @@
         $year_below = $an[5].''.$an[6].''.$an[7].''.$an[8];
         // die($year_below);
         $sel_m = ConnexionBdd::Connecter()->prepare("SELECT * FROM `payement` WHERE  id_annee = ?");
-        $sel_m->execute(array( $annee_acad_deb));
+        $sel_m->execute(array($annee_acad_deb));
         if($sel_m->rowCount() > 0){
-            $pdf->cell(250, 10, decode_fr('RAPPORT MENSUEL DES PAYENMETS '.$annee_acad_deb.' de '.$year_below), 0, 1, 'C');
             $pdf->cell(60, 5, "Type de frais", 1, 0, 'L');
             foreach($mois as $m){
                 $pdf->cell(17, 5, $m, 1, 0, 'L');
@@ -2663,7 +2667,7 @@
             // liste de frais enregistrer dans la base de donnees
             $list_f = array();
 
-            $f = ConnexionBdd::Connecter()->prepare("SELECT DISTINCT prevision_frais.id_frais, prevision_frais.type_frais FROM prevision_frais WHERE prevision_frais.id_annee = ?");
+            $f = ConnexionBdd::Connecter()->prepare("SELECT DISTINCT prevision_frais.id_frais, prevision_frais.type_frais FROM prevision_frais WHERE prevision_frais.id_annee = ? GROUP BY prevision_frais.type_frais");
             $f->execute(array($annee_acad_deb));
             while($d = $f->fetch()){
                 $list_f[] = utf8_decode($d['type_frais']);
