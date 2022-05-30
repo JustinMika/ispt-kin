@@ -20,19 +20,24 @@
                     $_SESSION['nom'] = $req['noms'];
                     $_SESSION['fonction_agent'] = $req['fonction'];
                     
-                    // log de l'utilisateur
-                    LogUser::addlog($req['id_user'], "s'est connecté(e) Connexion au system.");
-                    $data = array(
-                        "id"        => md5(sha1($req['id_user'])), 
-                        "fonction"  => $req['fonction'],
-                        "noms"      => $req['noms'],
-                        "profil"    => $req['profil'],
-                        "id_user"   => $req['id_user'],
-                        "access"    => $req['access']
-                    );
+                    // On enregistre le  log de l'utilisateur
+                    try {
+                        LogUser::addlog($req['id_user'], "s'est connecté(e) Connexion au system.");
+                        $data = array(
+                            "id"        => md5(sha1($req['id_user'])), 
+                            "fonction"  => $req['fonction'],
+                            "noms"      => $req['noms'],
+                            "profil"    => $req['profil'],
+                            "id_user"   => $req['id_user'],
+                            "access"    => $req['access']
+                        );
+                        
+                        echo json_encode($data);
+                        $_SESSION['data'] = $data;
+                    } catch (Exception $e) {
+                        die($e->getMessage());
+                    }
                     
-                    echo json_encode($data);
-                    $_SESSION['data'] = $data;
                 }else{
                     echo "<b>l'adresee email et/ou le mot de passe est incorect</b>";
                 }
